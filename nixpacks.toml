@@ -1,0 +1,12 @@
+[phases.setup]
+nixPkgs = { nodejs = "18", python = "3.11" }
+
+[phases.install]
+cmds = [
+  "pip install -r requirements.txt",
+  "apt-get update && apt-get install -y chromium chromium-driver"
+]
+
+[start]
+cmd = "python forsalebyowner_selenium_scraper.py"
+
