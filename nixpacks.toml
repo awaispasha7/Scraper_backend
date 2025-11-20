@@ -3,9 +3,11 @@ nixPkgs = ["python311"]
 
 [phases.install]
 cmds = [
-  "apt-get update && apt-get install -y python3-pip chromium chromium-driver",
-  "python3 -m pip install --upgrade pip",
-  "python3 -m pip install -r requirements.txt"
+  "apt-get update && apt-get install -y curl chromium chromium-driver",
+  "curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py",
+  "python3 get-pip.py --break-system-packages",
+  "python3 -m pip install --upgrade pip --break-system-packages",
+  "python3 -m pip install -r requirements.txt --break-system-packages"
 ]
 
 [start]
