@@ -3,10 +3,10 @@ nixPkgs = ["python311"]
 
 [phases.install]
 cmds = [
-  "pip install -r requirements.txt",
+  "python3 -m pip install -r requirements.txt",
   "apt-get update && apt-get install -y chromium chromium-driver"
 ]
 
 [start]
-cmd = "python forsalebyowner_selenium_scraper.py"
+cmd = "python3 forsalebyowner_selenium_scraper.py"
 
