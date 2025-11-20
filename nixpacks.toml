@@ -16,5 +16,5 @@ cmds = [
 ]
 
 [start]
-cmd = "python3 forsalebyowner_selenium_scraper.py"
+cmd = "python3 api_server.py"
 
