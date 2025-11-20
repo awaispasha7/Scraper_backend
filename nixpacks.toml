@@ -10,6 +10,11 @@ cmds = [
   "python3 -m pip install -r requirements.txt --break-system-packages"
 ]
 
+[phases.build]
+cmds = [
+  "python3 -m pip install -r requirements.txt --break-system-packages"
+]
+
 [start]
 cmd = "python3 forsalebyowner_selenium_scraper.py"
 
