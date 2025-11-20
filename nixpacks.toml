@@ -1,11 +1,11 @@
 [phases.setup]
-nixPkgs = ["python311", "python311Packages.pip"]
+nixPkgs = ["python311"]
 
 [phases.install]
 cmds = [
+  "apt-get update && apt-get install -y python3-pip chromium chromium-driver",
   "python3 -m pip install --upgrade pip",
-  "python3 -m pip install -r requirements.txt",
-  "apt-get update && apt-get install -y chromium chromium-driver"
+  "python3 -m pip install -r requirements.txt"
 ]
 
 [start]
