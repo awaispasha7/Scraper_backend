@@ -22,12 +22,24 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Local env files (keep .env for syncing, but ignore sensitive local overrides)
+# Environment files - IMPORTANT: Contains API keys!
+.env
 .env*.local
 .env.local
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Output directories and data files
+output/
+outputs/
+*.csv
+
+# Log files
+*_log.txt
+full_log.txt
+scraper_log.txt
+test_output.txt
 
 # Python
 __pycache__/

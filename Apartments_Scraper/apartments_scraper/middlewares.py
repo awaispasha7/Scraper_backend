@@ -118,17 +118,33 @@ class ZyteApiDownloaderMiddleware:
     @classmethod
     def from_crawler(cls, crawler):
         import os
+        from pathlib import Path
+        
         # Try to get API key from settings first
         api_key = crawler.settings.get("ZYTE_API_KEY")
         
-        # If not in settings, try environment variable
+        # If not in settings, try to load from Scraper_backend root .env first
+        if not api_key:
+            # middlewares.py -> apartments_scraper -> Apartments_Scraper -> Scraper_backend
+            project_root = Path(__file__).resolve().parents[2]  # Go up to Scraper_backend
+            env_path = project_root / '.env'
+            if env_path.exists():
+                try:
+                    with open(env_path, "r", encoding="utf-8") as f:
+                        for line in f:
+                            line = line.strip()
+                            if line.startswith("ZYTE_API_KEY="):
+                                api_key = line.split("=", 1)[1].strip()
+                                break
+                except Exception as e:
+                    pass  # Will try other methods
+        
+        # If not in root .env, try environment variable
         if not api_key:
             api_key = os.getenv("ZYTE_API_KEY")
         
-        # If still not found, try reading from apartments_scraper/.env
+        # Fallback: try reading from apartments_scraper/.env
         if not api_key:
-            # __file__ is .../apartments_scraper/middlewares.py
-            # .env lives in the same package directory: .../apartments_scraper/.env
             package_dir = os.path.dirname(os.path.abspath(__file__))
             env_path = os.path.join(package_dir, ".env")
             if os.path.exists(env_path):
@@ -140,7 +156,7 @@ class ZyteApiDownloaderMiddleware:
                                 api_key = line.split("=", 1)[1].strip()
                                 break
                 except Exception as e:
-                    crawler.spider.logger.warning(f"Could not read .env file: {e}")
+                    pass
         
         if not api_key:
             raise ValueError("ZYTE_API_KEY not found in settings, environment, or .env file")

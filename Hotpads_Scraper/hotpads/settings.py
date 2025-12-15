@@ -17,7 +17,7 @@ NEWSPIDER_MODULE = "hotpads.spiders"
 #USER_AGENT = "hotpads (+http://www.yourdomain.com)"
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 CONCURRENT_REQUESTS = 8
@@ -98,10 +98,13 @@ REQUEST_FINGERPRINTER_IMPLEMENTATION = "2.7"
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"
 FEED_EXPORT_ENCODING = "utf-8"
 
-# Load environment variables
+# Load environment variables from project root (Scraper_backend/.env)
 import os
+from pathlib import Path
 from dotenv import load_dotenv
-load_dotenv()
+project_root = Path(__file__).resolve().parents[2]  # Go up to Scraper_backend
+env_path = project_root / '.env'
+load_dotenv(dotenv_path=env_path)
 
 ZYTE_API_KEY = os.getenv("ZYTE_API_KEY")
 SUPABASE_URL = os.getenv("SUPABASE_URL")

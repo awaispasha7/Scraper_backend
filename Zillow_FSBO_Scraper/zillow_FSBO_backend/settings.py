@@ -8,9 +8,13 @@
 #     https://docs.scrapy.org/en/latest/topics/spider-middleware.html
 
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+# Load environment variables from project root (Scraper_backend/.env)
+project_root = Path(__file__).resolve().parents[2]  # Go up to Scraper_backend
+env_path = project_root / '.env'
+load_dotenv(dotenv_path=env_path)
 
 BOT_NAME = "zillow_scraper"
 
@@ -22,7 +26,7 @@ NEWSPIDER_MODULE = "zillow_FSBO_backend.spiders"
 #USER_AGENT = "zillow_scraper (+http://www.yourdomain.com)"
 
 # Obey robots.txt rules
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 # CONCURRENT_REQUESTS = 8
@@ -65,32 +69,8 @@ ROBOTSTXT_OBEY = True
 #    "scrapy.extensions.telnet.TelnetConsole": None,
 #}
 
-# Configure item pipelines
+# Configure item pipelines - Supabase only (no CSV)
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-
-# Configure CSV output
-FEEDS = {
-    'output/Zillow_FSBO_Data.csv': {
-        'format': 'csv',
-        'overwrite': True,
-        'encoding': 'utf-8',
-        'fields': [
-            'Detail_URL',
-            'Address',
-            'Bedrooms',
-            'Bathrooms',
-            'Price',
-            'Home_Type',
-            'Year_Build',
-            'HOA',
-            'Days_On_Zillow',
-            'Page_View_Count',
-            'Favorite_Count',
-            'Phone_Number',
-        ]
-    }
-}
-
 ITEM_PIPELINES = {
     "zillow_FSBO_backend.supabase_pipeline.SupabasePipeline": 300,
 }

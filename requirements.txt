@@ -1,6 +1,33 @@
+# ============================================
+# UNIFIED REQUIREMENTS - Scraper Backend
+# ============================================
+# Python 3.11+ recommended
+
+# ==================== Core ====================
+# Web scraping framework
+scrapy==2.12.0
+scrapy-zyte-api==0.31.0
+itemadapter==0.10.0
+
+# HTTP requests
 requests==2.31.0
+
+# ==================== Database ====================
+supabase==2.24.0
+
+# ==================== Data Processing ====================
+pandas==2.2.3
 beautifulsoup4==4.12.2
-selenium==4.15.2
-webdriver-manager==4.0.1
+
+# ==================== Web Server ====================
 flask==3.0.0
 flask-cors==4.0.0
+
+# ==================== Browser Automation ====================
+# Only needed for forsalebyowner_selenium_scraper.py
+selenium==4.15.2
+webdriver-manager==4.0.1
+
+# ==================== Utilities ====================
+python-dotenv==1.0.0
+schedule==1.2.2

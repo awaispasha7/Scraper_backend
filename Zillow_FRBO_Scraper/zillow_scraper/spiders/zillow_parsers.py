@@ -108,17 +108,27 @@ class ZillowJSONParser:
             item['Days On Zillow'] = home.get('daysOnZillow', '')
             
             # Extract address
-            try:
-                address = "".join([text.strip() for text in response.xpath(
-                    '//*[@data-test-id="bdp-building-address"]//text() |//div[contains(@class,"styles__AddressWrapper")]/h1//text()').getall()]).strip()
-                item["Address"] = address.replace(',', ', ')
-            except:
+            # Try JSON first (more reliable)
+            street = home.get('streetAddress')
+            city = home.get('city')
+            state = home.get('state')
+            zip_code = home.get('zipcode')
+            
+            if street and city and state:
+                item["Address"] = f"{street}, {city}, {state} {zip_code or ''}".strip()
+            else:
+                # Fallback to XPath
                 try:
                     address = "".join([text.strip() for text in response.xpath(
-                        '//div[contains(@class,"styles__AddressWrapper")]/h1//text()').getall()]).strip()
+                        '//*[@data-test-id="bdp-building-address"]//text() |//div[contains(@class,"styles__AddressWrapper")]/h1//text()').getall()]).strip()
                     item["Address"] = address.replace(',', ', ')
                 except:
-                    item["Address"] = ""
+                    try:
+                        address = "".join([text.strip() for text in response.xpath(
+                            '//div[contains(@class,"styles__AddressWrapper")]/h1//text()').getall()]).strip()
+                        item["Address"] = address.replace(',', ', ')
+                    except:
+                        item["Address"] = ""
             
             # Extract beds and baths
             beds = home.get('bedrooms')

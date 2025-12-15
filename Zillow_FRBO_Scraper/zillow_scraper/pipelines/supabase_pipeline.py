@@ -4,8 +4,8 @@ from pathlib import Path
 from supabase import create_client, Client
 from dotenv import load_dotenv
 
-# Load environment variables from project root
-project_root = Path(__file__).resolve().parents[2]
+# Load environment variables from project root (Scraper_backend/.env)
+project_root = Path(__file__).resolve().parents[3]  # Go up to Scraper_backend
 env_path = project_root / '.env'
 load_dotenv(dotenv_path=env_path)
 

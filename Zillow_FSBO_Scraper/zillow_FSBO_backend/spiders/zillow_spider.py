@@ -9,11 +9,23 @@ class ZillowSpiderSpider(scrapy.Spider):
 
     def start_requests(self):
         """Initial request to Zillow FSBO listings"""
-        # Default URL for Chicago FSBO listings
-        start_url = "https://www.zillow.com/chicago-il/fsbo/"
+        # Use provided URL via -a start_url if available, else usage default
+        start_url = getattr(self, 'start_url', None)
+        if not start_url:
+            # Default filtered URL
+            start_url = "https://www.zillow.com/homes/for_sale/?searchQueryState=%7B%22pagination%22%3A%7B%7D%2C%22isMapVisible%22%3Atrue%2C%22mapBounds%22%3A%7B%22west%22%3A-88.80532949149847%2C%22east%22%3A-87.34964101493597%2C%22south%22%3A41.273733987949605%2C%22north%22%3A42.289555725011496%7D%2C%22mapZoom%22%3A9%2C%22usersSearchTerm%22%3A%22%22%2C%22filterState%22%3A%7B%22sort%22%3A%7B%22value%22%3A%22globalrelevanceex%22%7D%2C%22price%22%3A%7B%22min%22%3Anull%2C%22max%22%3A350000%7D%2C%22mp%22%3A%7B%22min%22%3Anull%2C%22max%22%3A1799%7D%2C%22tow%22%3A%7B%22value%22%3Afalse%7D%2C%22mf%22%3A%7B%22value%22%3Afalse%7D%2C%22con%22%3A%7B%22value%22%3Afalse%7D%2C%22land%22%3A%7B%22value%22%3Afalse%7D%2C%22apa%22%3A%7B%22value%22%3Afalse%7D%2C%22manu%22%3A%7B%22value%22%3Afalse%7D%2C%22apco%22%3A%7B%22value%22%3Afalse%7D%2C%22fsba%22%3A%7B%22value%22%3Afalse%7D%2C%22nc%22%3A%7B%22value%22%3Afalse%7D%2C%22fore%22%3A%7B%22value%22%3Afalse%7D%2C%22auc%22%3A%7B%22value%22%3Afalse%7D%7D%2C%22isListVisible%22%3Atrue%7D"
         
         self.logger.info(f"Starting scrape for: {start_url}")
-        yield scrapy.Request(url=start_url, callback=self.parse)
+        yield scrapy.Request(
+            url=start_url, 
+            callback=self.parse,
+            meta={
+                "zyte_api": {
+                    "browserHtml": True,
+                    "geolocation": "US"
+                }
+            }
+        )
 
     def parse(self, response):
         """Parse search results page"""
@@ -41,8 +53,18 @@ class ZillowSpiderSpider(scrapy.Spider):
                     new_detailUrl = f'{BASE_URL}{url}'
                 else:
                     new_detailUrl = url
-                yield response.follow(url=new_detailUrl, callback=self.detail_page,
-                                      dont_filter=True, meta={'new_detailUrl': new_detailUrl})
+                yield response.follow(
+                    url=new_detailUrl, 
+                    callback=self.detail_page,
+                    dont_filter=True, 
+                    meta={
+                        'new_detailUrl': new_detailUrl,
+                        "zyte_api": {
+                            "browserHtml": True,
+                            "geolocation": "US"
+                        }
+                    }
+                )
         except json.JSONDecodeError as e:
             self.logger.error(f"JSON decode error in parse: {e}")
         except Exception as e:
@@ -51,7 +73,16 @@ class ZillowSpiderSpider(scrapy.Spider):
         next_page = response.xpath("//a[@title='Next page']/@href").get('')
         if next_page:
             self.logger.info(f"Found next page: {next_page}")
-            yield scrapy.Request(response.urljoin(next_page), callback=self.parse)
+            yield scrapy.Request(
+                response.urljoin(next_page), 
+                callback=self.parse,
+                meta={
+                    "zyte_api": {
+                        "browserHtml": True,
+                        "geolocation": "US"
+                    }
+                }
+            )
 
     def detail_page(self, response):
         """Parse property detail page"""
@@ -82,13 +113,24 @@ class ZillowSpiderSpider(scrapy.Spider):
             
             # Extract address with improved error handling
             try:
-                address = "".join([text.strip() for text in response.xpath('//*[@data-test-id="bdp-building-address"]//text() |//div[contains(@class,"styles__AddressWrapper")]/h1//text()').getall()]).strip()
-                item["Address"] = address.replace(',', ', ')
+                raw_address = "".join([text.strip() for text in response.xpath('//*[@data-test-id="bdp-building-address"]//text() |//div[contains(@class,"styles__AddressWrapper")]/h1//text()').getall()]).strip()
+                # Normalize whitespace (replace multiple spaces with single space)
+                address = " ".join(raw_address.split())
+                
+                # Strict Filtering: Skip if not in Illinois
+                if "IL" not in address and "Illinois" not in address:
+                    self.logger.info(f"⛔ Skipping non-IL listing: {address}")
+                    return
+                
+                item["Address"] = address
             except Exception as e:
                 self.logger.warning(f"Error extracting primary address: {e}")
                 try:
-                    address = "".join([text.strip() for text in response.xpath('//div[contains(@class,"styles__AddressWrapper")]/h1//text()').getall()]).strip()
-                    item["Address"] = address.replace(',', ', ')
+                    raw_address = "".join([text.strip() for text in response.xpath('//div[contains(@class,"styles__AddressWrapper")]/h1//text()').getall()]).strip()
+                    address = " ".join(raw_address.split())
+                    if "IL" not in address and "Illinois" not in address:
+                        return
+                    item["Address"] = address
                 except Exception as e2:
                     self.logger.warning(f"Error extracting fallback address: {e2}")
                     item["Address"] = ""

@@ -1,6 +1,0 @@
-scrapy
-scrapy-zyte-api
-requests
-python-dotenv
-supabase
-schedule

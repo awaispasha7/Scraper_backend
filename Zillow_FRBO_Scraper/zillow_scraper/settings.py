@@ -3,8 +3,8 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Load environment variables from project root
-project_root = Path(__file__).resolve().parents[1]
+# Load environment variables from project root (Scraper_backend/.env)
+project_root = Path(__file__).resolve().parents[2]  # Go up to Scraper_backend
 env_path = project_root / '.env'
 load_dotenv(dotenv_path=env_path)
 
@@ -29,14 +29,14 @@ FEED_EXPORT_ENCODING = "utf-8"
 ZYTE_API_KEY = os.getenv('ZYTE_API_KEY')
 # ZYTE_API_TRANSPARENT_MODE = True
 
-# DOWNLOAD_HANDLERS = {
-#     "http": "scrapy_zyte_api.ScrapyZyteAPIDownloadHandler",
-#     "https": "scrapy_zyte_api.ScrapyZyteAPIDownloadHandler",
-# }
+DOWNLOAD_HANDLERS = {
+    "http": "scrapy_zyte_api.ScrapyZyteAPIDownloadHandler",
+    "https": "scrapy_zyte_api.ScrapyZyteAPIDownloadHandler",
+}
 
-# DOWNLOADER_MIDDLEWARES = {
-#     "scrapy_zyte_api.ScrapyZyteAPIDownloaderMiddleware": 1000,
-# }
+DOWNLOADER_MIDDLEWARES = {
+    "scrapy_zyte_api.ScrapyZyteAPIDownloaderMiddleware": 1000,
+}
 
-# REQUEST_FINGERPRINTER_CLASS = "scrapy_zyte_api.ScrapyZyteAPIRequestFingerprinter"
+REQUEST_FINGERPRINTER_CLASS = "scrapy_zyte_api.ScrapyZyteAPIRequestFingerprinter"
 TWISTED_REACTOR = "twisted.internet.asyncioreactor.AsyncioSelectorReactor"

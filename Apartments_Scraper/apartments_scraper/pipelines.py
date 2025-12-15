@@ -194,13 +194,11 @@ class SupabasePipeline:
         """Load environment variables from .env file if it exists."""
         # Check multiple possible locations for .env file
         current_file = os.path.abspath(__file__)
-        # From pipelines.py: go up 2 levels to get to project root (apartments/apartments/)
-        # pipelines.py -> apartments_scraper -> apartments (project root)
-        script_dir = os.path.dirname(os.path.dirname(current_file))  # Project root
+        # From pipelines.py: apartments_scraper -> Apartments_Scraper -> Scraper_backend
+        script_dir = os.path.dirname(os.path.dirname(current_file))  # Apartments_Scraper
         possible_paths = [
-            os.path.join(script_dir, '.env'),  # Project root (apartments/apartments/.env)
-            os.path.join(os.path.dirname(script_dir), '.env'),  # Parent directory
-            os.path.join(os.path.dirname(os.path.dirname(script_dir)), '.env'),  # Grandparent directory
+            os.path.join(os.path.dirname(script_dir), '.env'),  # Scraper_backend root (1 level up)
+            os.path.join(script_dir, '.env'),  # Apartments_Scraper/.env
             os.path.join(os.path.expanduser('~'), '.env'),  # Home directory
         ]
         

@@ -54,13 +54,12 @@ class ZillowSpiderSpider(scrapy.Spider):
 
     def start_requests(self):
         """Generate initial requests for each ZIP code or URL"""
-        # Check for direct URL from environment variable
-        direct_url = os.getenv('ZILLOW_FRBO_URL')
+        # Check for direct URL from argument or environment variable
+        direct_url = getattr(self, 'start_url', None) or os.getenv('ZILLOW_FRBO_URL')
         if direct_url:
-            logger.info(f"Using Direct URL from environment: {direct_url}")
+            logger.info(f"Using Direct URL: {direct_url}")
             meta = {'zipcode': 'Direct URL'}
-            if ZYTE_PROXY:
-                meta['proxy'] = ZYTE_PROXY
+            meta["zyte_api"] = {"browserHtml": True, "geolocation": "US"}
             yield scrapy.Request(url=direct_url, meta=meta)
             return
 
@@ -84,8 +83,7 @@ class ZillowSpiderSpider(scrapy.Spider):
                     continue
                 
                 meta = {'zipcode': current_zip}
-                if ZYTE_PROXY:
-                    meta['proxy'] = ZYTE_PROXY
+                meta["zyte_api"] = {"browserHtml": True, "geolocation": "US"}
                     
                 yield scrapy.Request(url=final_url, meta=meta)
                 
@@ -104,8 +102,7 @@ class ZillowSpiderSpider(scrapy.Spider):
         for home in homes_listing:
             detail_url = build_detail_url(home)
             meta = {'new_detailUrl': detail_url}
-            if ZYTE_PROXY:
-                meta['proxy'] = ZYTE_PROXY
+            meta["zyte_api"] = {"browserHtml": True, "geolocation": "US"}
             yield response.follow(url=detail_url, callback=self.detail_page, meta=meta)
 
         # Handle pagination
@@ -113,8 +110,7 @@ class ZillowSpiderSpider(scrapy.Spider):
         if next_page:
             logger.info(f"ZIP {zipcode}: Found next page")
             meta = {'zipcode': zipcode}
-            if ZYTE_PROXY:
-                meta['proxy'] = ZYTE_PROXY
+            meta["zyte_api"] = {"browserHtml": True, "geolocation": "US"}
             yield scrapy.Request(response.urljoin(next_page), callback=self.parse, meta=meta)
 
     def detail_page(self, response):
@@ -164,6 +160,16 @@ class ZillowSpiderSpider(scrapy.Spider):
             item['Phone Number'] = agentInfo.get('phoneNumber', '')
             item['Agent Name'] = agentInfo.get('displayName', '')
             item['zpid'] = zpid  # Add zpid to item for Supabase pipeline
+            
+            # Normalize whitespace in Address
+            if 'Address' in item and item['Address']:
+                 item['Address'] = " ".join(str(item['Address']).split())
+            
+            # Strict Filtering: Skip if not in Illinois
+            addr = item.get('Address', '')
+            if "IL" not in addr and "Illinois" not in addr:
+                 logger.info(f"⛔ Skipping non-IL listing: {addr}")
+                 return
             
             # Remove duplicates using ZPID if available, otherwise URL
             unique_id = zpid if zpid else item['Url']

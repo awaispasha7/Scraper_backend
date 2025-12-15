@@ -6,7 +6,7 @@ ZYTE_API_KEY = os.getenv('ZYTE_API_KEY', '')
 ZYTE_PROXY = f'http://{ZYTE_API_KEY}:@api.zyte.com:8011' if ZYTE_API_KEY else None
 
 # ==================== Spider Settings ====================
-ROBOTSTXT_OBEY = True
+ROBOTSTXT_OBEY = False
 RETRY_TIMES = 5
 DOWNLOAD_DELAY = 0.1
 CONCURRENT_REQUESTS = 16
