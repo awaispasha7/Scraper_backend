@@ -68,12 +68,18 @@ class SupabasePipeline:
                 "agent_name": item_dict.get("Agent Name", ""),
             }
             
+
             # Remove None and empty string values
             data = {k: v for k, v in data.items() if v is not None and v != ""}
             
             # Ensure required fields are present
             if not data.get("url"):
                 logger.warning(f"⚠️ Skipping item - missing URL: {item_dict}")
+                return item
+                
+            # CRITICAL FIX: Skip items with no address (Ghost Listings)
+            if not data.get("address"):
+                logger.warning(f"👻 Skipping Ghost Listing (No Address): {data.get('url')}")
                 return item
             
             # Upsert to Supabase (insert or update if exists)
