@@ -188,7 +188,7 @@ class SupabasePipeline:
         self.upload_count = 0
         self.error_count = 0
         self.batch = []
-        self.batch_size = 10  # Upload in batches for better performance
+        self.batch_size = 1  # Upload immediately (batch size 1)
     
     def load_env_file(self, spider=None):
         """Load environment variables from .env file if it exists."""

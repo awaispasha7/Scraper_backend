@@ -8,10 +8,11 @@ from flask_cors import CORS
 import subprocess
 import os
 import threading
-from datetime import datetime
 import sys
 import time
 import queue
+import schedule
+from datetime import datetime
 
 app = Flask(__name__)
 # Enable CORS for all routes - allows frontend to call backend API
@@ -136,6 +137,85 @@ def ensure_process_killed(scraper_name):
         
         # Safely remove from tracker
         active_processes.pop(scraper_name, None)
+
+def run_sequential_scrapers():
+    """Run all scrapers sequentially"""
+    global stop_all_requested, all_scrapers_status
+    
+    if all_scrapers_status["running"]:
+        add_log("⚠️ Sequential run triggered but already running. Skipping.", "warning")
+        return
+
+    stop_all_requested = False
+    all_scrapers_status["running"] = True
+    all_scrapers_status["error"] = None
+    all_scrapers_status["last_run"] = datetime.now().isoformat()
+    add_log("🚀 Starting ALL scrapers sequentially...", "info")
+    
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    
+    scrapers = [
+        ("FSBO", [sys.executable, "forsalebyowner_selenium_scraper.py"], os.path.join(base_dir, "FSBO_Scraper"), scraper_status),
+        ("Apartments", [sys.executable, "-m", "scrapy", "crawl", "apartments_frbo"], os.path.join(base_dir, "Apartments_Scraper"), apartments_scraper_status),
+        ("Zillow_FSBO", [sys.executable, "-m", "scrapy", "crawl", "zillow_spider"], os.path.join(base_dir, "Zillow_FSBO_Scraper"), zillow_fsbo_status),
+        ("Zillow_FRBO", [sys.executable, "-m", "scrapy", "crawl", "zillow_spider"], os.path.join(base_dir, "Zillow_FRBO_Scraper"), zillow_frbo_status),
+        ("Hotpads", [sys.executable, "-m", "scrapy", "crawl", "hotpads_scraper"], os.path.join(base_dir, "Hotpads_Scraper"), hotpads_status),
+        ("Redfin", [sys.executable, "-m", "scrapy", "crawl", "redfin_spider"], os.path.join(base_dir, "Redfin_Scraper"), redfin_status),
+        ("Trulia", [sys.executable, "-m", "scrapy", "crawl", "trulia_spider"], os.path.join(base_dir, "Trulia_Scraper"), trulia_status),
+    ]
+    
+    for name, cmd, cwd, status_dict in scrapers:
+        if stop_all_requested:
+            add_log("🛑 Stop All requested. Cancelling remaining scrapers.", "warning")
+            break
+            
+        all_scrapers_status["current_scraper"] = name
+        add_log(f"--- Queue: Starting {name} ---", "info")
+        
+        # Run the scraper
+        try:
+            success = run_process_with_logging(cmd, cwd, name, status_dict)
+            
+            if not success:
+                add_log(f"⚠️ {name} failed, but continuing with next scraper...", "error")
+            else:
+                add_log(f"✅ {name} finished successfully.", "success")
+        except Exception as e:
+             add_log(f"❌ Critical error executing {name}: {e}. Continuing...", "error")
+        
+        if stop_all_requested:
+            add_log("🛑 Stop All requested. Cancelling remaining scrapers.", "warning")
+            break
+            
+        time.sleep(2) # Brief pause between scrapers
+        
+    all_scrapers_status["running"] = False
+    all_scrapers_status["current_scraper"] = None
+    if stop_all_requested:
+            add_log("⏹️ Sequential run stopped by user.", "warning")
+    else:
+            add_log("🎉 ALL scrapers finished execution.", "success")
+
+def scheduler_loop():
+    """Background loop to check schedule"""
+    while True:
+        schedule.run_pending()
+        time.sleep(60)
+
+def start_scheduler():
+    """Start the scheduler thread"""
+    # Schedule job every 24 hours (midnight)
+    # You can change this to specific time: schedule.every().day.at("00:00").do(run_sequential_job_thread)
+    # For now, let's stick to simple "every 24 hours" from start, or explicit time.
+    # User asked for "after 24 hours". Let's use 24 hours interval or daily at midnight.
+    # Daily at midnight is more robust.
+    
+    schedule.every().day.at("00:00").do(lambda: threading.Thread(target=run_sequential_scrapers, daemon=True).start())
+    
+    add_log("⏰ Scheduler started: Will run all scrapers daily at 00:00", "info")
+    
+    t = threading.Thread(target=scheduler_loop, daemon=True)
+    t.start()
 
 # ==================================
 # API ROUTES
@@ -366,61 +446,12 @@ def get_trulia_status():
 
 @app.route('/api/trigger-all', methods=['POST', 'GET'])
 def trigger_all():
-    global all_scrapers_status, stop_all_requested
+    global all_scrapers_status
     if all_scrapers_status["running"]:
         return jsonify({"error": "All Scrapers job is already running"}), 400
     
-    stop_all_requested = False
-    
-    def execute_all():
-        global stop_all_requested
-        all_scrapers_status["running"] = True
-        all_scrapers_status["error"] = None
-        all_scrapers_status["last_run"] = datetime.now().isoformat()
-        add_log("🚀 Starting ALL scrapers sequentially...", "info")
-        
-        base_dir = os.path.dirname(os.path.abspath(__file__))
-        
-        scrapers = [
-            ("FSBO", [sys.executable, "forsalebyowner_selenium_scraper.py"], os.path.join(base_dir, "FSBO_Scraper"), scraper_status),
-            ("Apartments", [sys.executable, "-m", "scrapy", "crawl", "apartments_frbo"], os.path.join(base_dir, "Apartments_Scraper"), apartments_scraper_status),
-            ("Zillow_FSBO", [sys.executable, "-m", "scrapy", "crawl", "zillow_spider"], os.path.join(base_dir, "Zillow_FSBO_Scraper"), zillow_fsbo_status),
-            ("Zillow_FRBO", [sys.executable, "-m", "scrapy", "crawl", "zillow_spider"], os.path.join(base_dir, "Zillow_FRBO_Scraper"), zillow_frbo_status),
-            ("Hotpads", [sys.executable, "-m", "scrapy", "crawl", "hotpads_scraper"], os.path.join(base_dir, "Hotpads_Scraper"), hotpads_status),
-            ("Redfin", [sys.executable, "-m", "scrapy", "crawl", "redfin_spider"], os.path.join(base_dir, "Redfin_Scraper"), redfin_status),
-            ("Trulia", [sys.executable, "-m", "scrapy", "crawl", "trulia_spider"], os.path.join(base_dir, "Trulia_Scraper"), trulia_status),
-        ]
-        
-        for name, cmd, cwd, status_dict in scrapers:
-            if stop_all_requested:
-                add_log("🛑 Stop All requested. Cancelling remaining scrapers.", "warning")
-                break
-                
-            all_scrapers_status["current_scraper"] = name
-            add_log(f"--- Queue: Starting {name} ---", "info")
-            
-            # Run the scraper
-            success = run_process_with_logging(cmd, cwd, name, status_dict)
-            
-            if not success:
-                add_log(f"⚠️ {name} failed, but continuing with next scraper...", "error")
-            else:
-                add_log(f"✅ {name} finished successfully.", "success")
-            
-            if stop_all_requested:
-                add_log("🛑 Stop All requested. Cancelling remaining scrapers.", "warning")
-                break
-                
-            time.sleep(2) # Brief pause between scrapers
-            
-        all_scrapers_status["running"] = False
-        all_scrapers_status["current_scraper"] = None
-        if stop_all_requested:
-             add_log("⏹️ Sequential run stopped by user.", "warning")
-        else:
-             add_log("🎉 ALL scrapers finished execution.", "success")
-
-    thread = threading.Thread(target=execute_all)
+    # Start the sequential runner in a background thread
+    thread = threading.Thread(target=run_sequential_scrapers)
     thread.daemon = True
     thread.start()
     
@@ -434,13 +465,13 @@ def get_all_status():
             "last_run": all_scrapers_status["last_run"],
             "current_scraper": all_scrapers_status["current_scraper"]
         },
-        "fsbo": { "status": "running" if scraper_status["running"] else "idle", "last_run": scraper_status["last_run"] },
-        "apartments": { "status": "running" if apartments_scraper_status["running"] else "idle", "last_run": apartments_scraper_status["last_run"] },
-        "zillow_fsbo": { "status": "running" if zillow_fsbo_status["running"] else "idle", "last_run": zillow_fsbo_status["last_run"] },
-        "zillow_frbo": { "status": "running" if zillow_frbo_status["running"] else "idle", "last_run": zillow_frbo_status["last_run"] },
-        "hotpads": { "status": "running" if hotpads_status["running"] else "idle", "last_run": hotpads_status["last_run"] },
-        "redfin": { "status": "running" if redfin_status["running"] else "idle", "last_run": redfin_status["last_run"] },
-        "trulia": { "status": "running" if trulia_status["running"] else "idle", "last_run": trulia_status["last_run"] },
+        "fsbo": { "status": "running" if scraper_status["running"] else "idle", "last_run": scraper_status["last_run"], "last_result": scraper_status["last_result"] },
+        "apartments": { "status": "running" if apartments_scraper_status["running"] else "idle", "last_run": apartments_scraper_status["last_run"], "last_result": apartments_scraper_status["last_result"] },
+        "zillow_fsbo": { "status": "running" if zillow_fsbo_status["running"] else "idle", "last_run": zillow_fsbo_status["last_run"], "last_result": zillow_fsbo_status["last_result"] },
+        "zillow_frbo": { "status": "running" if zillow_frbo_status["running"] else "idle", "last_run": zillow_frbo_status["last_run"], "last_result": zillow_frbo_status["last_result"] },
+        "hotpads": { "status": "running" if hotpads_status["running"] else "idle", "last_run": hotpads_status["last_run"], "last_result": hotpads_status["last_result"] },
+        "redfin": { "status": "running" if redfin_status["running"] else "idle", "last_run": redfin_status["last_run"], "last_result": redfin_status["last_result"] },
+        "trulia": { "status": "running" if trulia_status["running"] else "idle", "last_run": trulia_status["last_run"], "last_result": trulia_status["last_result"] },
     })
 
 @app.route('/api/stop-scraper', methods=['GET', 'POST'])
@@ -517,5 +548,8 @@ def stop_all():
     return jsonify({"message": "Stop request received for sequential run"}), 200
 
 if __name__ == '__main__':
+    # Start scheduler in background
+    start_scheduler()
+    
     port = int(os.environ.get('PORT', 8080))
     app.run(host='0.0.0.0', port=port, debug=False)

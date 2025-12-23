@@ -5,7 +5,7 @@ class HotpadsPipeline:
     def __init__(self):
         self.supabase: Client = None
         self.items_buffer = []
-        self.BATCH_SIZE = 20
+        self.BATCH_SIZE = 1
 
     def open_spider(self, spider):
         url = os.getenv("SUPABASE_URL")
