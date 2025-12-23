@@ -119,8 +119,11 @@ class RedfinScraperPipeline:
             if not record['address'] and not record['listing_link']:
                 return False
             
-            # Insert into Supabase
-            result = self.supabase.table('redfin_listings').insert(record).execute()
+            # Upsert into Supabase to handle duplicates (on_conflict='listing_link')
+            result = self.supabase.table('redfin_listings').upsert(
+                record,
+                on_conflict='listing_link'
+            ).execute()
             
             if result.data:
                 inserted_id = result.data[0].get('id', 'N/A')

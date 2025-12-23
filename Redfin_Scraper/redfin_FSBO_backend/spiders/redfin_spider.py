@@ -1,12 +1,37 @@
 import json
 import scrapy
 import re
+import os
+from pathlib import Path
+from supabase import create_client, Client
+from dotenv import load_dotenv
 from ..items import RedfinScraperItem
 from ..redfin_config import HEADERS, BASE_URL
 
 class RedfinSpiderSpider(scrapy.Spider):
     name = "redfin_spider"
     unique_list = []
+    MAX_KNOWN_HITS = 3
+    _known_hits = 0
+
+    def __init__(self, *args, **kwargs):
+        super(RedfinSpiderSpider, self).__init__(*args, **kwargs)
+        self._known_hits = 0
+        self._first_listing_url = None
+        
+        # Initialize Supabase client
+        project_root = Path(__file__).resolve().parents[2]
+        env_path = project_root / '.env'
+        load_dotenv(dotenv_path=env_path)
+        
+        url = os.getenv("SUPABASE_URL")
+        key = os.getenv("SUPABASE_SERVICE_KEY")
+        if url and key:
+            self.supabase = create_client(url, key)
+            self.logger.info("Supabase client initialized for incremental check")
+        else:
+            self.supabase = None
+            self.logger.warning("Supabase credentials not found, incremental check disabled")
 
     def start_requests(self):
         """Initial request to Redfin FSBO listings"""
@@ -152,8 +177,43 @@ class RedfinSpiderSpider(scrapy.Spider):
             
             self.logger.info(f"Found {len(property_urls)} unique property URLs on search results page")
             
+            # Record first listing for state update (assuming newest)
+            if not self._first_listing_url and property_urls:
+                self._first_listing_url = list(property_urls)[0]
+            
+            # Bulk check existence in Supabase
+            existing_urls = set()
+            property_urls_list = list(property_urls)
+            if self.supabase and property_urls_list:
+                try:
+                    # Redfin uses 'listing_link' field in Supabase
+                    response = self.supabase.table("redfin_listings").select("listing_link").in_("listing_link", property_urls_list).execute()
+                    existing_urls = {row['listing_link'] for row in response.data}
+                    self.logger.info(f"Check results: {len(existing_urls)} listings already exist in database")
+                except Exception as e:
+                    self.logger.error(f"Error checking Supabase existence: {e}")
+
+            # Track consecutive empty pages to prevent infinite loops
+            consecutive_empty = response.meta.get('consecutive_empty', 0)
+            if not property_urls:
+                consecutive_empty += 1
+            else:
+                consecutive_empty = 0
+                
+            if consecutive_empty >= 5:
+                self.logger.info(f"Stopping pagination: 5 consecutive empty pages reached.")
+                return
+            
             # Visit each property detail page
             for url in property_urls:
+                if url in existing_urls:
+                    self._known_hits += 1
+                    self.logger.info(f"Listing already exists ({self._known_hits}/{self.MAX_KNOWN_HITS}): {url}")
+                    if self._known_hits >= self.MAX_KNOWN_HITS:
+                        self.logger.info(f"Stopping: Reached {self.MAX_KNOWN_HITS} known listings.")
+                        return # Stop processing this page and future pagination
+                    continue
+
                 if url not in self.unique_list:
                     self.logger.info(f"Scraping property: {url}")
                     yield response.follow(
@@ -201,7 +261,8 @@ class RedfinSpiderSpider(scrapy.Spider):
                         "zyte_api": {
                             "browserHtml": True,
                             "geolocation": "US"
-                        }
+                        },
+                        "consecutive_empty": consecutive_empty
                     },
                     dont_filter=True
                 )
@@ -541,3 +602,18 @@ class RedfinSpiderSpider(scrapy.Spider):
                 
         except Exception as e:
             self.logger.error(f"Unexpected error in detail_page for {response.url}: {e}", exc_info=True)
+
+    def closed(self, reason):
+        """Update scrape_state table when spider finishes"""
+        if self.supabase:
+            try:
+                state_data = {
+                    "source_site": "redfin",
+                    "last_scraped_at": "now()",
+                    "last_seen_url": self._first_listing_url,
+                    "last_seen_id": None
+                }
+                self.supabase.table("scrape_state").upsert(state_data).execute()
+                self.logger.info(f"Updated scrape_state for redfin: {self._first_listing_url}")
+            except Exception as e:
+                self.logger.error(f"Error updating scrape_state: {e}")

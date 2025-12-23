@@ -2,11 +2,16 @@ import json
 import pandas as pd
 import scrapy
 import os
+from pathlib import Path
+from supabase import create_client, Client
+from dotenv import load_dotenv
 from scrapy.http import Request
 
 
 class HotPadsSpider(scrapy.Spider):
     name = 'hotpads_scraper'
+    MAX_KNOWN_HITS = 3
+    _known_hits = 0
     custom_settings = {
         'ROBOTSTXT_OBEY': False,
         'CONCURRENT_REQUESTS': 16,
@@ -41,6 +46,22 @@ class HotPadsSpider(scrapy.Spider):
         self.default_url = "https://hotpads.com/lincoln-park-chicago-il/for-rent-by-owner?border=false&isListedByOwner=true&lat=41.8919&listingTypes=rental&lon=-87.6612&z=12"
         # Check if user wants to use CSV instead
         self.use_csv = kwargs.get('use_csv', 'false').lower() == 'true'
+        self._known_hits = 0
+        self._first_listing_url = None
+        
+        # Initialize Supabase client
+        project_root = Path(__file__).resolve().parents[2]
+        env_path = project_root / '.env'
+        load_dotenv(dotenv_path=env_path)
+        
+        url = os.getenv("SUPABASE_URL")
+        key = os.getenv("SUPABASE_SERVICE_KEY")
+        if url and key:
+            self.supabase = create_client(url, key)
+            self.logger.info("Supabase client initialized for incremental check")
+        else:
+            self.supabase = None
+            self.logger.warning("Supabase credentials not found, incremental check disabled")
 
     def start_requests(self):
         """Default: use hardcoded URL with filters. With use_csv=true: read from CSV"""
@@ -164,12 +185,46 @@ class HotPadsSpider(scrapy.Spider):
         listing_urls = list(set(listing_urls))
         self.logger.info(f"Total unique listing URLs found: {len(listing_urls)}")
 
+        # Record first listing for state update (assuming newest)
+        if not self._first_listing_url and listing_urls:
+            first_url = listing_urls[0]
+            self._first_listing_url = response.urljoin(first_url) if not first_url.startswith('http') else first_url
+
+        # Bulk check existence in Supabase
+        existing_urls = set()
+        if self.supabase and listing_urls:
+            try:
+                # Hotpads uses 'Url' field in Supabase (with capital U)
+                response = self.supabase.table("hotpads_listings").select("Url").in_("Url", listing_urls).execute()
+                existing_urls = {row['Url'] for row in response.data}
+                self.logger.info(f"Check results: {len(existing_urls)} listings already exist in database")
+            except Exception as e:
+                self.logger.error(f"Error checking Supabase existence: {e}")
+        
+        # Track consecutive empty pages to prevent infinite loops
+        consecutive_empty = response.meta.get('consecutive_empty', 0)
+        location = response.meta.get('location', 'unknown')
+        if not listing_urls:
+            consecutive_empty += 1
+        else:
+            consecutive_empty = 0
+            
+        if consecutive_empty >= 5:
+            self.logger.info(f"Stopping pagination for {location}: 5 consecutive empty pages reached.")
+            return
+
         for url in listing_urls:
             # Handle relative URLs
-            if not url.startswith('http'):
-                full_url = response.urljoin(url)
-            else:
-                full_url = url
+            full_url = response.urljoin(url) if not url.startswith('http') else url
+            
+            # Check existence
+            if full_url in existing_urls:
+                self._known_hits += 1
+                self.logger.info(f"Listing already exists ({self._known_hits}/{self.MAX_KNOWN_HITS}): {full_url}")
+                if self._known_hits >= self.MAX_KNOWN_HITS:
+                    self.logger.info(f"Stopping: Reached {self.MAX_KNOWN_HITS} known listings.")
+                    return # Stop processing this page and future pagination
+                continue
             
             # Filter out non-listing URLs
             if '/apartments-for-rent' in full_url or 'map' in full_url:
@@ -200,7 +255,9 @@ class HotPadsSpider(scrapy.Spider):
                 meta={
                     'zyte_api': {
                         "browserHtml": True,
-                    }
+                    },
+                    'consecutive_empty': consecutive_empty,
+                    'location': location
                 }
             )
 
@@ -675,3 +732,18 @@ class HotPadsSpider(scrapy.Spider):
             self.logger.info(f"📍 Scraped (XPath only): {xpath_beds}bd {xpath_baths}ba {xpath_sqft}sqft")
             
             yield item
+
+    def closed(self, reason):
+        """Update scrape_state table when spider finishes"""
+        if self.supabase:
+            try:
+                state_data = {
+                    "source_site": "hotpads",
+                    "last_scraped_at": "now()",
+                    "last_seen_url": self._first_listing_url,
+                    "last_seen_id": None # Hotpads URLs usually contain IDs, but easier to keep as URL
+                }
+                self.supabase.table("scrape_state").upsert(state_data).execute()
+                self.logger.info(f"Updated scrape_state for hotpads: {self._first_listing_url}")
+            except Exception as e:
+                self.logger.error(f"Error updating scrape_state: {e}")

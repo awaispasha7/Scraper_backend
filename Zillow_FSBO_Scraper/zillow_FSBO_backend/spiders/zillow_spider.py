@@ -1,11 +1,40 @@
 import json
+import os
 import scrapy
+from pathlib import Path
+from supabase import create_client, Client
+from dotenv import load_dotenv
 from ..items import ZillowScraperItem
 from ..zillow_config import HEADERS, BASE_URL
 
 class ZillowSpiderSpider(scrapy.Spider):
     name = "zillow_spider"
     unique_list = []
+    _consecutive_empty_pages = 0
+    MAX_EMPTY_PAGES = 5
+    MAX_KNOWN_HITS = 3
+    _known_hits = 0
+
+    def __init__(self, *args, **kwargs):
+        super(ZillowSpiderSpider, self).__init__(*args, **kwargs)
+        self._consecutive_empty_pages = 0
+        self._known_hits = 0
+        self._first_listing_url = None
+        self._first_listing_zpid = None
+        
+        # Initialize Supabase client
+        project_root = Path(__file__).resolve().parents[2]
+        env_path = project_root / '.env'
+        load_dotenv(dotenv_path=env_path)
+        
+        url = os.getenv("SUPABASE_URL")
+        key = os.getenv("SUPABASE_SERVICE_KEY")
+        if url and key:
+            self.supabase = create_client(url, key)
+            self.logger.info("Supabase client initialized for incremental check")
+        else:
+            self.supabase = None
+            self.logger.warning("Supabase credentials not found, incremental check disabled")
 
     def start_requests(self):
         """Initial request to Zillow FSBO listings"""
@@ -42,17 +71,60 @@ class ZillowSpiderSpider(scrapy.Spider):
             
             if not homes_listing:
                 self.logger.warning(f"No listings found on {response.url}")
+                self._consecutive_empty_pages += 1
+                if self._consecutive_empty_pages >= self.MAX_EMPTY_PAGES:
+                    self.logger.info(f"Stopping pagination: {self._consecutive_empty_pages} consecutive empty pages reached.")
+                    return
                 return
+            
+            # Reset counter if listings found
+            self._consecutive_empty_pages = 0
                 
             self.logger.info(f"Found {len(homes_listing)} listings on page")
             
+            # Record first listing for state update (assuming newest)
+            if not self._first_listing_url and homes_listing:
+                first = homes_listing[0]
+                url = first.get('detailUrl', '')
+                if url:
+                    self._first_listing_url = f'{BASE_URL}{url}' if not url.startswith("https") else url
+                self._first_listing_zpid = first.get('zpid', '') or first.get('id', '')
+            
+            # Prepare URLs for bulk check
+            listing_urls = []
+            for home in homes_listing:
+                url = home.get('detailUrl', '')
+                if url:
+                    if not url.startswith("https"):
+                        listing_urls.append(f'{BASE_URL}{url}')
+                    else:
+                        listing_urls.append(url)
+
+            # Bulk check existence in Supabase
+            existing_urls = set()
+            if self.supabase and listing_urls:
+                try:
+                    response = self.supabase.table("zillow_fsbo_listings").select("detail_url").in_("detail_url", listing_urls).execute()
+                    existing_urls = {row['detail_url'] for row in response.data}
+                    self.logger.info(f"Check results: {len(existing_urls)} listings already exist in database")
+                except Exception as e:
+                    self.logger.error(f"Error checking Supabase existence: {e}")
+
             for home in homes_listing[:]:
                 url = home.get('detailUrl', '')
-                new_detailUrl = ''
-                if not url.startswith("https"):
-                    new_detailUrl = f'{BASE_URL}{url}'
-                else:
-                    new_detailUrl = url
+                if not url: continue
+                
+                new_detailUrl = f'{BASE_URL}{url}' if not url.startswith("https") else url
+                
+                if new_detailUrl in existing_urls:
+                    self._known_hits += 1
+                    self.logger.info(f"Listing already exists ({self._known_hits}/{self.MAX_KNOWN_HITS}): {new_detailUrl}")
+                    if self._known_hits >= self.MAX_KNOWN_HITS:
+                        self.logger.info(f"Stopping: Reached {self.MAX_KNOWN_HITS} known listings.")
+                        return # Stop processing this page and future pagination
+                    continue
+                
+                # If we are here, it's a new listing (or check failed)
                 yield response.follow(
                     url=new_detailUrl, 
                     callback=self.detail_page,
@@ -119,7 +191,7 @@ class ZillowSpiderSpider(scrapy.Spider):
                 
                 # Strict Filtering: Skip if not in Illinois
                 if "IL" not in address and "Illinois" not in address:
-                    self.logger.info(f"⛔ Skipping non-IL listing: {address}")
+                    self.logger.info(f"[SKIP] Non-IL listing: {address}")
                     return
                 
                 item["Address"] = address
@@ -159,9 +231,8 @@ class ZillowSpiderSpider(scrapy.Spider):
                                     item['Phone_Number'] = phone.get('text', '')
                                     break
             
-            if item['Detail_URL'] not in self.unique_list:
                 self.unique_list.append(item['Detail_URL'])
-                self.logger.info(f"✓ Scraped: {item.get('Address', 'N/A')} | Price: {item.get('Price', 'N/A')}")
+                self.logger.info(f"[OK] Scraped: {item.get('Address', 'N/A')} | Price: {item.get('Price', 'N/A')}")
                 yield item
         except json.JSONDecodeError as e:
             self.logger.error(f"JSON decode error in detail_page for {response.url}: {e}")

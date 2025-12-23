@@ -14,6 +14,11 @@ from selenium.common.exceptions import TimeoutException, NoSuchElementException
 import requests
 import os
 import logging
+import re
+import time
+import csv
+import json
+import sys
 from typing import Optional, Dict, List, Any
 from supabase import create_client, Client
 from dotenv import load_dotenv
@@ -50,6 +55,8 @@ class ForSaleByOwnerSeleniumScraper:
         self.base_url = base_url
         self.delay = delay
         self.driver = None
+        self.api_url = api_url
+        self.real_time_storage = bool(api_url)
         # Supabase configuration
         self.supabase_url = os.getenv("SUPABASE_URL")
         self.supabase_key = os.getenv("SUPABASE_SERVICE_KEY")
@@ -223,6 +230,57 @@ class ForSaleByOwnerSeleniumScraper:
         if sqft_match:
             return sqft_match.group(1).replace(',', '')
         return None
+
+    def extract_total_results_count(self) -> Optional[int]:
+        """Extract the total number of listings found on the search page."""
+        try:
+            # Wait a bit for React to render the count
+            time.sleep(2)
+            
+            # Look for patterns like "136 Results Available" or "136 listings"
+            selectors = [
+                "h1", 
+                "div[class*='results']", 
+                "span[class*='results']",
+                ".search-count",
+                "h1 + div",
+                "div[class*='Pagination']",
+                "h2"
+            ]
+            
+            for selector in selectors:
+                elements = self.driver.find_elements(By.CSS_SELECTOR, selector)
+                for el in elements:
+                    try:
+                        text = el.text.strip().lower()
+                        if not text: continue
+                        
+                        # Match: "136 results available", "136 listings", "136 homes", "found 136"
+                        # Also handle "136 results available in chicago, il"
+                        match = re.search(r'(\d+)\s*(?:results?|listings?|homes?|available)', text)
+                        if match:
+                            count = int(match.group(1))
+                            logger.info(f"Detected total results count: {count}")
+                            return count
+                    except:
+                        continue
+            
+            # Fallback: check all h1/h2 if specialized selectors failed
+            for tag in ["h1", "h2"]:
+                elements = self.driver.find_elements(By.TAG_NAME, tag)
+                for el in elements:
+                    text = el.text.strip().lower()
+                    match = re.search(r'(\d+)', text)
+                    if match:
+                        count = int(match.group(1))
+                        logger.info(f"Detected total results count from {tag}: {count}")
+                        return count
+                    
+            logger.warning("Could not detect total results count from page")
+            return None
+        except Exception as e:
+            logger.error(f"Error extracting total results count: {e}")
+            return None
     
     def scroll_page(self):
         """Scroll page to load more content."""
@@ -245,34 +303,36 @@ class ForSaleByOwnerSeleniumScraper:
             return False
             
         try:
-            # Prepare data for Supabase forsalebyowner_listings table
-            # Map fields to database columns
+            # Prepare data for Supabase (Must match database schema EXACTLY)
             data = {
-                "address": listing_data.get('address'),
-                "price": listing_data.get('price'),
-                "beds": listing_data.get('beds'),
-                "baths": listing_data.get('baths'),
-                "square_feet": listing_data.get('square_feet'),
-                "listing_link": listing_data.get('listing_link'),
-                "time_of_post": listing_data.get('time_of_post'),
-                "scrape_date": time.strftime('%Y-%m-%d')
+                "address": listing_data.get("address", ""),
+                "price": listing_data.get("price", ""),
+                "beds": listing_data.get("beds", ""),
+                "baths": listing_data.get("baths", ""),
+                "square_feet": listing_data.get("square_feet", ""),
+                "listing_link": listing_data.get("listing_link", ""),
+                "time_of_post": listing_data.get("time_of_post", ""),
+                "owner_emails": listing_data.get("owner_emails", []),
+                "owner_phones": listing_data.get("owner_phones", []),
+                "owner_name": listing_data.get("owner_name", ""),
+                "mailing_address": listing_data.get("mailing_address", "")
             }
             
-            # Upsert into Supabase (insert or update if listing_link exists)
-            response = self.supabase.table("forsalebyowner_listings").upsert(
+            # Upsert data (insert or update if exists based on listing_link)
+            response = self.supabase.table("listings").upsert(
                 data, 
                 on_conflict="listing_link"
             ).execute()
             
             if response.data:
-                logger.info(f"💾 ✅ Saved to Supabase: {listing_data.get('address', 'N/A')[:50]}")
+                logger.info(f"Saved to Supabase: {listing_data.get('address', 'N/A')[:50]}")
                 return True
             else:
-                logger.error(f"❌ Failed to save to Supabase: {listing_data.get('address', 'N/A')[:50]}")
+                logger.error(f"Failed to save to Supabase: {listing_data.get('address', 'N/A')[:50]}")
                 return False
                 
         except Exception as e:
-            logger.error(f"❌ Error sending listing to Supabase: {e}")
+            logger.error(f"Error sending listing to Supabase: {e}")
             return False
     
     def get_already_scraped_urls(self) -> set:
@@ -332,26 +392,30 @@ class ForSaleByOwnerSeleniumScraper:
         
         try:
             # Navigate to the page
-            logger.info(f"🌐 Navigating to: {self.base_url}")
-            logger.info(f"💾 Real-time storage: {'ENABLED' if self.real_time_storage else 'DISABLED'}")
-            logger.info(f"🔗 API URL: {self.api_url}")
+            logger.info(f"Navigating to: {self.base_url}")
+            logger.info(f"Real-time storage: {'ENABLED' if self.real_time_storage else 'DISABLED'}")
+            logger.info(f"API URL: {self.api_url}")
             self.driver.get(self.base_url)
             
             # Wait for content to load
-            logger.info("⏳ Waiting for page content to load...")
+            logger.info("Waiting for page content to load...")
             if not self.wait_for_content():
-                logger.error("❌ Failed to load page content")
+                logger.error("FAILED to load page content")
                 return []
-            logger.info("✅ Page content loaded successfully")
+            logger.info("Page content loaded successfully")
             
             # Scroll multiple times to load all content
             for i in range(3):
                 self.scroll_page()
                 time.sleep(2)
             
+            # Detect total results count dynamically
+            detected_target = self.extract_total_results_count()
+            expected_count = detected_target if detected_target else 132 # Fallback to 132 if detection fails
+            
             # Try to click "View More Listings" button or load more content
-            # IMPORTANT: Keep clicking until we get 132 listings
-            max_clicks = 20  # Increased from 10 to 20 for 132 listings
+            # IMPORTANT: Keep clicking until we get all listings
+            max_clicks = 40 if expected_count > 100 else 20
             previous_link_count = 0
             no_progress_count = 0  # Track consecutive clicks with no progress
             
@@ -368,11 +432,27 @@ class ForSaleByOwnerSeleniumScraper:
                         except:
                             continue
                     current_links = len(unique_hrefs)
-                    logger.info(f"Current UNIQUE listing links found: {current_links} (Expected: 132)")
+                    logger.info(f"Current UNIQUE listing links found: {current_links} (Expected: {expected_count})")
                     
-                    # Check if we've reached the expected count (132 listings)
-                    if current_links >= 132:
-                        logger.info(f"✅ Reached expected count of 132 listings! Stopping 'View More' clicks.")
+                    # Incremental Check: Check if these listings already exist in Supabase
+                    existing_urls = set()
+                    if self.supabase and unique_hrefs:
+                        try:
+                            # FSBO uses 'listing_link' as the unique field
+                            # Confirm table name is 'listings' as used in send_listing_to_supabase
+                            response = self.supabase.table("listings").select("listing_link").in_("listing_link", list(unique_hrefs)).execute()
+                            existing_urls = {row['listing_link'] for row in response.data}
+                            logger.info(f"Incremental Check: {len(existing_urls)} listings already exist in Supabase")
+                            
+                            if len(existing_urls) >= 3:
+                                logger.info(f"STOPPING Discovery: Found {len(existing_urls)} known listings. Reached incremental threshold.")
+                                break # Exit the View More loop early
+                        except Exception as e:
+                            logger.error(f"Error in incremental check: {e}")
+
+                    # Check if we've reached the expected count
+                    if current_links >= expected_count:
+                        logger.info(f"[OK] Reached expected count of {expected_count} listings! Stopping 'View More' clicks.")
                         break
                     
                     # Check if no progress made
@@ -380,7 +460,7 @@ class ForSaleByOwnerSeleniumScraper:
                         no_progress_count += 1
                         if no_progress_count >= 2:
                             logger.warning(f"No new listings loaded after {no_progress_count} attempts (still at {current_links})")
-                            logger.warning(f"Only found {current_links} listings, expected 132. Will continue with available listings.")
+                            logger.warning(f"Only found {current_links} listings, expected {expected_count}. Will continue with available listings.")
                             break
                     else:
                         no_progress_count = 0
@@ -455,7 +535,7 @@ class ForSaleByOwnerSeleniumScraper:
                             
                             # Try JavaScript click first (more reliable for dynamic content)
                             self.driver.execute_script("arguments[0].click();", view_more_button)
-                            logger.info(f"✅ Clicked 'View More' button (attempt {click_attempt + 1})")
+                            logger.info(f"[OK] Clicked 'View More' button (attempt {click_attempt + 1})")
                             
                             # Wait longer for new listings to load (increased from 4 to 6 seconds)
                             time.sleep(6)
@@ -477,14 +557,14 @@ class ForSaleByOwnerSeleniumScraper:
                             new_links = len(new_unique_hrefs)
                             
                             if new_links > current_links:
-                                logger.info(f"✅ New listings loaded! Count increased from {current_links} to {new_links}")
+                                logger.info(f"[OK] New listings loaded! Count increased from {current_links} to {new_links}")
                                 current_links = new_links  # Update current count
                             else:
-                                logger.warning(f"⚠️ No new listings detected after click (still {current_links})")
+                                logger.warning(f"[WARNING] No new listings detected after click (still {current_links})")
                             
-                            # Stop if we've reached 132 listings
-                            if new_links >= 132:
-                                logger.info(f"✅ Reached target of 132 listings! Stopping button clicks.")
+                            # Stop if we've reached expected count
+                            if new_links >= expected_count:
+                                logger.info(f"[OK] Reached target of {expected_count} listings! Stopping button clicks.")
                                 break
                         except Exception as e:
                             logger.warning(f"Error clicking button: {e}")
@@ -495,7 +575,7 @@ class ForSaleByOwnerSeleniumScraper:
                             except Exception as e2:
                                 logger.warning(f"Regular click also failed: {e2}")
                     else:
-                        logger.warning(f"⚠️ No 'View More' button found (attempt {click_attempt + 1})")
+                        logger.warning(f"[WARNING] No 'View More' button found (attempt {click_attempt + 1})")
                         # Try scrolling more to trigger lazy loading
                         logger.info("Trying additional scrolling to trigger lazy loading...")
                         for i in range(5):
@@ -551,10 +631,10 @@ class ForSaleByOwnerSeleniumScraper:
                         continue
                 
                 final_links = len(final_unique_hrefs)
-                logger.info(f"Attempt {attempt + 1}: Found {final_links} unique listing links (Expected: 132)")
+                logger.info(f"Attempt {attempt + 1}: Found {final_links} unique listing links (Expected: {expected_count})")
                 
-                if final_links >= 132:
-                    logger.info(f"✅ Found all 132 listings!")
+                if final_links >= expected_count:
+                    logger.info(f"Found all {expected_count} listings!")
                     break
                 elif attempt < max_attempts - 1:
                     # Scroll more and wait
@@ -573,13 +653,13 @@ class ForSaleByOwnerSeleniumScraper:
                         pass
             
             final_links = len(final_unique_hrefs)
-            logger.info(f"Final UNIQUE listing links found: {final_links} (Expected: 132)")
+            logger.info(f"Final UNIQUE listing links found: {final_links} (Expected: {expected_count})")
             
-            if final_links < 132:
-                logger.warning(f"⚠️ Only found {final_links} links, expected 132. Some listings may be missing.")
+            if final_links < expected_count:
+                logger.warning(f"[WARNING] Only found {final_links} links, expected {expected_count}. Some listings may be missing.")
                 logger.warning(f"Will try to scrape all {final_links} available listings.")
             else:
-                logger.info(f"✅ Successfully found all 132 listings!")
+                logger.info(f"Successfully found all {expected_count} listings!")
             
             # NEW APPROACH: Collect ALL unique listing URLs first, then process each one individually
             # This avoids stale element issues by finding elements fresh for each URL
@@ -597,10 +677,10 @@ class ForSaleByOwnerSeleniumScraper:
                 except:
                     continue
             
-            logger.info(f"Found {len(unique_urls)} unique listing URLs (Expected: 132)")
+            logger.info(f"Found {len(unique_urls)} unique listing URLs (Expected: {expected_count})")
             
-            if len(unique_urls) < 132:
-                logger.warning(f"⚠️ Only found {len(unique_urls)} unique URLs, expected 132. Some listings may be missing.")
+            if len(unique_urls) < expected_count:
+                logger.warning(f"[WARNING] Only found {len(unique_urls)} unique URLs, expected {expected_count}. Some listings may be missing.")
             
             if not unique_urls:
                 logger.error("No listing URLs found!")
@@ -608,24 +688,41 @@ class ForSaleByOwnerSeleniumScraper:
             
             # Process each URL individually - this avoids stale element issues
             logger.info(f"🔄 Processing {len(unique_urls)} listings individually...")
-            logger.info(f"📊 Expected total listings from website: 132")
+            logger.info(f"📊 Expected total listings from website: {expected_count}")
             logger.info(f"💾 Real-time storage: {'ENABLED - storing in database as we scrape' if self.real_time_storage else 'DISABLED - will store after scraping'}")
             new_count = 0
             skipped_count = 0
             current_url = self.driver.current_url  # Save current URL to return to
             
+            self.first_listing_url = None
             for i, listing_url in enumerate(unique_urls, 1):
+                if not self.first_listing_url:
+                    self.first_listing_url = listing_url
                 try:
                     # Show progress every 10 listings
                     if i % 10 == 0 or i == 1:
                         logger.info(f"Processing listing {i}/{len(unique_urls)}...")
                     
-                    # Check if this listing was already scraped
-                    if skip_existing and listing_url in already_scraped:
-                        skipped_count += 1
-                        if skipped_count % 20 == 0 or skipped_count == 1:
-                            logger.info(f"Skipped {skipped_count} already scraped listings...")
-                        continue
+                    # Skip if this listing was already scraped (Local or Supabase)
+                    if skip_existing:
+                        # Check local JSON
+                        if listing_url in already_scraped:
+                            skipped_count += 1
+                            if skipped_count % 20 == 0 or skipped_count == 1:
+                                logger.info(f"Skipped {skipped_count} already scraped listings (Local)...")
+                            continue
+                        
+                        # Check Supabase if local check didn't catch it
+                        if self.supabase:
+                            try:
+                                response = self.supabase.table("listings").select("listing_link").eq("listing_link", listing_url).execute()
+                                if response.data:
+                                    skipped_count += 1
+                                    if skipped_count % 20 == 0:
+                                        logger.info(f"Skipped {skipped_count} already scraped listings (Supabase)...")
+                                    continue
+                            except Exception as e:
+                                logger.error(f"Error checking Supabase in loop: {e}")
                     
                     # Initialize listing data
                     listing_data = {
@@ -751,9 +848,9 @@ class ForSaleByOwnerSeleniumScraper:
                             try:
                                 success = self.send_listing_to_supabase(listing_data)
                                 if not success:
-                                    logger.warning(f"⚠️ Failed to store listing in Supabase")
+                                    logger.warning(f"[WARNING] Failed to store listing in Supabase")
                             except Exception as e:
-                                logger.error(f"❌ Exception sending listing to Supabase: {e}")
+                                logger.error(f"Exception sending listing to Supabase: {e}")
                         
                         # Log with data completeness
                         data_status = []
@@ -762,7 +859,7 @@ class ForSaleByOwnerSeleniumScraper:
                         if listing_data.get('baths'): data_status.append('A')
                         if listing_data.get('square_feet'): data_status.append('S')
                         status_str = ''.join(data_status) if data_status else 'NO DATA'
-                        logger.info(f"✅ Listing {new_count}: {listing_data.get('address', 'N/A')[:50]} [{status_str}]")
+                        logger.info(f"[OK] Listing {new_count}: {listing_data.get('address', 'N/A')[:50]} [{status_str}]")
                 except Exception as e:
                     logger.error(f"Error processing listing {i} ({listing_url[:50]}...): {e}")
                     # Return to search page even on error
@@ -1706,7 +1803,7 @@ class ForSaleByOwnerSeleniumScraper:
                     if fetched:
                         logger.info(f"✓ Successfully fetched: {fetched}")
                     else:
-                        logger.warning(f"⚠️ Could not fetch any data from listing page for: {missing_critical}")
+                        logger.warning(f"[WARNING] Could not fetch any data from listing page for: {missing_critical}")
                 except Exception as e:
                     logger.warning(f"Could not fetch details from listing page: {e}")
                     # Try to return to search page even if error
@@ -1743,7 +1840,7 @@ class ForSaleByOwnerSeleniumScraper:
             cleaned_data.append(cleaned_listing)
         
         if null_count > 0:
-            logger.warning(f"⚠️ Found {null_count} null values in critical fields. Consider re-running scraper for complete data.")
+            logger.warning(f"[WARNING] Found {null_count} null values in critical fields. Consider re-running scraper for complete data.")
         
         # Check if file exists (old data)
         if os.path.exists(filename):
@@ -1947,6 +2044,21 @@ class ForSaleByOwnerSeleniumScraper:
         
         print("=" * 60)
     
+    def update_scrape_state(self):
+        """Update scrape_state table in Supabase"""
+        if self.supabase and hasattr(self, 'first_listing_url') and self.first_listing_url:
+            try:
+                state_data = {
+                    "source_site": "forsalebyowner",
+                    "last_scraped_at": "now()",
+                    "last_seen_url": self.first_listing_url,
+                    "last_seen_id": None
+                }
+                self.supabase.table("scrape_state").upsert(state_data).execute()
+                logger.info(f"Updated scrape_state for forsalebyowner: {self.first_listing_url}")
+            except Exception as e:
+                logger.error(f"Error updating scrape_state: {e}")
+
     def close(self):
         """Close the browser."""
         if self.driver:
@@ -1995,11 +2107,13 @@ def main():
         
         # Save results
         print(f"\nSUCCESS: Scraped {len(all_listings)} listings from website!")
-        print(f"Expected: 132 listings")
-        if len(all_listings) < 132:
-            print(f"⚠️  WARNING: Only got {len(all_listings)} listings, expected 132")
+        # Re-detect target for final reporting
+        final_target = scraper.extract_total_results_count() or 132
+        print(f"Expected around: {final_target} listings")
+        if len(all_listings) < final_target:
+            print(f"WARNING: Got {len(all_listings)} listings, expected {final_target}")
         else:
-            print(f"✅ Got all {len(all_listings)} listings!")
+            print(f"SUCCESS: Got {len(all_listings)} listings (Target: {final_target})!")
         
         # Compare with previous data to show changes
         comparison_result = scraper.compare_with_previous_data(all_listings)
@@ -2032,6 +2146,9 @@ def main():
                 print(f"{label:25}: {display_value}")
         
         print("\nSUCCESS: Scraping complete!")
+        
+        # Update scrape state
+        scraper.update_scrape_state()
         print(f"\nFiles Updated (Previous data overwritten):")
         print(f"   - forsalebyowner_listings.json")
         print(f"   - forsalebyowner_listings.csv")
@@ -2059,10 +2176,8 @@ def main():
         import traceback
         logger.error(traceback.format_exc())
         print("\nERROR: Failed to scrape. Check the logs above for details.")
-        print("\nMake sure you have:")
-        print("1. Chrome browser installed")
-        print("2. ChromeDriver installed and in PATH")
-        print("3. selenium package installed: pip install selenium")
+        import sys
+        sys.exit(1)
         
     finally:
         if scraper:

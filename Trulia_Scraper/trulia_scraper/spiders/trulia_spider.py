@@ -1,10 +1,12 @@
-"""Main Trulia FSBO property spider - Refactored"""
 import csv
 import json
 import logging
 import os
 import re
 import scrapy
+from pathlib import Path
+from supabase import create_client, Client
+from dotenv import load_dotenv
 
 # Import configuration and utilities
 from .trulia_config import (
@@ -22,22 +24,34 @@ class TruliaSpider(scrapy.Spider):
     
     name = "trulia_spider"
     unique_list = []
+    MAX_KNOWN_HITS = 3
+    _known_hits = 0
     
+    def __init__(self, *args, **kwargs):
+        super(TruliaSpider, self).__init__(*args, **kwargs)
+        self._known_hits = 0
+        self._first_listing_url = None
+        self._first_listing_id = None
+        
+        # Initialize Supabase client
+        project_root_env = Path(__file__).resolve().parents[3] 
+        env_path = project_root_env / '.env'
+        load_dotenv(dotenv_path=env_path)
+        
+        url = os.getenv("SUPABASE_URL")
+        key = os.getenv("SUPABASE_SERVICE_KEY")
+        if url and key:
+            self.supabase = create_client(url, key)
+            logger.info("Supabase client initialized for incremental check")
+        else:
+            self.supabase = None
+            logger.warning("Supabase credentials not found, incremental check disabled")
+
     # Get absolute path to project root
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     
     custom_settings = {
         'ROBOTSTXT_OBEY': False,
-        # CSV export disabled - data goes directly to Supabase
-        # Uncomment below if you want CSV backup
-        # 'FEEDS': {
-        #     os.path.join(project_root, 'output', 'Trulia_Data.csv'): {
-        #         'format': 'csv',
-        #         'overwrite': True,
-        #         'encoding': 'utf-8',
-        #         'fields': OUTPUT_FIELDS,
-        #     }
-        # },
         'RETRY_TIMES': RETRY_TIMES,
         'DOWNLOAD_DELAY': DOWNLOAD_DELAY,
     }
@@ -57,7 +71,6 @@ class TruliaSpider(scrapy.Spider):
 
     def start_requests(self):
         """Generate initial requests for each location or URL"""
-        # Check for direct URL from argument or environment variable
         direct_url = getattr(self, 'start_url', None) or os.getenv('TRULIA_FRBO_URL')
         if direct_url:
             logger.info(f"Using Direct URL: {direct_url}")
@@ -69,7 +82,6 @@ class TruliaSpider(scrapy.Spider):
         file_data = self.read_input_file()
         try:
             for each_row in file_data:
-                # Check for direct URL first
                 custom_url = each_row.get('url', '').strip()
                 location = each_row.get('location', '').strip() or each_row.get('zipcode', '').strip()
                 
@@ -97,66 +109,80 @@ class TruliaSpider(scrapy.Spider):
         zipcode = response.meta.get('zipcode', 'unknown')
         logger.info(f"Parsing response for location: {zipcode}, Status: {response.status}")
         
-        # Log response info for debugging
-        if response.status == 403:
-            logger.warning(f"Received 403 for {response.url}, but attempting to parse anyway")
-            logger.debug(f"Response body length: {len(response.body)}")
-            logger.debug(f"Response body preview: {response.body[:500]}")
-        
-        # Use parser utility to extract listings
         homes_listing = TruliaJSONParser.extract_listings(response, zipcode)
         
-        # Process each listing
+        # Record first listing for state update (assuming newest)
+        if not self._first_listing_url and homes_listing:
+            first = homes_listing[0]
+            self._first_listing_url = build_detail_url(first)
+            self._first_listing_id = first.get('id', '')
+        
+        consecutive_empty = response.meta.get('consecutive_empty', 0)
+        if not homes_listing:
+            consecutive_empty += 1
+        else:
+            consecutive_empty = 0
+            
+        if consecutive_empty >= 5:
+            logger.info(f"Stopping pagination for {zipcode}: 5 consecutive empty pages reached.")
+            return
+        
+        listing_urls = [build_detail_url(home) for home in homes_listing if build_detail_url(home)]
+        
+        existing_urls = set()
+        if self.supabase and listing_urls:
+            try:
+                # Use listing_link as used in the pipeline/table
+                response_db = self.supabase.table("trulia_listings").select("listing_link").in_("listing_link", listing_urls).execute()
+                existing_urls = {row['listing_link'] for row in response_db.data}
+                logger.info(f"Check results: {len(existing_urls)} listings already exist in database")
+            except Exception as e:
+                logger.error(f"Error checking Supabase existence: {e}")
+
         for home in homes_listing:
             detail_url = build_detail_url(home)
             if not detail_url:
                 continue
-            # Pass home data from search results (contains beds/baths/price)
+            
+            if detail_url in existing_urls:
+                self._known_hits += 1
+                logger.info(f"Listing already exists ({self._known_hits}/{self.MAX_KNOWN_HITS}): {detail_url}")
+                if self._known_hits >= self.MAX_KNOWN_HITS:
+                    logger.info(f"Stopping: Reached {self.MAX_KNOWN_HITS} known listings.")
+                    return
+                continue
+
             home_data = home.get('homeData', {})
             meta = {
                 'new_detailUrl': detail_url,
-                'homeData': home_data  # Pass search results data
+                'homeData': home_data
             }
             meta["zyte_api"] = {"browserHtml": True, "geolocation": "US"}
             yield response.follow(url=detail_url, headers=HEADERS, callback=self.detail_page, meta=meta)
 
-        # Handle pagination - Update for Trulia
         next_page = response.xpath("//a[contains(@aria-label, 'Next') or contains(text(), 'Next')]/@href").get('')
         if not next_page:
             next_page = response.xpath("//a[@data-testid='pagination-next']/@href").get('')
-        if not next_page:
-            # Try finding next page number in URL pattern
-            current_match = re.search(r'/(\d+)_als/', response.url)
-            if current_match:
-                current_page = int(current_match.group(1))
-                next_page = response.url.replace(f'/{current_page}_als/', f'/{current_page + 1}_als/')
         
         if next_page:
             logger.info(f"Location {zipcode}: Found next page")
-            meta = {'zipcode': zipcode}
+            meta = {'zipcode': zipcode, 'consecutive_empty': consecutive_empty}
             meta["zyte_api"] = {"browserHtml": True, "geolocation": "US"}
             yield scrapy.Request(response.urljoin(next_page), headers=HEADERS, callback=self.parse, meta=meta, dont_filter=True)
 
     def detail_page(self, response):
         """Parse property detail page"""
         try:
-            # Get home data from search results (contains beds/baths/price)
             home_data = response.meta.get('homeData', {})
-            
-            # Use parser utility to extract property details
             item, property_id, beds_bath = TruliaJSONParser.extract_property_details(response, home_data)
             
             if not property_id:
                 logger.warning(f"No property ID found for {response.url}")
             
-            # Build payload for agent info request (if Trulia has API)
             payload = TruliaJSONParser.build_agent_payload(property_id) if property_id else {}
-            
-            # Request agent information (if Trulia has similar API)
             meta = {'item': item, 'beds_bath': beds_bath, 'property_id': property_id}
             meta["zyte_api"] = {"browserHtml": True, "geolocation": "US"}
             
-            # If Trulia doesn't have agent API, skip this step
             if AGENT_INFO_URL and property_id:
                 yield scrapy.Request(
                     url=AGENT_INFO_URL,
@@ -168,7 +194,6 @@ class TruliaSpider(scrapy.Spider):
                     dont_filter=True
                 )
             else:
-                # Skip agent info, yield item directly
                 item['Beds / Baths'] = beds_bath
                 item['zpid'] = property_id or ''
                 final_item = self._finalize_item(item)
@@ -185,9 +210,7 @@ class TruliaSpider(scrapy.Spider):
             beds_bath = response.meta['beds_bath']
             property_id = response.meta.get('property_id')
             
-            agent_json = response.text
-            agent_data = json.loads(agent_json)
-            # Update path based on Trulia's API structure
+            agent_data = json.loads(response.text)
             agentInfo = agent_data.get('propertyInfo', {}).get('agentInfo', {}) or agent_data.get('agentInfo', {})
 
             item['Name'] = agentInfo.get('businessName', '') or agentInfo.get('name', '')
@@ -205,17 +228,14 @@ class TruliaSpider(scrapy.Spider):
     
     def _finalize_item(self, item):
         """Finalize item before yielding"""
-        # Normalize whitespace in Address
         if 'Address' in item and item['Address']:
              item['Address'] = " ".join(str(item['Address']).split())
         
-        # Strict Filtering: Skip if not in Illinois
         addr = item.get('Address', '')
         if "IL" not in addr and "Illinois" not in addr:
-             logger.info(f"⛔ Skipping non-IL listing: {addr}")
+             logger.info(f"[SKIP] Non-IL listing: {addr}")
              return None
         
-        # Remove duplicates using property_id if available, otherwise URL
         unique_id = item.get('zpid') or item.get('Url', '')
         
         if unique_id not in self.unique_list:
@@ -224,3 +244,18 @@ class TruliaSpider(scrapy.Spider):
             return item
         
         return None
+
+    def closed(self, reason):
+        """Update scrape_state table when spider finishes"""
+        if self.supabase:
+            try:
+                state_data = {
+                    "source_site": "trulia",
+                    "last_scraped_at": "now()",
+                    "last_seen_url": self._first_listing_url,
+                    "last_seen_id": str(self._first_listing_id) if self._first_listing_id else None
+                }
+                self.supabase.table("scrape_state").upsert(state_data).execute()
+                logger.info(f"Updated scrape_state for trulia: {self._first_listing_url}")
+            except Exception as e:
+                logger.error(f"Error updating scrape_state: {e}")

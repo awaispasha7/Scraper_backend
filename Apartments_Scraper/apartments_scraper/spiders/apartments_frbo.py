@@ -10,6 +10,9 @@ import re
 import json
 import sys
 import scrapy
+from pathlib import Path
+from supabase import create_client, Client
+from dotenv import load_dotenv
 from apartments_scraper.items import FrboListingItem
 
 # Add project root to path for progress_tracker import
@@ -53,6 +56,9 @@ class ApartmentsFrboSpider(scrapy.Spider):
         },
     }
     
+    MAX_KNOWN_HITS = 3
+    _known_hits = 0
+    
     def __init__(self, city="chicago-il", url=None, resume=False, *args, **kwargs):
         """Initialize spider with optional city parameter or custom URL.
         
@@ -75,7 +81,7 @@ class ApartmentsFrboSpider(scrapy.Spider):
             city_match = re.search(r'/([a-z]+(?:-[a-z]+)+)/for-rent-by-owner', url.lower())
             if city_match:
                 self.city = city_match.group(1)
-                self.logger.info(f"📍 Extracted city '{self.city}' from provided URL")
+                self.logger.info(f"[OK] Extracted city '{self.city}' from provided URL")
             else:
                 # Use provided city or default
                 self.city = city
@@ -137,7 +143,7 @@ class ApartmentsFrboSpider(scrapy.Spider):
                 if (resume_page is None or resume_page == 0) and csv_count > 0:
                     # Start from page 1 and skip duplicates - this is safer and avoids blocked pages
                     self._resume_page = 1
-                    self.logger.info(f"🔄 Progress file shows page 0, but CSV has {csv_count} listings. Starting from page 1 and skipping duplicates.")
+                    self.logger.info(f"[OK] Progress file shows page 0, but CSV has {csv_count} listings. Starting from page 1 and skipping duplicates.")
                 elif resume_page and resume_page > 50:
                     # If resume page is very high (>50), start from page 1 to avoid blocked pages
                     # High page numbers are often blocked by the website
@@ -178,6 +184,23 @@ class ApartmentsFrboSpider(scrapy.Spider):
                 self.logger.info(f"📄 Starting from page 1 and will skip {len(csv_urls)} URLs already in CSV")
                 self.logger.info(f"📊 Initialized total_listings_found to {csv_count} (from CSV count)")
         
+        self._known_hits = 0
+        self._first_listing_url = None
+        
+        # Initialize Supabase client
+        project_root_env = Path(__file__).resolve().parents[2]
+        env_path = project_root_env / '.env'
+        load_dotenv(dotenv_path=env_path)
+        
+        url = os.getenv("SUPABASE_URL")
+        key = os.getenv("SUPABASE_SERVICE_KEY")
+        if url and key:
+            self.supabase = create_client(url, key)
+            self.logger.info("Supabase client initialized for incremental check")
+        else:
+            self.supabase = None
+            self.logger.warning("Supabase credentials not found, incremental check disabled")
+        
         # Remove FEEDS to avoid conflicts - using ImmediateCsvPipeline instead
         # FEEDS buffers items and may not show data immediately
         if "FEEDS" in self.custom_settings:
@@ -191,6 +214,21 @@ class ApartmentsFrboSpider(scrapy.Spider):
         crawler.signals.connect(spider.spider_opened, signal=scrapy.signals.spider_opened)
         return spider
     
+    def closed(self, reason):
+        """Update scrape_state table when spider finishes"""
+        if self.supabase:
+            try:
+                state_data = {
+                    "source_site": "apartments",
+                    "last_scraped_at": "now()",
+                    "last_seen_url": self._first_listing_url,
+                    "last_seen_id": None
+                }
+                self.supabase.table("scrape_state").upsert(state_data).execute()
+                self.logger.info(f"Updated scrape_state for apartments: {self._first_listing_url}")
+            except Exception as e:
+                self.logger.error(f"Error updating scrape_state: {e}")
+
     def spider_opened(self, spider):
         """Called when spider is opened - create CSV file with headers immediately."""
         # NOTE: The pipeline's open_spider() method should create the CSV file
@@ -213,7 +251,7 @@ class ApartmentsFrboSpider(scrapy.Spider):
                             "owner_name", "owner_email", "phone_numbers", "full_address",
                             "street", "city", "state", "zip_code", "neighborhood", "description"
                         ])
-                    self.logger.info(f"📄 CSV file created with headers (backup method): {csv_path}")
+                    self.logger.info(f"[OK] CSV file created with headers (backup method): {csv_path}")
                     # Verify it was created
                     if os.path.exists(csv_path):
                         self.logger.info(f"✅ CSV file verified at: {os.path.abspath(csv_path)}")
@@ -250,7 +288,7 @@ class ApartmentsFrboSpider(scrapy.Spider):
                         self.logger.warning(f"Could not read .env file: {e}")
         
         if not api_key:
-            self.logger.error("❌ ZYTE_API_KEY not found! Please set it in:")
+            self.logger.error("[ERROR] Zyte API key not found Please set it in:")
             self.logger.error("   1. Environment variable: $env:ZYTE_API_KEY='your_key'")
             self.logger.error("   2. Settings file: ZYTE_API_KEY='your_key'")
             self.logger.error("   3. apartments_scraper/.env file: ZYTE_API_KEY=your_key")
@@ -287,7 +325,7 @@ class ApartmentsFrboSpider(scrapy.Spider):
             self.logger.info(f"🌐 Using provided URL (cleaned): {url}")
         else:
             url = f"https://www.apartments.com/{self.city}/for-rent-by-owner/"
-            self.logger.info(f"🏙️ Constructed URL from city '{self.city}': {url}")
+            self.logger.info(f"[OK] Constructed URL from city '{self.city}': {url}")
         
         # Validate URL
         if not url.startswith("http"):
@@ -406,7 +444,7 @@ class ApartmentsFrboSpider(scrapy.Spider):
                     total_str = match.group(1).replace(',', '')
                     try:
                         self._total_listings_on_site = int(total_str)
-                        self.logger.info(f"📊 Found total listings on site: {self._total_listings_on_site:,}")
+                        self.logger.info(f"[OK] Found total listings on site: {self._total_listings_on_site:,}")
                         # Estimate total pages (assuming ~20-25 listings per page - more conservative)
                         avg_listings_per_page = 25
                         estimated_pages = (self._total_listings_on_site + avg_listings_per_page - 1) // avg_listings_per_page
@@ -445,6 +483,27 @@ class ApartmentsFrboSpider(scrapy.Spider):
         if json_listings:
             json_ld_success = True
             self.logger.info(f"✅ Page {self._page_count}: JSON-LD extraction SUCCESS - Found {len(json_listings)} listings")
+            
+            # Prepare URLs for bulk check
+            listing_urls = [l.get('url', '') for l in json_listings if l.get('url')]
+            normalized_urls = []
+            for url in listing_urls:
+                if url.startswith("/"):
+                    normalized_urls.append("https://www.apartments.com" + url)
+                else:
+                    normalized_urls.append(url)
+
+            # Bulk check existence in Supabase
+            existing_urls = set()
+            if self.supabase and normalized_urls:
+                try:
+                    # Apartments uses 'apartments_frbo_chicago' table in Supabase
+                    response = self.supabase.table("apartments_frbo_chicago").select("listing_url").in_("listing_url", normalized_urls).execute()
+                    existing_urls = {row['listing_url'] for row in response.data}
+                    self.logger.info(f"Check results: {len(existing_urls)} listings already exist in database")
+                except Exception as e:
+                    self.logger.error(f"Error checking Supabase existence: {e}")
+
             self._items_from_search_page += len(json_listings)
             self.logger.info(f"📊 Processing {len(json_listings)} listings from JSON-LD...")
             
@@ -452,23 +511,36 @@ class ApartmentsFrboSpider(scrapy.Spider):
             skipped_count = 0
             for listing_idx, listing_data in enumerate(json_listings, 1):
                 url = listing_data.get('url', '')
-                if not url or url in self.seen_urls:
+                if not url:
                     skipped_count += 1
-                    if not url:
-                        self.logger.debug(f"⚠️ Listing #{listing_idx}: Skipped (no URL)")
-                    else:
-                        self.logger.debug(f"⚠️ Listing #{listing_idx}: Skipped (duplicate: {url[:50]}...)")
+                    self.logger.debug(f"⚠️ Listing #{listing_idx}: Skipped (no URL)")
                     continue
-                
+
                 # Normalize URL
                 if url.startswith("/"):
-                    url = "https://www.apartments.com" + url
-                elif not url.startswith("http"):
+                    full_url = "https://www.apartments.com" + url
+                else:
+                    full_url = url
+                
+                # Record first listing for state update (assuming newest)
+                if not self._first_listing_url:
+                    self._first_listing_url = full_url
+
+                if full_url in existing_urls:
+                    self._known_hits += 1
+                    self.logger.info(f"Listing already exists ({self._known_hits}/{self.MAX_KNOWN_HITS}): {full_url}")
+                    if self._known_hits >= self.MAX_KNOWN_HITS:
+                        self.logger.info(f"Stopping: Reached {self.MAX_KNOWN_HITS} known listings.")
+                        return # Stop processing this page and future pagination
                     skipped_count += 1
-                    self.logger.debug(f"⚠️ Listing #{listing_idx}: Skipped (invalid URL format: {url[:50]}...)")
+                    continue
+
+                if full_url in self.seen_urls:
+                    skipped_count += 1
+                    self.logger.debug(f"⚠️ Listing #{listing_idx}: Skipped (duplicate: {full_url[:50]}...)")
                     continue
                 
-                self.seen_urls.add(url)
+                self.seen_urls.add(full_url)
                 
                 # Create partial item with data from JSON-LD
                 item = FrboListingItem()
@@ -504,7 +576,7 @@ class ApartmentsFrboSpider(scrapy.Spider):
                 # But we have URL, title, price, phone, address from JSON-LD - this is huge!
                 processed_count += 1
                 if listing_idx <= 5 or listing_idx % 10 == 0:
-                    self.logger.debug(f"📋 [{listing_idx}/{len(json_listings)}] {item.get('title', 'N/A')[:40]}... | {item.get('price', 'N/A')} | {item.get('phone_numbers', 'N/A')}")
+                    self.logger.debug(f"[OK] Listing #{listing_idx}: {item.get('title', 'N/A')[:40]}... | {item.get('price', 'N/A')} | {item.get('phone_numbers', 'N/A')}")
                 
                 # Visit detail page for remaining fields (beds, baths, sqft, email, owner_name)
                 yield response.follow(url, callback=self.parse_detail, 
@@ -759,7 +831,7 @@ class ApartmentsFrboSpider(scrapy.Spider):
                     self.logger.info(f"📊 Processed {self._page_count} pages, found {self._total_listings_found} total listings")
                     return
                 elif self._total_listings_found < min_target_listings:
-                    self.logger.warning(f"⚠️ Past expected pages but only {self._total_listings_found} listings (< {min_target_listings} target). Continuing...")
+                    self.logger.warning(f"[WARNING] Past expected pages but only {self._total_listings_found} listings (< {min_target_listings} target). Continuing...")
             
             # Try to find a link with the exact next page number (not substring match)
             # This prevents "20" from matching "/2/" or "/20/" incorrectly
@@ -799,7 +871,7 @@ class ApartmentsFrboSpider(scrapy.Spider):
                     self.logger.info(f"📊 Processed {self._page_count} pages, found {self._total_listings_found} total listings")
                     return
                 elif self._total_listings_found < min_target_listings:
-                    self.logger.warning(f"⚠️ Past expected pages but only {self._total_listings_found} listings (< {min_target_listings} target). Continuing...")
+                    self.logger.warning(f"[WARNING] Past expected pages but only {self._total_listings_found} listings (< {min_target_listings} target). Continuing...")
             
             # Construct next page URL - always use self.city to ensure correctness
             # Use path-based format: /{page_num}/ instead of ?page={page_num}
