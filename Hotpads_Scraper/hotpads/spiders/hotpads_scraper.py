@@ -199,8 +199,8 @@ class HotPadsSpider(scrapy.Spider):
         if self.supabase and listing_urls:
             try:
                 # Hotpads uses 'url' field in Supabase (lowercase)
-                response = self.supabase.table("hotpads_listings").select("url").in_("url", listing_urls).execute()
-                existing_urls = {row['url'] for row in response.data}
+                db_response = self.supabase.table("hotpads_listings").select("url").in_("url", listing_urls).execute()
+                existing_urls = {row['url'] for row in db_response.data}
                 self.logger.info(f"Check results: {len(existing_urls)} listings already exist in database")
             except Exception as e:
                 self.logger.error(f"Error checking Supabase existence: {e}")
