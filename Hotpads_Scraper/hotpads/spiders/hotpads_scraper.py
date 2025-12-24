@@ -547,13 +547,27 @@ class HotPadsSpider(scrapy.Spider):
             self.logger.debug(f"Price selector 5: {xpath_price}")
             
         if xpath_price:
-            # Extract just the number
+            # Stricter price extraction:
+            # 1. Prefer numbers starting with $
+            # 2. Prefer numbers > 100
+            # 3. Strip all non-numeric characters except for the first match
             import re
-            match = re.search(r'\$?([\d,]+)', xpath_price)
-            if match:
-                xpath_price = match.group(0).replace('$', '').replace(',', '')
-            else:
-                xpath_price = ''
+            # Find all currency-prefixed or large numbers
+            price_candidates = re.findall(r'\$?[\d,]{3,}', xpath_price) or re.findall(r'[\d,]+', xpath_price)
+            
+            best_price = ''
+            for cand in price_candidates:
+                clean_cand = cand.replace('$', '').replace(',', '')
+                if clean_cand.isdigit():
+                    num = int(clean_cand)
+                    # If we find a number > 100, it's likely the price, not beds/baths
+                    if num > 100:
+                        best_price = str(num)
+                        break
+                    elif not best_price:
+                        best_price = str(num)
+            
+            xpath_price = best_price
         else:
             xpath_price = ''
         self.logger.info(f"🏷️ EXTRACTED PRICE (XPath): '{xpath_price}'")
@@ -784,7 +798,7 @@ class HotPadsSpider(scrapy.Spider):
                 }
                 
                 # Log the scraped item
-                self.logger.info(f"📍 Scraped: {final_name} | {final_address} | {final_beds}bd {final_baths}ba {final_sqft}sqft")
+                self.logger.info(f"📍 Scraped: {final_name} | {final_address} | {final_price} | {final_beds}bd {final_baths}ba {final_sqft}sqft")
                 
                 yield item
                 items_yielded = True  # Mark that we successfully created an item

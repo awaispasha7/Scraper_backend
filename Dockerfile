@@ -1,11 +1,23 @@
 # Use a standard Python image
 FROM python:3.11-slim
 
-# Install system dependencies
+# Install system dependencies for Selenium/Chromium
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
     libstdc++6 \
+    chromium \
+    chromium-driver \
+    libnss3 \
+    libatk-bridge2.0-0 \
+    libcups2 \
+    libdrm2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxrandr2 \
+    libgbm1 \
+    libasound2 \
     && rm -rf /var/lib/apt/lists/*
 
 # Set working directory

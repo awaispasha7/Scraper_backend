@@ -1,0 +1,5389 @@
+
+logs_debug_v2.json:1:[{
+"message":"\u23f0 
+Scheduler started: 
+Will run all scrapers 
+daily at 00:00","timest
+amp":"2025-12-24T19:03:
+29.159868","type":"info
+"},{"message":"Manual 
+trigger for Hotpads 
+received from API","tim
+estamp":"2025-12-24T19:
+06:15.036211","type":"i
+nfo"},{"message":"Start
+ing Hotpads...","timest
+amp":"2025-12-24T19:06:
+15.052957","type":"info
+"},{"message":"[Hotpads
+] 2025-12-24 19:06:47 
+[scrapy.utils.log] 
+INFO: Scrapy 2.12.0 
+started (bot: hotpads)"
+,"timestamp":"2025-12-2
+4T19:06:47.644127","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:06:48 
+[scrapy.utils.log] 
+INFO: Versions: lxml 
+6.0.2.0, libxml2 
+2.11.9, cssselect 
+1.3.0, parsel 1.10.0, 
+w3lib 2.3.1, Twisted 
+25.5.0, Python 3.13.7 
+(tags/v3.13.7:bcee1c3, 
+Aug 14 2025, 14:15:11) 
+[MSC v.1944 64 bit 
+(AMD64)], pyOpenSSL 
+25.3.0 (OpenSSL 3.5.3 
+16 Sep 2025), 
+cryptography 46.0.0, 
+Platform Windows-11-10.
+0.26100-SP0","timestamp
+":"2025-12-24T19:06:48.
+588433","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:06:50 
+[hotpads_scraper] 
+INFO: Supabase client 
+initialized for 
+incremental check","tim
+estamp":"2025-12-24T19:
+06:50.823868","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:06:50 
+[scrapy.addons] INFO: 
+Enabled addons:","times
+tamp":"2025-12-24T19:06
+:50.833498","type":"inf
+o"},{"message":"[Hotpad
+s] []","timestamp":"202
+5-12-24T19:06:50.840742
+","type":"info"},{"mess
+age":"[Hotpads] 
+2025-12-24 19:06:52 
+[py.warnings] WARNING: 
+C:\\Users\\HomePC\\AppD
+ata\\Local\\Programs\\P
+ython\\Python313\\Lib\\
+site-packages\\scrapy\\
+utils\\request.py:120: 
+ScrapyDeprecationWarnin
+g: 'REQUEST_FINGERPRINT
+ER_IMPLEMENTATION' is 
+a deprecated setting.",
+"timestamp":"2025-12-24
+T19:06:52.382074","type
+":"info"},{"message":"[
+Hotpads] It will be 
+removed in a future 
+version of Scrapy.","ti
+mestamp":"2025-12-24T19
+:06:52.410584","type":"
+info"},{"message":"[Hot
+pads] return cls(crawle
+r)","timestamp":"2025-1
+2-24T19:06:52.416708","
+type":"info"},{"message
+":"[Hotpads] ","timesta
+mp":"2025-12-24T19:06:5
+2.432885","type":"info"
+},{"message":"[Hotpads]
+ 2025-12-24 19:06:52 [s
+crapy.extensions.telnet
+] INFO: Telnet 
+Password: c106c32061f43
+e72","timestamp":"2025-
+12-24T19:06:52.447372",
+"type":"info"},{"messag
+e":"[Hotpads] 
+2025-12-24 19:06:52 
+[scrapy.middleware] 
+INFO: Enabled extension
+s:","timestamp":"2025-1
+2-24T19:06:52.724091","
+type":"info"},{"message
+":"[Hotpads] ['scrapy.e
+xtensions.corestats.Cor
+eStats',","timestamp":"
+2025-12-24T19:06:52.727
+284","type":"info"},{"m
+essage":"[Hotpads] 'scr
+apy.extensions.telnet.T
+elnetConsole',","timest
+amp":"2025-12-24T19:06:
+52.727456","type":"info
+"},{"message":"[Hotpads
+] 'scrapy.extensions.fe
+edexport.FeedExporter',
+","timestamp":"2025-12-
+24T19:06:52.727656","ty
+pe":"info"},{"message":
+"[Hotpads] 'scrapy.exte
+nsions.logstats.LogStat
+s']","timestamp":"2025-
+12-24T19:06:52.727919",
+"type":"info"},{"messag
+e":"[Hotpads] 
+2025-12-24 19:06:52 
+[scrapy.crawler] INFO: 
+Overridden settings:","
+timestamp":"2025-12-24T
+19:06:52.728439","type"
+:"info"},{"message":"[H
+otpads] {'BOT_NAME': 'h
+otpads',","timestamp":"
+2025-12-24T19:06:52.728
+733","type":"info"},{"m
+essage":"[Hotpads] 'FEE
+D_EXPORT_ENCODING': 'ut
+f-8',","timestamp":"202
+5-12-24T19:06:52.728901
+","type":"info"},{"mess
+age":"[Hotpads] 
+'LOG_LEVEL': 'INFO',","
+timestamp":"2025-12-24T
+19:06:52.729146","type"
+:"info"},{"message":"[H
+otpads] 
+'NEWSPIDER_MODULE': 'ho
+tpads.spiders',","times
+tamp":"2025-12-24T19:06
+:52.734127","type":"inf
+o"},{"message":"[Hotpad
+s] 'REQUEST_FINGERPRINT
+ER_CLASS': 'scrapy_zyte
+_api.ScrapyZyteAPIReque
+stFingerprinter',","tim
+estamp":"2025-12-24T19:
+06:52.749307","type":"i
+nfo"},{"message":"[Hotp
+ads] 'REQUEST_FINGERPRI
+NTER_IMPLEMENTATION': '
+2.7',","timestamp":"202
+5-12-24T19:06:52.750417
+","type":"info"},{"mess
+age":"[Hotpads] 
+'RETRY_HTTP_CODES': 
+[412, 404, 429, 520, 
+500, 502, 503, 504, 
+522, 524, 520],","times
+tamp":"2025-12-24T19:06
+:52.756523","type":"inf
+o"},{"message":"[Hotpad
+s] 'SPIDER_MODULES': ['
+hotpads.spiders'],","ti
+mestamp":"2025-12-24T19
+:06:52.756729","type":"
+info"},{"message":"[Hot
+pads] 
+'TWISTED_REACTOR': 'twi
+sted.internet.asynciore
+actor.AsyncioSelectorRe
+actor'}","timestamp":"2
+025-12-24T19:06:52.7568
+38","type":"info"},{"me
+ssage":"[Hotpads] 
+2025-12-24 19:06:52 [sc
+rapy_zyte_api.handler] 
+INFO: Using a Zyte API 
+key starting with 'e4e9
+688'","timestamp":"2025
+-12-24T19:06:52.789489"
+,"type":"info"},{"messa
+ge":"[Hotpads] 
+2025-12-24 19:06:54 [sc
+rapy_zyte_api.handler] 
+INFO: Using a Zyte API 
+key starting with 'e4e9
+688'","timestamp":"2025
+-12-24T19:06:54.266424"
+,"type":"info"},{"messa
+ge":"[Hotpads] 
+2025-12-24 19:06:54 
+[scrapy.middleware] 
+INFO: Enabled 
+downloader middlewares:
+","timestamp":"2025-12-
+24T19:06:54.356498","ty
+pe":"info"},{"message":
+"[Hotpads] ['scrapy.dow
+nloadermiddlewares.offs
+ite.OffsiteMiddleware',
+","timestamp":"2025-12-
+24T19:06:54.356774","ty
+pe":"info"},{"message":
+"[Hotpads] 'scrapy.down
+loadermiddlewares.httpa
+uth.HttpAuthMiddleware'
+,","timestamp":"2025-12
+-24T19:06:54.356900","t
+ype":"info"},{"message"
+:"[Hotpads] 'scrapy.dow
+nloadermiddlewares.down
+loadtimeout.DownloadTim
+eoutMiddleware',","time
+stamp":"2025-12-24T19:0
+6:54.357436","type":"in
+fo"},{"message":"[Hotpa
+ds] 'scrapy.downloaderm
+iddlewares.defaultheade
+rs.DefaultHeadersMiddle
+ware',","timestamp":"20
+25-12-24T19:06:54.35804
+4","type":"info"},{"mes
+sage":"[Hotpads] 'scrap
+y.downloadermiddlewares
+.useragent.UserAgentMid
+dleware',","timestamp":
+"2025-12-24T19:06:54.35
+8625","type":"info"},{"
+message":"[Hotpads] 'sc
+rapy.downloadermiddlewa
+res.retry.RetryMiddlewa
+re',","timestamp":"2025
+-12-24T19:06:54.358819"
+,"type":"info"},{"messa
+ge":"[Hotpads] 'scrapy.
+downloadermiddlewares.r
+edirect.MetaRefreshMidd
+leware',","timestamp":"
+2025-12-24T19:06:54.358
+945","type":"info"},{"m
+essage":"[Hotpads] 'scr
+apy.downloadermiddlewar
+es.httpcompression.Http
+CompressionMiddleware',
+","timestamp":"2025-12-
+24T19:06:54.359311","ty
+pe":"info"},{"message":
+"[Hotpads] 'scrapy.down
+loadermiddlewares.redir
+ect.RedirectMiddleware'
+,","timestamp":"2025-12
+-24T19:06:54.359826","t
+ype":"info"},{"message"
+:"[Hotpads] 'scrapy.dow
+nloadermiddlewares.cook
+ies.CookiesMiddleware',
+","timestamp":"2025-12-
+24T19:06:54.360299","ty
+pe":"info"},{"message":
+"[Hotpads] 'scrapy.down
+loadermiddlewares.httpp
+roxy.HttpProxyMiddlewar
+e',","timestamp":"2025-
+12-24T19:06:54.360790",
+"type":"info"},{"messag
+e":"[Hotpads] 'scrapy.d
+ownloadermiddlewares.st
+ats.DownloaderStats',",
+"timestamp":"2025-12-24
+T19:06:54.361370","type
+":"info"},{"message":"[
+Hotpads] 'scrapy_zyte_a
+pi.ScrapyZyteAPIDownloa
+derMiddleware']","times
+tamp":"2025-12-24T19:06
+:54.362591","type":"inf
+o"},{"message":"[Hotpad
+s] 2025-12-24 19:06:54 
+[scrapy.middleware] 
+INFO: Enabled spider mi
+ddlewares:","timestamp"
+:"2025-12-24T19:06:54.3
+73324","type":"info"},{
+"message":"[Hotpads] ['
+scrapy.spidermiddleware
+s.httperror.HttpErrorMi
+ddleware',","timestamp"
+:"2025-12-24T19:06:54.3
+74611","type":"info"},{
+"message":"[Hotpads] 's
+crapy.spidermiddlewares
+.referer.RefererMiddlew
+are',","timestamp":"202
+5-12-24T19:06:54.374881
+","type":"info"},{"mess
+age":"[Hotpads] 'scrapy
+.spidermiddlewares.urll
+ength.UrlLengthMiddlewa
+re',","timestamp":"2025
+-12-24T19:06:54.375091"
+,"type":"info"},{"messa
+ge":"[Hotpads] 'scrapy.
+spidermiddlewares.depth
+.DepthMiddleware']","ti
+mestamp":"2025-12-24T19
+:06:54.375304","type":"
+info"},{"message":"[Hot
+pads] 2025-12-24 
+19:06:54 
+[scrapy.middleware] 
+INFO: Enabled item pipe
+lines:","timestamp":"20
+25-12-24T19:06:54.37663
+6","type":"info"},{"mes
+sage":"[Hotpads] ['hotp
+ads.pipelines.HotpadsPi
+peline']","timestamp":"
+2025-12-24T19:06:54.376
+835","type":"info"},{"m
+essage":"[Hotpads] 
+2025-12-24 19:06:54 
+[scrapy.core.engine] 
+INFO: Spider opened","t
+imestamp":"2025-12-24T1
+9:06:54.377271","type":
+"info"},{"message":"[Ho
+tpads] 2025-12-24 
+19:06:54 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:06:54.479954","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:01 [httpx] INFO: 
+HTTP Request: GET https
+://dlcdmldvvcynvgaftvdk
+.supabase.co/rest/v1/ho
+tpads_listings?select=c
+ount&limit=0 \"HTTP/2 
+206 Partial Content\"",
+"timestamp":"2025-12-24
+T19:07:01.410294","type
+":"info"},{"message":"[
+Hotpads] 2025-12-24 
+19:07:01 
+[hotpads_scraper] 
+INFO: SUPABASE: 
+Connected successfully 
+to https://dlcdmldvvcyn
+vgaftvdk.supabase.co","
+timestamp":"2025-12-24T
+19:07:01.433814","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:01 
+[hotpads_scraper] 
+INFO: SUPABASE: 
+Current record count: 1
+402","timestamp":"2025-
+12-24T19:07:01.442196",
+"type":"info"},{"messag
+e":"[Hotpads] 
+2025-12-24 19:07:01 
+[hotpads_scraper] 
+INFO: SUPABASE: Batch 
+size: 1 items","timesta
+mp":"2025-12-24T19:07:0
+1.446060","type":"info"
+},{"message":"[Hotpads]
+ 2025-12-24 19:07:01 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:01.446253","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:01 [scrapy.extens
+ions.logstats] INFO: 
+Crawled 0 pages (at 0 
+pages/min), scraped 0 
+items (at 0 items/min)"
+,"timestamp":"2025-12-2
+4T19:07:01.447547","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:07:01 [scrapy.extens
+ions.telnet] INFO: 
+Telnet console 
+listening on 127.0.0.1:
+6023","timestamp":"2025
+-12-24T19:07:01.448523"
+,"type":"info"},{"messa
+ge":"[Hotpads] 
+2025-12-24 19:07:06 
+[hotpads_scraper] 
+INFO: Default Mode: 
+Starting scrape for 
+provided URL: https://h
+otpads.com/lincoln-park
+-chicago-il/for-rent-by
+-owner?border=false&isL
+istedByOwner=true&lat=4
+1.8919&listingTypes=ren
+tal&lon=-87.6612&z=12",
+"timestamp":"2025-12-24
+T19:07:06.429262","type
+":"info"},{"message":"[
+Hotpads] 2025-12-24 
+19:07:19 
+[hotpads_scraper] 
+INFO: Parsing response 
+from: https://hotpads.c
+om/lincoln-park-chicago
+-il/for-rent-by-owner?b
+order=false&isListedByO
+wner=true&lat=41.8919&l
+istingTypes=rental&lon=
+-87.6612&z=12","timesta
+mp":"2025-12-24T19:07:1
+9.614126","type":"info"
+},{"message":"[Hotpads]
+ 2025-12-24 19:07:19 
+[hotpads_scraper] 
+INFO: Found 40 items 
+in JSON-LD about","time
+stamp":"2025-12-24T19:0
+7:19.655648","type":"in
+fo"},{"message":"[Hotpa
+ds] 2025-12-24 
+19:07:19 
+[hotpads_scraper] 
+INFO: Total unique 
+listing URLs found 
+(after filtering): 40",
+"timestamp":"2025-12-24
+T19:07:19.690073","type
+":"info"},{"message":"[
+Hotpads] 2025-12-24 
+19:07:22 [httpx] INFO: 
+HTTP Request: GET https
+://dlcdmldvvcynvgaftvdk
+.supabase.co/rest/v1/ho
+tpads_listings?select=u
+rl&url=in.%28%22https%3
+A%2F%2Fhotpads.com%2F20
+03-n-california-ave-chi
+cago-il-60647-1msm452%2
+Fbuilding%22%2C%22https
+%3A%2F%2Fhotpads.com%2F
+1351-s-halsted-st-chica
+go-il-60607-skfc5d%2F31
+0%2Fpad%22%2C%22https%3
+A%2F%2Fhotpads.com%2F53
+58-s-narragansett-ave-c
+hicago-il-60638-24v368y
+%2F1%2Fpad%22%2C%22http
+s%3A%2F%2Fhotpads.com%2
+F3950-n-lake-shore-dr-c
+hicago-il-60613-24ewt4d
+%2Fbuilding%22%2C%22htt
+ps%3A%2F%2Fhotpads.com%
+2F450-w-briar-pl-chicag
+o-il-60657-23yt328%2F11
+j%2Fpad%22%2C%22https%3
+A%2F%2Fhotpads.com%2F64
+38-n-hamilton-ave-chica
+go-il-60645-sqd8cv%2F3%
+2Fpad%22%2C%22https%3A%
+2F%2Fhotpads.com%2F5524
+-w-sunnyside-ave-chicag
+o-il-60630-1msd819%2F1%
+2Fpad%22%2C%22https%3A%
+2F%2Fhotpads.com%2F4623
+-s-michigan-ave-chicago
+-il-60653-1msp138%2Fbui
+lding%22%2C%22https%3A%
+2F%2Fhotpads.com%2F3410
+-w-walnut-st-chicago-il
+-60624-skm65n%2F3%2Fpad
+%22%2C%22https%3A%2F%2F
+hotpads.com%2F545-n-dra
+ke-ave-chicago-il-60624
+-sk7g16%2F2%2Fpad%22%2C
+%22https%3A%2F%2Fhotpad
+s.com%2F4019-w-cornelia
+-ave-chicago-il-60641-1
+mshqq7%2Fpad%22%2C%22ht
+tps%3A%2F%2Fhotpads.com
+%2F548-e-61st-st-chicag
+o-il-60637-1msfgnc%2F2%
+2Fpad%22%2C%22https%3A%
+2F%2Fhotpads.com%2F903-
+n-lockwood-ave-chicago-
+il-60651-sr6k%2F2%2Fpad
+%22%2C%22https%3A%2F%2F
+hotpads.com%2F30-e-huro
+n-st-chicago-il-60611-s
+kr82q%2Fbuilding%22%2C%
+22https%3A%2F%2Fhotpads
+.com%2F859-w-erie-st-ch
+icago-il-60642-skg4t4%2
+F308%2Fpad%22%2C%22http
+s%3A%2F%2Fhotpads.com%2
+F1631-s-michigan-ave-ch
+icago-il-60616-y2m4%2F4
+01%2Fpad%22%2C%22https%
+3A%2F%2Fhotpads.com%2Fe
+lmwood-park-il-60707-tg
+k0v2%2F9%2Fpad%22%2C%22
+https%3A%2F%2Fhotpads.c
+om%2F4816-n-winchester-
+ave-chicago-il-60640-sk
+0s4t%2F2%2Fpad%22%2C%22
+https%3A%2F%2Fhotpads.c
+om%2F1816-s-hamlin-ave-
+chicago-il-60623-1ms9m6
+5%2F2%2Fpad%22%2C%22htt
+ps%3A%2F%2Fhotpads.com%
+2F1640-w-57th-st-chicag
+o-il-60636-1z3aqa8%2F2%
+2Fpad%22%2C%22https%3A%
+2F%2Fhotpads.com%2F5615
+-n-mozart-st-chicago-il
+-60659-sk4mq8%2F3c%2Fpa
+d%22%2C%22https%3A%2F%2
+Fhotpads.com%2F1107-was
+hington-blvd-oak-park-i
+l-60302-1kk0s5q%2Fe%2Fp
+ad%22%2C%22https%3A%2F%
+2Fhotpads.com%2F6212-n-
+claremont-ave-chicago-i
+l-60659-1msrkf2%2F1%2Fp
+ad%22%2C%22https%3A%2F%
+2Fhotpads.com%2F5031-n-
+harding-ave-chicago-il-
+60625-240x42g%2Fg%2Fpad
+%22%2C%22https%3A%2F%2F
+hotpads.com%2F1330-w-no
+rwood-st-chicago-il-606
+60-1msrq5x%2Fbuilding%2
+2%2C%22https%3A%2F%2Fho
+tpads.com%2F4313-s-king
+-dr-chicago-il-60653-13
+g9k%2Fbuilding%22%2C%22
+https%3A%2F%2Fhotpads.c
+om%2F6121-n-sheridan-rd
+-chicago-il-60660-wh2h%
+2F5a%2Fpad%22%2C%22http
+s%3A%2F%2Fhotpads.com%2
+F5415-n-sheridan-rd-chi
+cago-il-60640-10985%2F9
+11%2Fpad%22%2C%22https%
+3A%2F%2Fhotpads.com%2F5
+105-w-altgeld-st-chicag
+o-il-60639-1msguz1%2Fba
+sement%2Fpad%22%2C%22ht
+tps%3A%2F%2Fhotpads.com
+%2F1521-w-leland-ave-ch
+icago-il-60640-24s77t0%
+2F2f%2Fpad%22%2C%22http
+s%3A%2F%2Fhotpads.com%2
+F6843-cermak-rd-berwyn-
+il-60402-1kk1j9t%2F202%
+2Fpad%22%2C%22https%3A%
+2F%2Fhotpads.com%2F5310
+-n-chester-ave-chicago-
+il-60656-sk1ux2%2Fbuild
+ing%22%2C%22https%3A%2F
+%2Fhotpads.com%2F1339-n
+-dearborn-st-chicago-il
+-60610-24a63f0%2F2b%2Fp
+ad%22%2C%22https%3A%2F%
+2Fhotpads.com%2F3250-w-
+belle-plaine-ave-chicag
+o-il-60618-sk53wu%2F2%2
+Fpad%22%2C%22https%3A%2
+F%2Fhotpads.com%2F2736-
+s-central-park-ave-chic
+ago-il-60623-1ms9t5r%2F
+1%2Fpad%22%2C%22https%3
+A%2F%2Fhotpads.com%2F24
+0-lathrop-ave-forest-pa
+rk-il-60130-t08h1j%2F1%
+2Fpad%22%2C%22https%3A%
+2F%2Fhotpads.com%2F2624
+-n-richmond-st-chicago-
+il-60647-x1t9%2F3%2Fpad
+%22%2C%22https%3A%2F%2F
+hotpads.com%2F801-s-ply
+mouth-ct-chicago-il-606
+05-sk635p%2Fbuilding%22
+%2C%22https%3A%2F%2Fhot
+pads.com%2F6133-s-drexe
+l-ave-chicago-il-60637-
+sjyxpt%2F1b%2Fpad%22%2C
+%22https%3A%2F%2Fhotpad
+s.com%2F6439-n-rockwell
+-st-chicago-il-60645-wy
+24%2F3%2Fpad%22%29 
+\"HTTP/2 200 OK\"","tim
+estamp":"2025-12-24T19:
+07:22.803892","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:07:22 
+[hotpads_scraper] 
+INFO: Check results: 0 
+listings already exist 
+in database","timestamp
+":"2025-12-24T19:07:22.
+845726","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:22 
+[hotpads_scraper] 
+INFO: Moving to next 
+page: /lincoln-park-chi
+cago-il/for-rent-by-own
+er?border=false&isListe
+dByOwner=true&lat=41.89
+19&listingTypes=rental&
+lon=-87.6612&page=2&z=1
+2","timestamp":"2025-12
+-24T19:07:22.888735","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:07:34 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/4623-
+s-michigan-ave-chicago-
+il-60653-1msp138/buildi
+ng","timestamp":"2025-1
+2-24T19:07:34.157825","
+type":"info"},{"message
+":"[Hotpads] 
+2025-12-24 19:07:34 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/4623-s-michigan-ave-
+chicago-il-60653-1msp13
+8/building","timestamp"
+:"2025-12-24T19:07:34.2
+30226","type":"info"},{
+"message":"[Hotpads] 
+2025-12-24 19:07:34 
+[hotpads_scraper] 
+INFO: \\u2713 DEBUG: 
+Saved HTML to 
+hotpads_debug.html for 
+inspection","timestamp"
+:"2025-12-24T19:07:34.2
+31217","type":"info"},{
+"message":"[Hotpads] 
+2025-12-24 19:07:34 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:07:34.
+235273","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:34 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 3 
+beds, 2 baths,  sqft","
+timestamp":"2025-12-24T
+19:07:34.238752","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:34 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 4623 S 
+Michigan Ave | 4623 S 
+Michigan Ave, Chicago, 
+IL 60653 | 3bd 2ba sqft
+","timestamp":"2025-12-
+24T19:07:34.261947","ty
+pe":"info"},{"message":
+"[Hotpads] 2025-12-24 
+19:07:34 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 4623 S 
+Michigan Ave - 4623 S 
+Michigan Ave, Chicago, 
+IL 60653","timestamp":"
+2025-12-24T19:07:34.263
+372","type":"info"},{"m
+essage":"[Hotpads] 
+2025-12-24 19:07:34 
+[httpx] INFO: HTTP 
+Request: POST https://d
+lcdmldvvcynvgaftvdk.sup
+abase.co/rest/v1/hotpad
+s_listings?on_conflict=
+url&columns=%22address%
+22%2C%22contact_name%22
+%2C%22bedrooms%22%2C%22
+url%22%2C%22contact_com
+pany%22%2C%22bathrooms%
+22%2C%22listing_date%22
+%2C%22property_name%22%
+2C%22price%22%2C%22phon
+e_number%22%2C%22square
+_feet%22%2C%22email%22 
+\"HTTP/2 201 Created\""
+,"timestamp":"2025-12-2
+4T19:07:34.677252","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:07:34 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:34.742025","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:34 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:07:34.
+742641","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:34 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:34.744938","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:35 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/548-e
+-61st-st-chicago-il-606
+37-1msfgnc/2/pad","time
+stamp":"2025-12-24T19:0
+7:35.305324","type":"in
+fo"},{"message":"[Hotpa
+ds] 2025-12-24 
+19:07:35 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/548-e-61st-st-chicag
+o-il-60637-1msfgnc/2/pa
+d","timestamp":"2025-12
+-24T19:07:35.457428","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:07:35 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:07:35.
+476005","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:35 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 4 
+beds, 2 baths, 2000 sqf
+t","timestamp":"2025-12
+-24T19:07:35.662681","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:07:35 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 548 E 61st St 
+#2 | 548 E 61st St, 
+Chicago, IL 60637 | 
+4bd 2ba 2000sqft","time
+stamp":"2025-12-24T19:0
+7:35.677971","type":"in
+fo"},{"message":"[Hotpa
+ds] 2025-12-24 
+19:07:35 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 548 E 61st 
+St #2 - 548 E 61st St, 
+Chicago, IL 60637","tim
+estamp":"2025-12-24T19:
+07:35.678310","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:07:35 [httpx] INFO: 
+HTTP Request: POST http
+s://dlcdmldvvcynvgaftvd
+k.supabase.co/rest/v1/h
+otpads_listings?on_conf
+lict=url&columns=%22add
+ress%22%2C%22contact_na
+me%22%2C%22bedrooms%22%
+2C%22url%22%2C%22contac
+t_company%22%2C%22bathr
+ooms%22%2C%22listing_da
+te%22%2C%22property_nam
+e%22%2C%22price%22%2C%2
+2phone_number%22%2C%22s
+quare_feet%22%2C%22emai
+l%22 \"HTTP/2 200 OK\""
+,"timestamp":"2025-12-2
+4T19:07:35.931278","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:07:35 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:35.934811","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:35 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:07:35.
+935644","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:35 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:35.935839","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:35 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/903-n
+-lockwood-ave-chicago-i
+l-60651-sr6k/2/pad","ti
+mestamp":"2025-12-24T19
+:07:35.936042","type":"
+info"},{"message":"[Hot
+pads] 2025-12-24 
+19:07:35 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/903-n-lockwood-ave-c
+hicago-il-60651-sr6k/2/
+pad","timestamp":"2025-
+12-24T19:07:35.990533",
+"type":"info"},{"messag
+e":"[Hotpads] 
+2025-12-24 19:07:36 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:07:36.
+027981","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:36 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 3 
+beds, 1 baths, 1500 sqf
+t","timestamp":"2025-12
+-24T19:07:36.119178","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:07:36 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 903 N 
+Lockwood Ave #2 | 903 
+N Lockwood Ave, 
+Chicago, IL 60651 | 
+3bd 1ba 1500sqft","time
+stamp":"2025-12-24T19:0
+7:36.139745","type":"in
+fo"},{"message":"[Hotpa
+ds] 2025-12-24 
+19:07:36 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 903 N 
+Lockwood Ave #2 - 903 
+N Lockwood Ave, 
+Chicago, IL 60651","tim
+estamp":"2025-12-24T19:
+07:36.142221","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:07:36 [httpx] INFO: 
+HTTP Request: POST http
+s://dlcdmldvvcynvgaftvd
+k.supabase.co/rest/v1/h
+otpads_listings?on_conf
+lict=url&columns=%22add
+ress%22%2C%22contact_na
+me%22%2C%22bedrooms%22%
+2C%22url%22%2C%22contac
+t_company%22%2C%22bathr
+ooms%22%2C%22listing_da
+te%22%2C%22property_nam
+e%22%2C%22price%22%2C%2
+2phone_number%22%2C%22s
+quare_feet%22%2C%22emai
+l%22 \"HTTP/2 200 OK\""
+,"timestamp":"2025-12-2
+4T19:07:36.396831","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:07:36 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:36.401509","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:36 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:07:36.
+401785","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:36 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:36.401995","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:36 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/4019-
+w-cornelia-ave-chicago-
+il-60641-1mshqq7/pad","
+timestamp":"2025-12-24T
+19:07:36.402839","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:36 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/4019-w-cornelia-ave-
+chicago-il-60641-1mshqq
+7/pad","timestamp":"202
+5-12-24T19:07:36.464559
+","type":"info"},{"mess
+age":"[Hotpads] 
+2025-12-24 19:07:36 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:07:36.
+546404","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:36 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 4 
+beds, 2 baths, 2000 sqf
+t","timestamp":"2025-12
+-24T19:07:36.639907","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:07:36 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 4019 W 
+Cornelia Ave | 4019 W 
+Cornelia Ave, Chicago, 
+IL 60641 | 4bd 2ba 2000
+sqft","timestamp":"2025
+-12-24T19:07:36.655298"
+,"type":"info"},{"messa
+ge":"[Hotpads] 
+2025-12-24 19:07:36 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 4019 W 
+Cornelia Ave - 4019 W 
+Cornelia Ave, Chicago, 
+IL 60641","timestamp":"
+2025-12-24T19:07:36.656
+644","type":"info"},{"m
+essage":"[Hotpads] 
+2025-12-24 19:07:36 
+[httpx] INFO: HTTP 
+Request: POST https://d
+lcdmldvvcynvgaftvdk.sup
+abase.co/rest/v1/hotpad
+s_listings?on_conflict=
+url&columns=%22address%
+22%2C%22contact_name%22
+%2C%22bedrooms%22%2C%22
+url%22%2C%22contact_com
+pany%22%2C%22bathrooms%
+22%2C%22listing_date%22
+%2C%22property_name%22%
+2C%22price%22%2C%22phon
+e_number%22%2C%22square
+_feet%22%2C%22email%22 
+\"HTTP/2 200 OK\"","tim
+estamp":"2025-12-24T19:
+07:36.900467","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:07:36 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:36.902286","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:36 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:07:36.
+902614","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:36 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:36.902806","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:36 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/30-e-
+huron-st-chicago-il-606
+11-skr82q/building","ti
+mestamp":"2025-12-24T19
+:07:36.934660","type":"
+info"},{"message":"[Hot
+pads] 2025-12-24 
+19:07:36 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/30-e-huron-st-chicag
+o-il-60611-skr82q/build
+ing","timestamp":"2025-
+12-24T19:07:36.999360",
+"type":"info"},{"messag
+e":"[Hotpads] 
+2025-12-24 19:07:37 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:07:37.
+008010","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:37 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 2 
+beds, 1 baths, 900 sqft
+","timestamp":"2025-12-
+24T19:07:37.086646","ty
+pe":"info"},{"message":
+"[Hotpads] 2025-12-24 
+19:07:37 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 30 E Huron St 
+| 30 E Huron St, 
+Chicago, IL 60611 | 
+2bd 1ba 900sqft","times
+tamp":"2025-12-24T19:07
+:37.094459","type":"inf
+o"},{"message":"[Hotpad
+s] 2025-12-24 19:07:37 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 30 E Huron 
+St - 30 E Huron St, 
+Chicago, IL 60611","tim
+estamp":"2025-12-24T19:
+07:37.095444","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:07:37 [httpx] INFO: 
+HTTP Request: POST http
+s://dlcdmldvvcynvgaftvd
+k.supabase.co/rest/v1/h
+otpads_listings?on_conf
+lict=url&columns=%22add
+ress%22%2C%22contact_na
+me%22%2C%22bedrooms%22%
+2C%22url%22%2C%22contac
+t_company%22%2C%22bathr
+ooms%22%2C%22listing_da
+te%22%2C%22property_nam
+e%22%2C%22price%22%2C%2
+2phone_number%22%2C%22s
+quare_feet%22%2C%22emai
+l%22 \"HTTP/2 200 OK\""
+,"timestamp":"2025-12-2
+4T19:07:37.351123","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:07:37 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:37.352543","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:37 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:07:37.
+352778","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:37 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:37.352920","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:37 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/3410-
+w-walnut-st-chicago-il-
+60624-skm65n/3/pad","ti
+mestamp":"2025-12-24T19
+:07:37.380207","type":"
+info"},{"message":"[Hot
+pads] 2025-12-24 
+19:07:37 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/3410-w-walnut-st-chi
+cago-il-60624-skm65n/3/
+pad","timestamp":"2025-
+12-24T19:07:37.421480",
+"type":"info"},{"messag
+e":"[Hotpads] 
+2025-12-24 19:07:37 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:07:37.
+428855","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:37 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 4 
+beds, 1 baths, 1300 sqf
+t","timestamp":"2025-12
+-24T19:07:37.464384","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:07:37 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 3410 W Walnut 
+St #3 | 3410 W Walnut 
+St, Chicago, IL 60624 
+| 4bd 1ba 1300sqft","ti
+mestamp":"2025-12-24T19
+:07:37.472483","type":"
+info"},{"message":"[Hot
+pads] 2025-12-24 
+19:07:37 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 3410 W 
+Walnut St #3 - 3410 W 
+Walnut St, Chicago, IL 
+60624","timestamp":"202
+5-12-24T19:07:37.472782
+","type":"info"},{"mess
+age":"[Hotpads] 
+2025-12-24 19:07:37 
+[httpx] INFO: HTTP 
+Request: POST https://d
+lcdmldvvcynvgaftvdk.sup
+abase.co/rest/v1/hotpad
+s_listings?on_conflict=
+url&columns=%22address%
+22%2C%22contact_name%22
+%2C%22bedrooms%22%2C%22
+url%22%2C%22contact_com
+pany%22%2C%22bathrooms%
+22%2C%22listing_date%22
+%2C%22property_name%22%
+2C%22price%22%2C%22phon
+e_number%22%2C%22square
+_feet%22%2C%22email%22 
+\"HTTP/2 200 OK\"","tim
+estamp":"2025-12-24T19:
+07:37.704104","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:07:37 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:37.705510","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:37 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:07:37.
+705763","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:37 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:37.705898","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:37 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/545-n
+-drake-ave-chicago-il-6
+0624-sk7g16/2/pad","tim
+estamp":"2025-12-24T19:
+07:37.817139","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:07:37 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/545-n-drake-ave-chic
+ago-il-60624-sk7g16/2/p
+ad","timestamp":"2025-1
+2-24T19:07:37.867601","
+type":"info"},{"message
+":"[Hotpads] 
+2025-12-24 19:07:37 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:07:37.
+878019","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:37 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 3 
+beds, 2 baths, 1500 sqf
+t","timestamp":"2025-12
+-24T19:07:37.915320","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:07:37 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 545 N Drake 
+Ave #2 | 545 N Drake 
+Ave, Chicago, IL 60624 
+| 3bd 2ba 1500sqft","ti
+mestamp":"2025-12-24T19
+:07:37.923720","type":"
+info"},{"message":"[Hot
+pads] 2025-12-24 
+19:07:37 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 545 N 
+Drake Ave #2 - 545 N 
+Drake Ave, Chicago, IL 
+60624","timestamp":"202
+5-12-24T19:07:37.923964
+","type":"info"},{"mess
+age":"[Hotpads] 
+2025-12-24 19:07:38 
+[httpx] INFO: HTTP 
+Request: POST https://d
+lcdmldvvcynvgaftvdk.sup
+abase.co/rest/v1/hotpad
+s_listings?on_conflict=
+url&columns=%22address%
+22%2C%22contact_name%22
+%2C%22bedrooms%22%2C%22
+url%22%2C%22contact_com
+pany%22%2C%22bathrooms%
+22%2C%22listing_date%22
+%2C%22property_name%22%
+2C%22price%22%2C%22phon
+e_number%22%2C%22square
+_feet%22%2C%22email%22 
+\"HTTP/2 200 OK\"","tim
+estamp":"2025-12-24T19:
+07:38.184375","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:07:38 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:38.185735","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:38 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:07:38.
+185971","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:38 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:38.186103","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:41 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/450-w
+-briar-pl-chicago-il-60
+657-23yt328/11j/pad","t
+imestamp":"2025-12-24T1
+9:07:41.560134","type":
+"info"},{"message":"[Ho
+tpads] 2025-12-24 
+19:07:41 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/450-w-briar-pl-chica
+go-il-60657-23yt328/11j
+/pad","timestamp":"2025
+-12-24T19:07:41.573471"
+,"type":"info"},{"messa
+ge":"[Hotpads] 
+2025-12-24 19:07:41 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:07:41.
+576134","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:41 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 2 
+beds, 1 baths, 475 sqft
+","timestamp":"2025-12-
+24T19:07:41.593006","ty
+pe":"info"},{"message":
+"[Hotpads] 2025-12-24 
+19:07:41 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 450 W Briar 
+Pl #11J | 450 W Briar 
+Pl, Chicago, IL 60657 
+| 2bd 1ba 475sqft","tim
+estamp":"2025-12-24T19:
+07:41.595493","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:07:41 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 450 W 
+Briar Pl #11J - 450 W 
+Briar Pl, Chicago, IL 6
+0657","timestamp":"2025
+-12-24T19:07:41.595736"
+,"type":"info"},{"messa
+ge":"[Hotpads] 
+2025-12-24 19:07:41 
+[httpx] INFO: HTTP 
+Request: POST https://d
+lcdmldvvcynvgaftvdk.sup
+abase.co/rest/v1/hotpad
+s_listings?on_conflict=
+url&columns=%22address%
+22%2C%22contact_name%22
+%2C%22bedrooms%22%2C%22
+url%22%2C%22contact_com
+pany%22%2C%22bathrooms%
+22%2C%22listing_date%22
+%2C%22property_name%22%
+2C%22price%22%2C%22phon
+e_number%22%2C%22square
+_feet%22%2C%22email%22 
+\"HTTP/2 200 OK\"","tim
+estamp":"2025-12-24T19:
+07:41.833997","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:07:41 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:41.835428","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:41 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:07:41.
+835880","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:41 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:41.836028","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:46 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/5524-
+w-sunnyside-ave-chicago
+-il-60630-1msd819/1/pad
+","timestamp":"2025-12-
+24T19:07:46.480822","ty
+pe":"info"},{"message":
+"[Hotpads] 2025-12-24 
+19:07:46 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/5524-w-sunnyside-ave
+-chicago-il-60630-1msd8
+19/1/pad","timestamp":"
+2025-12-24T19:07:46.519
+334","type":"info"},{"m
+essage":"[Hotpads] 
+2025-12-24 19:07:46 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:07:46.
+528316","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:46 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 2 
+beds, 1 baths, 1100 sqf
+t","timestamp":"2025-12
+-24T19:07:46.670027","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:07:46 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 5524 W 
+Sunnyside Ave #1 | 
+5524 W Sunnyside Ave, 
+Chicago, IL 60630 | 
+2bd 1ba 1100sqft","time
+stamp":"2025-12-24T19:0
+7:46.679079","type":"in
+fo"},{"message":"[Hotpa
+ds] 2025-12-24 
+19:07:46 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 5524 W 
+Sunnyside Ave #1 - 
+5524 W Sunnyside Ave, 
+Chicago, IL 60630","tim
+estamp":"2025-12-24T19:
+07:46.679416","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:07:46 [httpx] INFO: 
+HTTP Request: POST http
+s://dlcdmldvvcynvgaftvd
+k.supabase.co/rest/v1/h
+otpads_listings?on_conf
+lict=url&columns=%22add
+ress%22%2C%22contact_na
+me%22%2C%22bedrooms%22%
+2C%22url%22%2C%22contac
+t_company%22%2C%22bathr
+ooms%22%2C%22listing_da
+te%22%2C%22property_nam
+e%22%2C%22price%22%2C%2
+2phone_number%22%2C%22s
+quare_feet%22%2C%22emai
+l%22 \"HTTP/2 200 OK\""
+,"timestamp":"2025-12-2
+4T19:07:46.934404","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:07:46 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:46.937380","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:46 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:07:46.
+937756","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:46 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:46.937949","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:47 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/3950-
+n-lake-shore-dr-chicago
+-il-60613-24ewt4d/build
+ing","timestamp":"2025-
+12-24T19:07:47.967880",
+"type":"info"},{"messag
+e":"[Hotpads] 
+2025-12-24 19:07:47 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/3950-n-lake-shore-dr
+-chicago-il-60613-24ewt
+4d/building","timestamp
+":"2025-12-24T19:07:47.
+998861","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:48 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:07:48.
+008295","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:48 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 3 
+beds, 1 baths, 1350 sqf
+t","timestamp":"2025-12
+-24T19:07:48.095101","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:07:48 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 3950 N Lake 
+Shore Dr | 3950 N Lake 
+Shore Dr, Chicago, IL 
+60613 | 3bd 1ba 1350sqf
+t","timestamp":"2025-12
+-24T19:07:48.102200","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:07:48 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 3950 N 
+Lake Shore Dr - 3950 N 
+Lake Shore Dr, 
+Chicago, IL 60613","tim
+estamp":"2025-12-24T19:
+07:48.102531","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:07:48 [httpx] INFO: 
+HTTP Request: POST http
+s://dlcdmldvvcynvgaftvd
+k.supabase.co/rest/v1/h
+otpads_listings?on_conf
+lict=url&columns=%22add
+ress%22%2C%22contact_na
+me%22%2C%22bedrooms%22%
+2C%22url%22%2C%22contac
+t_company%22%2C%22bathr
+ooms%22%2C%22listing_da
+te%22%2C%22property_nam
+e%22%2C%22price%22%2C%2
+2phone_number%22%2C%22s
+quare_feet%22%2C%22emai
+l%22 \"HTTP/2 200 OK\""
+,"timestamp":"2025-12-2
+4T19:07:48.352192","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:07:48 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:48.354113","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:48 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:07:48.
+354414","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:48 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:48.354905","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:48 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/6438-
+n-hamilton-ave-chicago-
+il-60645-sqd8cv/3/pad",
+"timestamp":"2025-12-24
+T19:07:48.485330","type
+":"info"},{"message":"[
+Hotpads] 2025-12-24 
+19:07:48 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/6438-n-hamilton-ave-
+chicago-il-60645-sqd8cv
+/3/pad","timestamp":"20
+25-12-24T19:07:48.51808
+9","type":"info"},{"mes
+sage":"[Hotpads] 
+2025-12-24 19:07:48 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:07:48.
+526857","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:48 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 2 
+beds, 1 baths, 1400 sqf
+t","timestamp":"2025-12
+-24T19:07:48.641657","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:07:48 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 6438 N 
+Hamilton Ave #3 | 6438 
+N Hamilton Ave, 
+Chicago, IL 60645 | 
+2bd 1ba 1400sqft","time
+stamp":"2025-12-24T19:0
+7:48.657132","type":"in
+fo"},{"message":"[Hotpa
+ds] 2025-12-24 
+19:07:48 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 6438 N 
+Hamilton Ave #3 - 6438 
+N Hamilton Ave, 
+Chicago, IL 60645","tim
+estamp":"2025-12-24T19:
+07:48.658216","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:07:48 [httpx] INFO: 
+HTTP Request: POST http
+s://dlcdmldvvcynvgaftvd
+k.supabase.co/rest/v1/h
+otpads_listings?on_conf
+lict=url&columns=%22add
+ress%22%2C%22contact_na
+me%22%2C%22bedrooms%22%
+2C%22url%22%2C%22contac
+t_company%22%2C%22bathr
+ooms%22%2C%22listing_da
+te%22%2C%22property_nam
+e%22%2C%22price%22%2C%2
+2phone_number%22%2C%22s
+quare_feet%22%2C%22emai
+l%22 \"HTTP/2 200 OK\""
+,"timestamp":"2025-12-2
+4T19:07:48.910394","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:07:48 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:48.912857","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:48 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:07:48.
+913160","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:48 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:48.913703","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:49 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/5358-
+s-narragansett-ave-chic
+ago-il-60638-24v368y/1/
+pad","timestamp":"2025-
+12-24T19:07:49.067715",
+"type":"info"},{"messag
+e":"[Hotpads] 
+2025-12-24 19:07:49 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/5358-s-narragansett-
+ave-chicago-il-60638-24
+v368y/1/pad","timestamp
+":"2025-12-24T19:07:49.
+101792","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:49 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:07:49.
+109363","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:49 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 3 
+beds, 1 baths, 1500 sqf
+t","timestamp":"2025-12
+-24T19:07:49.212787","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:07:49 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 5358 S 
+Narragansett Ave #1 | 
+5358 S Narragansett 
+Ave, Chicago, IL 60638 
+| 3bd 1ba 1500sqft","ti
+mestamp":"2025-12-24T19
+:07:49.230291","type":"
+info"},{"message":"[Hot
+pads] 2025-12-24 
+19:07:49 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 5358 S 
+Narragansett Ave #1 - 
+5358 S Narragansett 
+Ave, Chicago, IL 60638"
+,"timestamp":"2025-12-2
+4T19:07:49.230677","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:07:49 [httpx] INFO: 
+HTTP Request: POST http
+s://dlcdmldvvcynvgaftvd
+k.supabase.co/rest/v1/h
+otpads_listings?on_conf
+lict=url&columns=%22add
+ress%22%2C%22contact_na
+me%22%2C%22bedrooms%22%
+2C%22url%22%2C%22contac
+t_company%22%2C%22bathr
+ooms%22%2C%22listing_da
+te%22%2C%22property_nam
+e%22%2C%22price%22%2C%2
+2phone_number%22%2C%22s
+quare_feet%22%2C%22emai
+l%22 \"HTTP/2 200 OK\""
+,"timestamp":"2025-12-2
+4T19:07:49.468232","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:07:49 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:49.470043","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:49 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:07:49.
+470355","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:49 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:49.470534","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:49 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/1351-
+s-halsted-st-chicago-il
+-60607-skfc5d/310/pad",
+"timestamp":"2025-12-24
+T19:07:49.785255","type
+":"info"},{"message":"[
+Hotpads] 2025-12-24 
+19:07:49 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/1351-s-halsted-st-ch
+icago-il-60607-skfc5d/3
+10/pad","timestamp":"20
+25-12-24T19:07:49.88554
+8","type":"info"},{"mes
+sage":"[Hotpads] 
+2025-12-24 19:07:49 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:07:49.
+957543","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:50 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 1 
+beds, 1 baths, 750 sqft
+","timestamp":"2025-12-
+24T19:07:50.046902","ty
+pe":"info"},{"message":
+"[Hotpads] 2025-12-24 
+19:07:50 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 1351 S 
+Halsted St #310 | 1351 
+S Halsted St, Chicago, 
+IL 60607 | 1bd 1ba 750s
+qft","timestamp":"2025-
+12-24T19:07:50.088384",
+"type":"info"},{"messag
+e":"[Hotpads] 
+2025-12-24 19:07:50 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 1351 S 
+Halsted St #310 - 1351 
+S Halsted St, Chicago, 
+IL 60607","timestamp":"
+2025-12-24T19:07:50.090
+211","type":"info"},{"m
+essage":"[Hotpads] 
+2025-12-24 19:07:50 
+[httpx] INFO: HTTP 
+Request: POST https://d
+lcdmldvvcynvgaftvdk.sup
+abase.co/rest/v1/hotpad
+s_listings?on_conflict=
+url&columns=%22address%
+22%2C%22contact_name%22
+%2C%22bedrooms%22%2C%22
+url%22%2C%22contact_com
+pany%22%2C%22bathrooms%
+22%2C%22listing_date%22
+%2C%22property_name%22%
+2C%22price%22%2C%22phon
+e_number%22%2C%22square
+_feet%22%2C%22email%22 
+\"HTTP/2 200 OK\"","tim
+estamp":"2025-12-24T19:
+07:50.378623","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:07:50 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:50.380707","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:50 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:07:50.
+382227","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:50 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:50.382747","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:50 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/5615-
+n-mozart-st-chicago-il-
+60659-sk4mq8/3c/pad","t
+imestamp":"2025-12-24T1
+9:07:50.519739","type":
+"info"},{"message":"[Ho
+tpads] 2025-12-24 
+19:07:50 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/5615-n-mozart-st-chi
+cago-il-60659-sk4mq8/3c
+/pad","timestamp":"2025
+-12-24T19:07:50.584582"
+,"type":"info"},{"messa
+ge":"[Hotpads] 
+2025-12-24 19:07:50 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:07:50.
+628194","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:50 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 1 
+beds, 1 baths, 800 sqft
+","timestamp":"2025-12-
+24T19:07:50.696256","ty
+pe":"info"},{"message":
+"[Hotpads] 2025-12-24 
+19:07:50 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 5615 N Mozart 
+St #3C | 5615 N Mozart 
+St, Chicago, IL 60659 
+| 1bd 1ba 800sqft","tim
+estamp":"2025-12-24T19:
+07:50.712278","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:07:50 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 5615 N 
+Mozart St #3C - 5615 N 
+Mozart St, Chicago, IL 
+60659","timestamp":"202
+5-12-24T19:07:50.716893
+","type":"info"},{"mess
+age":"[Hotpads] 
+2025-12-24 19:07:50 
+[httpx] INFO: HTTP 
+Request: POST https://d
+lcdmldvvcynvgaftvdk.sup
+abase.co/rest/v1/hotpad
+s_listings?on_conflict=
+url&columns=%22address%
+22%2C%22contact_name%22
+%2C%22bedrooms%22%2C%22
+url%22%2C%22contact_com
+pany%22%2C%22bathrooms%
+22%2C%22listing_date%22
+%2C%22property_name%22%
+2C%22price%22%2C%22phon
+e_number%22%2C%22square
+_feet%22%2C%22email%22 
+\"HTTP/2 200 OK\"","tim
+estamp":"2025-12-24T19:
+07:50.972129","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:07:50 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:50.975372","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:50 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:07:50.
+975709","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:50 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:07:50.975890","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:57 
+[hotpads_scraper] 
+INFO: Parsing response 
+from: https://hotpads.c
+om/lincoln-park-chicago
+-il/for-rent-by-owner?b
+order=false&isListedByO
+wner=true&lat=41.8919&l
+istingTypes=rental&lon=
+-87.6612&page=2&z=12","
+timestamp":"2025-12-24T
+19:07:57.847009","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:57 
+[hotpads_scraper] 
+INFO: Found 0 items in 
+JSON-LD about","timesta
+mp":"2025-12-24T19:07:5
+7.869208","type":"info"
+},{"message":"[Hotpads]
+ 2025-12-24 19:07:57 
+[hotpads_scraper] 
+INFO: JSON-LD yielded 
+no URLs, trying XPath s
+electors...","timestamp
+":"2025-12-24T19:07:57.
+869869","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:57 
+[hotpads_scraper] 
+INFO: Found 69 listing 
+records via XPath","tim
+estamp":"2025-12-24T19:
+07:57.871627","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:07:57 
+[hotpads_scraper] 
+INFO: Total unique 
+listing URLs found 
+(after filtering): 0","
+timestamp":"2025-12-24T
+19:07:57.893473","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:07:57 
+[hotpads_scraper] 
+INFO: SAMPLE REJECTED 
+URLS (first 5): ['https
+://hotpads.com/lincoln-
+park-chicago-il/afforda
+ble-apartments-for-rent
+', 'https://hotpads.com
+/lincoln-park-chicago-i
+l/luxury-apartments-for
+-rent', 'https://hotpad
+s.com/lincoln-park-chic
+ago-il/studio-apartment
+s-for-rent', 'https://h
+otpads.com/lincoln-park
+-chicago-il/1-bedroom-a
+partments-for-rent', 'h
+ttps://hotpads.com/linc
+oln-park-chicago-il/2-b
+edroom-apartments-for-r
+ent']","timestamp":"202
+5-12-24T19:07:57.893835
+","type":"info"},{"mess
+age":"[Hotpads] 
+2025-12-24 19:07:59 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/6439-
+n-rockwell-st-chicago-i
+l-60645-wy24/3/pad","ti
+mestamp":"2025-12-24T19
+:07:59.747074","type":"
+info"},{"message":"[Hot
+pads] 2025-12-24 
+19:07:59 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/6439-n-rockwell-st-c
+hicago-il-60645-wy24/3/
+pad","timestamp":"2025-
+12-24T19:07:59.783497",
+"type":"info"},{"messag
+e":"[Hotpads] 
+2025-12-24 19:07:59 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:07:59.
+802894","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:07:59 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 3 
+beds, 2 baths, 1600 sqf
+t","timestamp":"2025-12
+-24T19:07:59.973477","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:07:59 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 6439 N 
+Rockwell St #3 | 6439 
+N Rockwell St, 
+Chicago, IL 60645 | 
+3bd 2025ba 1600sqft","t
+imestamp":"2025-12-24T1
+9:07:59.979323","type":
+"info"},{"message":"[Ho
+tpads] 2025-12-24 
+19:07:59 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 6439 N 
+Rockwell St #3 - 6439 
+N Rockwell St, 
+Chicago, IL 60645","tim
+estamp":"2025-12-24T19:
+07:59.979687","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:08:00 [httpx] INFO: 
+HTTP Request: POST http
+s://dlcdmldvvcynvgaftvd
+k.supabase.co/rest/v1/h
+otpads_listings?on_conf
+lict=url&columns=%22add
+ress%22%2C%22contact_na
+me%22%2C%22bedrooms%22%
+2C%22url%22%2C%22contac
+t_company%22%2C%22bathr
+ooms%22%2C%22listing_da
+te%22%2C%22property_nam
+e%22%2C%22price%22%2C%2
+2phone_number%22%2C%22s
+quare_feet%22%2C%22emai
+l%22 \"HTTP/2 201 Creat
+ed\"","timestamp":"2025
+-12-24T19:08:00.363329"
+,"type":"info"},{"messa
+ge":"[Hotpads] 
+2025-12-24 19:08:00 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:00.367036","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:00 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:08:00.
+367693","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:00 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:00.367998","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:00 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/801-s
+-plymouth-ct-chicago-il
+-60605-sk635p/building"
+,"timestamp":"2025-12-2
+4T19:08:00.507674","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:08:00 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/801-s-plymouth-ct-ch
+icago-il-60605-sk635p/b
+uilding","timestamp":"2
+025-12-24T19:08:00.5297
+41","type":"info"},{"me
+ssage":"[Hotpads] 
+2025-12-24 19:08:00 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:08:00.
+536237","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:00 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 2 
+beds, 1 baths, 1550 sqf
+t","timestamp":"2025-12
+-24T19:08:00.560164","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:08:00 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 801 S 
+Plymouth Ct | 801 S 
+Plymouth Ct, Chicago, 
+IL 60605 | 2bd 1ba 1550
+sqft","timestamp":"2025
+-12-24T19:08:00.565455"
+,"type":"info"},{"messa
+ge":"[Hotpads] 
+2025-12-24 19:08:00 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 801 S 
+Plymouth Ct - 801 S 
+Plymouth Ct, Chicago, 
+IL 60605","timestamp":"
+2025-12-24T19:08:00.566
+437","type":"info"},{"m
+essage":"[Hotpads] 
+2025-12-24 19:08:00 
+[httpx] INFO: HTTP 
+Request: POST https://d
+lcdmldvvcynvgaftvdk.sup
+abase.co/rest/v1/hotpad
+s_listings?on_conflict=
+url&columns=%22address%
+22%2C%22contact_name%22
+%2C%22bedrooms%22%2C%22
+url%22%2C%22contact_com
+pany%22%2C%22bathrooms%
+22%2C%22listing_date%22
+%2C%22property_name%22%
+2C%22price%22%2C%22phon
+e_number%22%2C%22square
+_feet%22%2C%22email%22 
+\"HTTP/2 201 Created\""
+,"timestamp":"2025-12-2
+4T19:08:00.845947","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:08:00 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:00.853099","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:00 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:08:00.
+855071","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:00 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:00.878655","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:00 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/6133-
+s-drexel-ave-chicago-il
+-60637-sjyxpt/1b/pad","
+timestamp":"2025-12-24T
+19:08:00.881304","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:00 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/6133-s-drexel-ave-ch
+icago-il-60637-sjyxpt/1
+b/pad","timestamp":"202
+5-12-24T19:08:00.900737
+","type":"info"},{"mess
+age":"[Hotpads] 
+2025-12-24 19:08:00 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:08:00.
+936408","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:00 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 2 
+beds, 2 baths, 1250 sqf
+t","timestamp":"2025-12
+-24T19:08:00.981800","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:08:01 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 6133 S Drexel 
+Ave #1B | 6133 S 
+Drexel Ave, Chicago, 
+IL 60637 | 2bd 2ba 1250
+sqft","timestamp":"2025
+-12-24T19:08:01.017684"
+,"type":"info"},{"messa
+ge":"[Hotpads] 
+2025-12-24 19:08:01 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 6133 S 
+Drexel Ave #1B - 6133 
+S Drexel Ave, Chicago, 
+IL 60637","timestamp":"
+2025-12-24T19:08:01.018
+666","type":"info"},{"m
+essage":"[Hotpads] 
+2025-12-24 19:08:01 
+[httpx] INFO: HTTP 
+Request: POST https://d
+lcdmldvvcynvgaftvdk.sup
+abase.co/rest/v1/hotpad
+s_listings?on_conflict=
+url&columns=%22address%
+22%2C%22contact_name%22
+%2C%22bedrooms%22%2C%22
+url%22%2C%22contact_com
+pany%22%2C%22bathrooms%
+22%2C%22listing_date%22
+%2C%22property_name%22%
+2C%22price%22%2C%22phon
+e_number%22%2C%22square
+_feet%22%2C%22email%22 
+\"HTTP/2 201 Created\""
+,"timestamp":"2025-12-2
+4T19:08:01.262767","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:08:01 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:01.313000","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:01 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:08:01.
+313305","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:01 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:01.315613","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:01 [scrapy.extens
+ions.logstats] INFO: 
+Crawled 19 pages (at 
+19 pages/min), scraped 
+17 items (at 17 items/m
+in)","timestamp":"2025-
+12-24T19:08:01.423268",
+"type":"info"},{"messag
+e":"[Hotpads] 
+2025-12-24 19:08:02 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/240-l
+athrop-ave-forest-park-
+il-60130-t08h1j/1/pad",
+"timestamp":"2025-12-24
+T19:08:02.328535","type
+":"info"},{"message":"[
+Hotpads] 2025-12-24 
+19:08:02 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/240-lathrop-ave-fore
+st-park-il-60130-t08h1j
+/1/pad","timestamp":"20
+25-12-24T19:08:02.38018
+2","type":"info"},{"mes
+sage":"[Hotpads] 
+2025-12-24 19:08:02 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:08:02.
+390718","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:02 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 2 
+beds, 1 baths, 1300 sqf
+t","timestamp":"2025-12
+-24T19:08:02.462308","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:08:02 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 240 Lathrop 
+Ave #1 | 240 Lathrop 
+Ave, Forest Park, IL 
+60130 | 2bd 1ba 1300sqf
+t","timestamp":"2025-12
+-24T19:08:02.486458","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:08:02 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 240 
+Lathrop Ave #1 - 240 
+Lathrop Ave, Forest 
+Park, IL 60130","timest
+amp":"2025-12-24T19:08:
+02.499698","type":"info
+"},{"message":"[Hotpads
+] 2025-12-24 19:08:02 
+[httpx] INFO: HTTP 
+Request: POST https://d
+lcdmldvvcynvgaftvdk.sup
+abase.co/rest/v1/hotpad
+s_listings?on_conflict=
+url&columns=%22address%
+22%2C%22contact_name%22
+%2C%22bedrooms%22%2C%22
+url%22%2C%22contact_com
+pany%22%2C%22bathrooms%
+22%2C%22listing_date%22
+%2C%22property_name%22%
+2C%22price%22%2C%22phon
+e_number%22%2C%22square
+_feet%22%2C%22email%22 
+\"HTTP/2 200 OK\"","tim
+estamp":"2025-12-24T19:
+08:02.818698","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:08:02 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:02.842582","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:02 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:08:02.
+843246","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:02 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:02.843644","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:02 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/2624-
+n-richmond-st-chicago-i
+l-60647-x1t9/3/pad","ti
+mestamp":"2025-12-24T19
+:08:02.844056","type":"
+info"},{"message":"[Hot
+pads] 2025-12-24 
+19:08:02 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/2624-n-richmond-st-c
+hicago-il-60647-x1t9/3/
+pad","timestamp":"2025-
+12-24T19:08:02.862043",
+"type":"info"},{"messag
+e":"[Hotpads] 
+2025-12-24 19:08:02 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:08:02.
+886774","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:02 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 1 
+beds, 1 baths, 1000 sqf
+t","timestamp":"2025-12
+-24T19:08:02.921590","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:08:02 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 2624 N 
+Richmond St #3 | 2624 
+N Richmond St, 
+Chicago, IL 60647 | 
+1bd 1ba 1000sqft","time
+stamp":"2025-12-24T19:0
+8:02.940429","type":"in
+fo"},{"message":"[Hotpa
+ds] 2025-12-24 
+19:08:02 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 2624 N 
+Richmond St #3 - 2624 
+N Richmond St, 
+Chicago, IL 60647","tim
+estamp":"2025-12-24T19:
+08:02.940770","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:08:03 [httpx] INFO: 
+HTTP Request: POST http
+s://dlcdmldvvcynvgaftvd
+k.supabase.co/rest/v1/h
+otpads_listings?on_conf
+lict=url&columns=%22add
+ress%22%2C%22contact_na
+me%22%2C%22bedrooms%22%
+2C%22url%22%2C%22contac
+t_company%22%2C%22bathr
+ooms%22%2C%22listing_da
+te%22%2C%22property_nam
+e%22%2C%22price%22%2C%2
+2phone_number%22%2C%22s
+quare_feet%22%2C%22emai
+l%22 \"HTTP/2 201 Creat
+ed\"","timestamp":"2025
+-12-24T19:08:03.199234"
+,"type":"info"},{"messa
+ge":"[Hotpads] 
+2025-12-24 19:08:03 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:03.236526","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:03 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:08:03.
+237517","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:03 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:03.259240","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:09 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/2736-
+s-central-park-ave-chic
+ago-il-60623-1ms9t5r/1/
+pad","timestamp":"2025-
+12-24T19:08:09.040214",
+"type":"info"},{"messag
+e":"[Hotpads] 
+2025-12-24 19:08:09 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/2736-s-central-park-
+ave-chicago-il-60623-1m
+s9t5r/1/pad","timestamp
+":"2025-12-24T19:08:09.
+135432","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:09 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:08:09.
+135926","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:09 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 3 
+beds, 1 baths, 1412 sqf
+t","timestamp":"2025-12
+-24T19:08:09.172211","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:08:09 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 2736 S 
+Central Park Ave #1 | 
+2736 S Central Park 
+Ave, Chicago, IL 60623 
+| 3bd 1ba 1412sqft","ti
+mestamp":"2025-12-24T19
+:08:09.201329","type":"
+info"},{"message":"[Hot
+pads] 2025-12-24 
+19:08:09 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 2736 S 
+Central Park Ave #1 - 
+2736 S Central Park 
+Ave, Chicago, IL 60623"
+,"timestamp":"2025-12-2
+4T19:08:09.209713","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:08:09 [httpx] INFO: 
+HTTP Request: POST http
+s://dlcdmldvvcynvgaftvd
+k.supabase.co/rest/v1/h
+otpads_listings?on_conf
+lict=url&columns=%22add
+ress%22%2C%22contact_na
+me%22%2C%22bedrooms%22%
+2C%22url%22%2C%22contac
+t_company%22%2C%22bathr
+ooms%22%2C%22listing_da
+te%22%2C%22property_nam
+e%22%2C%22price%22%2C%2
+2phone_number%22%2C%22s
+quare_feet%22%2C%22emai
+l%22 \"HTTP/2 200 OK\""
+,"timestamp":"2025-12-2
+4T19:08:09.595383","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:08:09 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:09.669998","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:09 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:08:09.
+700413","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:09 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:09.700803","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:12 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/5310-
+n-chester-ave-chicago-i
+l-60656-sk1ux2/building
+","timestamp":"2025-12-
+24T19:08:12.180966","ty
+pe":"info"},{"message":
+"[Hotpads] 2025-12-24 
+19:08:12 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/5310-n-chester-ave-c
+hicago-il-60656-sk1ux2/
+building","timestamp":"
+2025-12-24T19:08:12.259
+244","type":"info"},{"m
+essage":"[Hotpads] 
+2025-12-24 19:08:12 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:08:12.
+304362","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:12 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 1 
+beds, 1 baths, 700 sqft
+","timestamp":"2025-12-
+24T19:08:12.356758","ty
+pe":"info"},{"message":
+"[Hotpads] 2025-12-24 
+19:08:12 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 5310 N 
+Chester Ave | 5310 N 
+Chester Ave, Chicago, 
+IL 60656 | 1bd 1ba 700s
+qft","timestamp":"2025-
+12-24T19:08:12.369378",
+"type":"info"},{"messag
+e":"[Hotpads] 
+2025-12-24 19:08:12 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 5310 N 
+Chester Ave - 5310 N 
+Chester Ave, Chicago, 
+IL 60656","timestamp":"
+2025-12-24T19:08:12.370
+337","type":"info"},{"m
+essage":"[Hotpads] 
+2025-12-24 19:08:12 
+[httpx] INFO: HTTP 
+Request: POST https://d
+lcdmldvvcynvgaftvdk.sup
+abase.co/rest/v1/hotpad
+s_listings?on_conflict=
+url&columns=%22address%
+22%2C%22contact_name%22
+%2C%22bedrooms%22%2C%22
+url%22%2C%22contact_com
+pany%22%2C%22bathrooms%
+22%2C%22listing_date%22
+%2C%22property_name%22%
+2C%22price%22%2C%22phon
+e_number%22%2C%22square
+_feet%22%2C%22email%22 
+\"HTTP/2 201 Created\""
+,"timestamp":"2025-12-2
+4T19:08:12.518945","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:08:12 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:12.536090","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:12 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:08:12.
+538273","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:12 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:12.538701","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:14 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/3250-
+w-belle-plaine-ave-chic
+ago-il-60618-sk53wu/2/p
+ad","timestamp":"2025-1
+2-24T19:08:14.086915","
+type":"info"},{"message
+":"[Hotpads] 
+2025-12-24 19:08:14 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/3250-w-belle-plaine-
+ave-chicago-il-60618-sk
+53wu/2/pad","timestamp"
+:"2025-12-24T19:08:14.1
+56194","type":"info"},{
+"message":"[Hotpads] 
+2025-12-24 19:08:14 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:08:14.
+201184","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:14 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 2 
+beds, 1 baths, 1300 sqf
+t","timestamp":"2025-12
+-24T19:08:14.320165","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:08:14 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 3250 W Belle 
+Plaine Ave #2 | 3250 W 
+Belle Plaine Ave, 
+Chicago, IL 60618 | 
+2bd 1ba 1300sqft","time
+stamp":"2025-12-24T19:0
+8:14.353333","type":"in
+fo"},{"message":"[Hotpa
+ds] 2025-12-24 
+19:08:14 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 3250 W 
+Belle Plaine Ave #2 - 
+3250 W Belle Plaine 
+Ave, Chicago, IL 60618"
+,"timestamp":"2025-12-2
+4T19:08:14.374786","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:08:14 [httpx] INFO: 
+HTTP Request: POST http
+s://dlcdmldvvcynvgaftvd
+k.supabase.co/rest/v1/h
+otpads_listings?on_conf
+lict=url&columns=%22add
+ress%22%2C%22contact_na
+me%22%2C%22bedrooms%22%
+2C%22url%22%2C%22contac
+t_company%22%2C%22bathr
+ooms%22%2C%22listing_da
+te%22%2C%22property_nam
+e%22%2C%22price%22%2C%2
+2phone_number%22%2C%22s
+quare_feet%22%2C%22emai
+l%22 \"HTTP/2 200 OK\""
+,"timestamp":"2025-12-2
+4T19:08:14.614443","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:08:14 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:14.666274","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:14 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:08:14.
+666687","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:14 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:14.669165","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:14 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/1521-
+w-leland-ave-chicago-il
+-60640-24s77t0/2f/pad",
+"timestamp":"2025-12-24
+T19:08:14.670182","type
+":"info"},{"message":"[
+Hotpads] 2025-12-24 
+19:08:14 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/1521-w-leland-ave-ch
+icago-il-60640-24s77t0/
+2f/pad","timestamp":"20
+25-12-24T19:08:14.72178
+2","type":"info"},{"mes
+sage":"[Hotpads] 
+2025-12-24 19:08:14 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:08:14.
+733124","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:14 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 2 
+beds, 1 baths, 1100 sqf
+t","timestamp":"2025-12
+-24T19:08:14.921894","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:08:14 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 1521 W Leland 
+Ave #2F | 1521 W 
+Leland Ave, Chicago, 
+IL 60640 | 2bd 1ba 1100
+sqft","timestamp":"2025
+-12-24T19:08:14.990610"
+,"type":"info"},{"messa
+ge":"[Hotpads] 
+2025-12-24 19:08:14 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 1521 W 
+Leland Ave #2F - 1521 
+W Leland Ave, Chicago, 
+IL 60640","timestamp":"
+2025-12-24T19:08:14.991
+178","type":"info"},{"m
+essage":"[Hotpads] 
+2025-12-24 19:08:15 
+[httpx] INFO: HTTP 
+Request: POST https://d
+lcdmldvvcynvgaftvdk.sup
+abase.co/rest/v1/hotpad
+s_listings?on_conflict=
+url&columns=%22address%
+22%2C%22contact_name%22
+%2C%22bedrooms%22%2C%22
+url%22%2C%22contact_com
+pany%22%2C%22bathrooms%
+22%2C%22listing_date%22
+%2C%22property_name%22%
+2C%22price%22%2C%22phon
+e_number%22%2C%22square
+_feet%22%2C%22email%22 
+\"HTTP/2 201 Created\""
+,"timestamp":"2025-12-2
+4T19:08:15.183446","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:08:15 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:15.385720","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:15 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:08:15.
+387212","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:15 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:15.388346","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:15 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/1339-
+n-dearborn-st-chicago-i
+l-60610-24a63f0/2b/pad"
+,"timestamp":"2025-12-2
+4T19:08:15.389284","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:08:15 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/1339-n-dearborn-st-c
+hicago-il-60610-24a63f0
+/2b/pad","timestamp":"2
+025-12-24T19:08:15.6695
+42","type":"info"},{"me
+ssage":"[Hotpads] 
+2025-12-24 19:08:15 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:08:15.
+669927","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:15 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 1 
+beds, 1 baths, 750 sqft
+","timestamp":"2025-12-
+24T19:08:15.670113","ty
+pe":"info"},{"message":
+"[Hotpads] 2025-12-24 
+19:08:15 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 1339 N 
+Dearborn St #2B | 1339 
+N Dearborn St, 
+Chicago, IL 60610 | 
+1bd 1ba 750sqft","times
+tamp":"2025-12-24T19:08
+:15.682468","type":"inf
+o"},{"message":"[Hotpad
+s] 2025-12-24 19:08:15 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 1339 N 
+Dearborn St #2B - 1339 
+N Dearborn St, 
+Chicago, IL 60610","tim
+estamp":"2025-12-24T19:
+08:15.685762","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:08:15 [httpx] INFO: 
+HTTP Request: POST http
+s://dlcdmldvvcynvgaftvd
+k.supabase.co/rest/v1/h
+otpads_listings?on_conf
+lict=url&columns=%22add
+ress%22%2C%22contact_na
+me%22%2C%22bedrooms%22%
+2C%22url%22%2C%22contac
+t_company%22%2C%22bathr
+ooms%22%2C%22listing_da
+te%22%2C%22property_nam
+e%22%2C%22price%22%2C%2
+2phone_number%22%2C%22s
+quare_feet%22%2C%22emai
+l%22 \"HTTP/2 200 OK\""
+,"timestamp":"2025-12-2
+4T19:08:15.963492","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:08:15 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:15.966875","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:15 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:08:15.
+967304","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:15 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:15.967514","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:15 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/5105-
+w-altgeld-st-chicago-il
+-60639-1msguz1/basement
+/pad","timestamp":"2025
+-12-24T19:08:15.967831"
+,"type":"info"},{"messa
+ge":"[Hotpads] 
+2025-12-24 19:08:16 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/5105-w-altgeld-st-ch
+icago-il-60639-1msguz1/
+basement/pad","timestam
+p":"2025-12-24T19:08:16
+.016736","type":"info"}
+,{"message":"[Hotpads] 
+2025-12-24 19:08:16 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:08:16.
+026092","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:16 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath):  
+beds, 1 baths, 750 sqft
+","timestamp":"2025-12-
+24T19:08:16.114934","ty
+pe":"info"},{"message":
+"[Hotpads] 2025-12-24 
+19:08:16 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 5105 W 
+Altgeld St #BASEMENT | 
+5105 W Altgeld St, 
+Chicago, IL 60639 | bd 
+1ba 750sqft","timestamp
+":"2025-12-24T19:08:16.
+152393","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:16 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 5105 W 
+Altgeld St #BASEMENT - 
+5105 W Altgeld St, 
+Chicago, IL 60639","tim
+estamp":"2025-12-24T19:
+08:16.157266","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:08:16 [httpx] INFO: 
+HTTP Request: POST http
+s://dlcdmldvvcynvgaftvd
+k.supabase.co/rest/v1/h
+otpads_listings?on_conf
+lict=url&columns=%22add
+ress%22%2C%22contact_na
+me%22%2C%22bedrooms%22%
+2C%22url%22%2C%22contac
+t_company%22%2C%22bathr
+ooms%22%2C%22listing_da
+te%22%2C%22property_nam
+e%22%2C%22price%22%2C%2
+2phone_number%22%2C%22s
+quare_feet%22%2C%22emai
+l%22 \"HTTP/2 200 OK\""
+,"timestamp":"2025-12-2
+4T19:08:16.438123","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:08:16 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:16.440055","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:16 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:08:16.
+440561","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:16 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:16.440762","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:19 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/6843-
+cermak-rd-berwyn-il-604
+02-1kk1j9t/202/pad","ti
+mestamp":"2025-12-24T19
+:08:19.832843","type":"
+info"},{"message":"[Hot
+pads] 2025-12-24 
+19:08:19 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/6843-cermak-rd-berwy
+n-il-60402-1kk1j9t/202/
+pad","timestamp":"2025-
+12-24T19:08:19.851830",
+"type":"info"},{"messag
+e":"[Hotpads] 
+2025-12-24 19:08:19 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:08:19.
+854669","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:19 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 3 
+beds, 1 baths, 1600 sqf
+t","timestamp":"2025-12
+-24T19:08:19.868197","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:08:19 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 6843 Cermak 
+Rd #202 | 6843 Cermak 
+Rd, Berwyn, IL 60402 | 
+3bd 1ba 1600sqft","time
+stamp":"2025-12-24T19:0
+8:19.871602","type":"in
+fo"},{"message":"[Hotpa
+ds] 2025-12-24 
+19:08:19 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 6843 
+Cermak Rd #202 - 6843 
+Cermak Rd, Berwyn, IL 6
+0402","timestamp":"2025
+-12-24T19:08:19.871784"
+,"type":"info"},{"messa
+ge":"[Hotpads] 
+2025-12-24 19:08:20 
+[httpx] INFO: HTTP 
+Request: POST https://d
+lcdmldvvcynvgaftvdk.sup
+abase.co/rest/v1/hotpad
+s_listings?on_conflict=
+url&columns=%22address%
+22%2C%22contact_name%22
+%2C%22bedrooms%22%2C%22
+url%22%2C%22contact_com
+pany%22%2C%22bathrooms%
+22%2C%22listing_date%22
+%2C%22property_name%22%
+2C%22price%22%2C%22phon
+e_number%22%2C%22square
+_feet%22%2C%22email%22 
+\"HTTP/2 200 OK\"","tim
+estamp":"2025-12-24T19:
+08:20.107339","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:08:20 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:20.108305","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:20 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:08:20.
+108458","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:20 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:20.108552","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:20 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/6121-
+n-sheridan-rd-chicago-i
+l-60660-wh2h/5a/pad","t
+imestamp":"2025-12-24T1
+9:08:20.336070","type":
+"info"},{"message":"[Ho
+tpads] 2025-12-24 
+19:08:20 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/6121-n-sheridan-rd-c
+hicago-il-60660-wh2h/5a
+/pad","timestamp":"2025
+-12-24T19:08:20.355453"
+,"type":"info"},{"messa
+ge":"[Hotpads] 
+2025-12-24 19:08:20 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:08:20.
+360966","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:20 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 1 
+beds, 1 baths, 1000 sqf
+t","timestamp":"2025-12
+-24T19:08:20.378203","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:08:20 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 6121 N 
+Sheridan Rd #5A | 6121 
+N Sheridan Rd, 
+Chicago, IL 60660 | 
+1bd 1ba 1000sqft","time
+stamp":"2025-12-24T19:0
+8:20.382534","type":"in
+fo"},{"message":"[Hotpa
+ds] 2025-12-24 
+19:08:20 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 6121 N 
+Sheridan Rd #5A - 6121 
+N Sheridan Rd, 
+Chicago, IL 60660","tim
+estamp":"2025-12-24T19:
+08:20.382760","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:08:20 [httpx] INFO: 
+HTTP Request: POST http
+s://dlcdmldvvcynvgaftvd
+k.supabase.co/rest/v1/h
+otpads_listings?on_conf
+lict=url&columns=%22add
+ress%22%2C%22contact_na
+me%22%2C%22bedrooms%22%
+2C%22url%22%2C%22contac
+t_company%22%2C%22bathr
+ooms%22%2C%22listing_da
+te%22%2C%22property_nam
+e%22%2C%22price%22%2C%2
+2phone_number%22%2C%22s
+quare_feet%22%2C%22emai
+l%22 \"HTTP/2 201 Creat
+ed\"","timestamp":"2025
+-12-24T19:08:20.660370"
+,"type":"info"},{"messa
+ge":"[Hotpads] 
+2025-12-24 19:08:20 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:20.661780","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:20 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:08:20.
+661956","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:20 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:20.662078","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:21 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/5031-
+n-harding-ave-chicago-i
+l-60625-240x42g/g/pad",
+"timestamp":"2025-12-24
+T19:08:21.645560","type
+":"info"},{"message":"[
+Hotpads] 2025-12-24 
+19:08:21 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/5031-n-harding-ave-c
+hicago-il-60625-240x42g
+/g/pad","timestamp":"20
+25-12-24T19:08:21.67676
+9","type":"info"},{"mes
+sage":"[Hotpads] 
+2025-12-24 19:08:21 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:08:21.
+682939","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:21 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 2 
+beds, 1 baths, 500 sqft
+","timestamp":"2025-12-
+24T19:08:21.717211","ty
+pe":"info"},{"message":
+"[Hotpads] 2025-12-24 
+19:08:21 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 5031 N 
+Harding Ave #G | 5031 
+N Harding Ave, 
+Chicago, IL 60625 | 
+2bd 1ba 500sqft","times
+tamp":"2025-12-24T19:08
+:21.721728","type":"inf
+o"},{"message":"[Hotpad
+s] 2025-12-24 19:08:21 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 5031 N 
+Harding Ave #G - 5031 
+N Harding Ave, 
+Chicago, IL 60625","tim
+estamp":"2025-12-24T19:
+08:21.721967","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:08:21 [httpx] INFO: 
+HTTP Request: POST http
+s://dlcdmldvvcynvgaftvd
+k.supabase.co/rest/v1/h
+otpads_listings?on_conf
+lict=url&columns=%22add
+ress%22%2C%22contact_na
+me%22%2C%22bedrooms%22%
+2C%22url%22%2C%22contac
+t_company%22%2C%22bathr
+ooms%22%2C%22listing_da
+te%22%2C%22property_nam
+e%22%2C%22price%22%2C%2
+2phone_number%22%2C%22s
+quare_feet%22%2C%22emai
+l%22 \"HTTP/2 200 OK\""
+,"timestamp":"2025-12-2
+4T19:08:21.960203","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:08:21 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:21.961570","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:21 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:08:21.
+961785","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:21 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:21.961884","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:25 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/5415-
+n-sheridan-rd-chicago-i
+l-60640-10985/911/pad",
+"timestamp":"2025-12-24
+T19:08:25.130386","type
+":"info"},{"message":"[
+Hotpads] 2025-12-24 
+19:08:25 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/5415-n-sheridan-rd-c
+hicago-il-60640-10985/9
+11/pad","timestamp":"20
+25-12-24T19:08:25.15553
+2","type":"info"},{"mes
+sage":"[Hotpads] 
+2025-12-24 19:08:25 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:08:25.
+160793","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:25 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 2 
+beds, 2 baths, 1250 sqf
+t","timestamp":"2025-12
+-24T19:08:25.198838","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:08:25 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 5415 N 
+Sheridan Rd #911 | 
+5415 N Sheridan Rd, 
+Chicago, IL 60640 | 
+2bd 2ba 1250sqft","time
+stamp":"2025-12-24T19:0
+8:25.207233","type":"in
+fo"},{"message":"[Hotpa
+ds] 2025-12-24 
+19:08:25 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 5415 N 
+Sheridan Rd #911 - 
+5415 N Sheridan Rd, 
+Chicago, IL 60640","tim
+estamp":"2025-12-24T19:
+08:25.257416","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:08:25 [httpx] INFO: 
+HTTP Request: POST http
+s://dlcdmldvvcynvgaftvd
+k.supabase.co/rest/v1/h
+otpads_listings?on_conf
+lict=url&columns=%22add
+ress%22%2C%22contact_na
+me%22%2C%22bedrooms%22%
+2C%22url%22%2C%22contac
+t_company%22%2C%22bathr
+ooms%22%2C%22listing_da
+te%22%2C%22property_nam
+e%22%2C%22price%22%2C%2
+2phone_number%22%2C%22s
+quare_feet%22%2C%22emai
+l%22 \"HTTP/2 201 Creat
+ed\"","timestamp":"2025
+-12-24T19:08:25.506759"
+,"type":"info"},{"messa
+ge":"[Hotpads] 
+2025-12-24 19:08:25 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:25.510843","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:25 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:08:25.
+511150","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:25 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:25.511349","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:26 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/4313-
+s-king-dr-chicago-il-60
+653-13g9k/building","ti
+mestamp":"2025-12-24T19
+:08:26.254190","type":"
+info"},{"message":"[Hot
+pads] 2025-12-24 
+19:08:26 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/4313-s-king-dr-chica
+go-il-60653-13g9k/build
+ing","timestamp":"2025-
+12-24T19:08:26.301883",
+"type":"info"},{"messag
+e":"[Hotpads] 
+2025-12-24 19:08:26 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:08:26.
+310155","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:26 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 3 
+beds, 2 baths, 2000 sqf
+t","timestamp":"2025-12
+-24T19:08:26.363350","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:08:26 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 4313 S King 
+Dr | 4313 S King Dr, 
+Chicago, IL 60653 | 
+3bd 2ba 2000sqft","time
+stamp":"2025-12-24T19:0
+8:26.381669","type":"in
+fo"},{"message":"[Hotpa
+ds] 2025-12-24 
+19:08:26 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 4313 S 
+King Dr - 4313 S King 
+Dr, Chicago, IL 60653",
+"timestamp":"2025-12-24
+T19:08:26.382139","type
+":"info"},{"message":"[
+Hotpads] 2025-12-24 
+19:08:26 [httpx] INFO: 
+HTTP Request: POST http
+s://dlcdmldvvcynvgaftvd
+k.supabase.co/rest/v1/h
+otpads_listings?on_conf
+lict=url&columns=%22add
+ress%22%2C%22contact_na
+me%22%2C%22bedrooms%22%
+2C%22url%22%2C%22contac
+t_company%22%2C%22bathr
+ooms%22%2C%22listing_da
+te%22%2C%22property_nam
+e%22%2C%22price%22%2C%2
+2phone_number%22%2C%22s
+quare_feet%22%2C%22emai
+l%22 \"HTTP/2 201 Creat
+ed\"","timestamp":"2025
+-12-24T19:08:26.632204"
+,"type":"info"},{"messa
+ge":"[Hotpads] 
+2025-12-24 19:08:26 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:26.633953","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:26 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:08:26.
+634293","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:26 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:26.634509","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:27 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/1330-
+w-norwood-st-chicago-il
+-60660-1msrq5x/building
+","timestamp":"2025-12-
+24T19:08:27.778224","ty
+pe":"info"},{"message":
+"[Hotpads] 2025-12-24 
+19:08:27 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/1330-w-norwood-st-ch
+icago-il-60660-1msrq5x/
+building","timestamp":"
+2025-12-24T19:08:27.801
+731","type":"info"},{"m
+essage":"[Hotpads] 
+2025-12-24 19:08:27 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:08:27.
+806235","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:27 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 3 
+beds, 1 baths, 1000 sqf
+t","timestamp":"2025-12
+-24T19:08:27.829522","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:08:27 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 1330 W 
+Norwood St | 1330 W 
+Norwood St, Chicago, 
+IL 60660 | 3bd 1ba 1000
+sqft","timestamp":"2025
+-12-24T19:08:27.836267"
+,"type":"info"},{"messa
+ge":"[Hotpads] 
+2025-12-24 19:08:27 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 1330 W 
+Norwood St - 1330 W 
+Norwood St, Chicago, 
+IL 60660","timestamp":"
+2025-12-24T19:08:27.836
+851","type":"info"},{"m
+essage":"[Hotpads] 
+2025-12-24 19:08:28 
+[httpx] INFO: HTTP 
+Request: POST https://d
+lcdmldvvcynvgaftvdk.sup
+abase.co/rest/v1/hotpad
+s_listings?on_conflict=
+url&columns=%22address%
+22%2C%22contact_name%22
+%2C%22bedrooms%22%2C%22
+url%22%2C%22contact_com
+pany%22%2C%22bathrooms%
+22%2C%22listing_date%22
+%2C%22property_name%22%
+2C%22price%22%2C%22phon
+e_number%22%2C%22square
+_feet%22%2C%22email%22 
+\"HTTP/2 201 Created\""
+,"timestamp":"2025-12-2
+4T19:08:28.071603","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:08:28 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:28.073807","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:28 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:08:28.
+074129","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:28 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:28.074353","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:32 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/1631-
+s-michigan-ave-chicago-
+il-60616-y2m4/401/pad",
+"timestamp":"2025-12-24
+T19:08:32.756762","type
+":"info"},{"message":"[
+Hotpads] 2025-12-24 
+19:08:32 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/1631-s-michigan-ave-
+chicago-il-60616-y2m4/4
+01/pad","timestamp":"20
+25-12-24T19:08:32.80864
+8","type":"info"},{"mes
+sage":"[Hotpads] 
+2025-12-24 19:08:32 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:08:32.
+821290","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:33 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 2 
+beds, 2 baths, 1250 sqf
+t","timestamp":"2025-12
+-24T19:08:33.007959","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:08:33 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 1631 S 
+Michigan Ave #401 | 
+1631 S Michigan Ave, 
+Chicago, IL 60616 | 
+2bd 2ba 1250sqft","time
+stamp":"2025-12-24T19:0
+8:33.021599","type":"in
+fo"},{"message":"[Hotpa
+ds] 2025-12-24 
+19:08:33 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 1631 S 
+Michigan Ave #401 - 
+1631 S Michigan Ave, 
+Chicago, IL 60616","tim
+estamp":"2025-12-24T19:
+08:33.021891","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:08:33 [httpx] INFO: 
+HTTP Request: POST http
+s://dlcdmldvvcynvgaftvd
+k.supabase.co/rest/v1/h
+otpads_listings?on_conf
+lict=url&columns=%22add
+ress%22%2C%22contact_na
+me%22%2C%22bedrooms%22%
+2C%22url%22%2C%22contac
+t_company%22%2C%22bathr
+ooms%22%2C%22listing_da
+te%22%2C%22property_nam
+e%22%2C%22price%22%2C%2
+2phone_number%22%2C%22s
+quare_feet%22%2C%22emai
+l%22 \"HTTP/2 201 Creat
+ed\"","timestamp":"2025
+-12-24T19:08:33.319418"
+,"type":"info"},{"messa
+ge":"[Hotpads] 
+2025-12-24 19:08:33 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:33.321585","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:33 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:08:33.
+321905","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:33 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:33.322088","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:34 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/1816-
+s-hamlin-ave-chicago-il
+-60623-1ms9m65/2/pad","
+timestamp":"2025-12-24T
+19:08:34.545163","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:34 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/1816-s-hamlin-ave-ch
+icago-il-60623-1ms9m65/
+2/pad","timestamp":"202
+5-12-24T19:08:34.653622
+","type":"info"},{"mess
+age":"[Hotpads] 
+2025-12-24 19:08:34 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:08:34.
+674205","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:34 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 3 
+beds, 1 baths, 1193 sqf
+t","timestamp":"2025-12
+-24T19:08:34.783326","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:08:34 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 1816 S Hamlin 
+Ave #2 | 1816 S Hamlin 
+Ave, Chicago, IL 60623 
+| 3bd 1ba 1193sqft","ti
+mestamp":"2025-12-24T19
+:08:34.802462","type":"
+info"},{"message":"[Hot
+pads] 2025-12-24 
+19:08:34 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 1816 S 
+Hamlin Ave #2 - 1816 S 
+Hamlin Ave, Chicago, 
+IL 60623","timestamp":"
+2025-12-24T19:08:34.805
+916","type":"info"},{"m
+essage":"[Hotpads] 
+2025-12-24 19:08:35 
+[httpx] INFO: HTTP 
+Request: POST https://d
+lcdmldvvcynvgaftvdk.sup
+abase.co/rest/v1/hotpad
+s_listings?on_conflict=
+url&columns=%22address%
+22%2C%22contact_name%22
+%2C%22bedrooms%22%2C%22
+url%22%2C%22contact_com
+pany%22%2C%22bathrooms%
+22%2C%22listing_date%22
+%2C%22property_name%22%
+2C%22price%22%2C%22phon
+e_number%22%2C%22square
+_feet%22%2C%22email%22 
+\"HTTP/2 200 OK\"","tim
+estamp":"2025-12-24T19:
+08:35.071215","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:08:35 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:35.073283","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:35 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:08:35.
+073654","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:35 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:35.073857","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:35 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/1107-
+washington-blvd-oak-par
+k-il-60302-1kk0s5q/e/pa
+d","timestamp":"2025-12
+-24T19:08:35.228933","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:08:35 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/1107-washington-blvd
+-oak-park-il-60302-1kk0
+s5q/e/pad","timestamp":
+"2025-12-24T19:08:35.29
+3775","type":"info"},{"
+message":"[Hotpads] 
+2025-12-24 19:08:35 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:08:35.
+354027","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:35 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 1 
+beds, 1 baths, 725 sqft
+","timestamp":"2025-12-
+24T19:08:35.413730","ty
+pe":"info"},{"message":
+"[Hotpads] 2025-12-24 
+19:08:35 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 1107 
+Washington Blvd #E | 
+1107 Washington Blvd, 
+Oak Park, IL 60302 | 
+1bd 1ba 725sqft","times
+tamp":"2025-12-24T19:08
+:35.442069","type":"inf
+o"},{"message":"[Hotpad
+s] 2025-12-24 19:08:35 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 1107 
+Washington Blvd #E - 
+1107 Washington Blvd, 
+Oak Park, IL 60302","ti
+mestamp":"2025-12-24T19
+:08:35.443359","type":"
+info"},{"message":"[Hot
+pads] 2025-12-24 
+19:08:35 [httpx] INFO: 
+HTTP Request: POST http
+s://dlcdmldvvcynvgaftvd
+k.supabase.co/rest/v1/h
+otpads_listings?on_conf
+lict=url&columns=%22add
+ress%22%2C%22contact_na
+me%22%2C%22bedrooms%22%
+2C%22url%22%2C%22contac
+t_company%22%2C%22bathr
+ooms%22%2C%22listing_da
+te%22%2C%22property_nam
+e%22%2C%22price%22%2C%2
+2phone_number%22%2C%22s
+quare_feet%22%2C%22emai
+l%22 \"HTTP/2 200 OK\""
+,"timestamp":"2025-12-2
+4T19:08:35.705944","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:08:35 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:35.707980","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:35 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:08:35.
+708328","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:35 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:35.708582","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:35 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/2003-
+n-california-ave-chicag
+o-il-60647-1msm452/buil
+ding","timestamp":"2025
+-12-24T19:08:35.846761"
+,"type":"info"},{"messa
+ge":"[Hotpads] 
+2025-12-24 19:08:35 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/2003-n-california-av
+e-chicago-il-60647-1msm
+452/building","timestam
+p":"2025-12-24T19:08:35
+.870586","type":"info"}
+,{"message":"[Hotpads] 
+2025-12-24 19:08:35 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:08:35.
+875325","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:35 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 1 
+beds, 1 baths,  sqft","
+timestamp":"2025-12-24T
+19:08:35.955691","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:35 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 2003 N 
+California Ave | 2003 
+N California Ave, 
+Chicago, IL 60647 | 
+1bd 1ba sqft","timestam
+p":"2025-12-24T19:08:35
+.967201","type":"info"}
+,{"message":"[Hotpads] 
+2025-12-24 19:08:35 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 2003 N 
+California Ave - 2003 
+N California Ave, 
+Chicago, IL 60647","tim
+estamp":"2025-12-24T19:
+08:35.967832","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:08:36 [httpx] INFO: 
+HTTP Request: POST http
+s://dlcdmldvvcynvgaftvd
+k.supabase.co/rest/v1/h
+otpads_listings?on_conf
+lict=url&columns=%22add
+ress%22%2C%22contact_na
+me%22%2C%22bedrooms%22%
+2C%22url%22%2C%22contac
+t_company%22%2C%22bathr
+ooms%22%2C%22listing_da
+te%22%2C%22property_nam
+e%22%2C%22price%22%2C%2
+2phone_number%22%2C%22s
+quare_feet%22%2C%22emai
+l%22 \"HTTP/2 201 Creat
+ed\"","timestamp":"2025
+-12-24T19:08:36.227862"
+,"type":"info"},{"messa
+ge":"[Hotpads] 
+2025-12-24 19:08:36 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:36.231290","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:36 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:08:36.
+231665","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:36 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:36.231896","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:36 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/4816-
+n-winchester-ave-chicag
+o-il-60640-sk0s4t/2/pad
+","timestamp":"2025-12-
+24T19:08:36.362208","ty
+pe":"info"},{"message":
+"[Hotpads] 2025-12-24 
+19:08:36 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/4816-n-winchester-av
+e-chicago-il-60640-sk0s
+4t/2/pad","timestamp":"
+2025-12-24T19:08:36.390
+124","type":"info"},{"m
+essage":"[Hotpads] 
+2025-12-24 19:08:36 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:08:36.
+407485","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:36 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 3 
+beds, 1 baths, 1600 sqf
+t","timestamp":"2025-12
+-24T19:08:36.451818","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:08:36 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 4816 N 
+Winchester Ave #2 | 
+4816 N Winchester Ave, 
+Chicago, IL 60640 | 
+3bd 1ba 1600sqft","time
+stamp":"2025-12-24T19:0
+8:36.456700","type":"in
+fo"},{"message":"[Hotpa
+ds] 2025-12-24 
+19:08:36 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 4816 N 
+Winchester Ave #2 - 
+4816 N Winchester Ave, 
+Chicago, IL 60640","tim
+estamp":"2025-12-24T19:
+08:36.459650","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:08:36 [httpx] INFO: 
+HTTP Request: POST http
+s://dlcdmldvvcynvgaftvd
+k.supabase.co/rest/v1/h
+otpads_listings?on_conf
+lict=url&columns=%22add
+ress%22%2C%22contact_na
+me%22%2C%22bedrooms%22%
+2C%22url%22%2C%22contac
+t_company%22%2C%22bathr
+ooms%22%2C%22listing_da
+te%22%2C%22property_nam
+e%22%2C%22price%22%2C%2
+2phone_number%22%2C%22s
+quare_feet%22%2C%22emai
+l%22 \"HTTP/2 201 Creat
+ed\"","timestamp":"2025
+-12-24T19:08:36.714985"
+,"type":"info"},{"messa
+ge":"[Hotpads] 
+2025-12-24 19:08:36 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:36.716615","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:36 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:08:36.
+717068","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:36 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:36.717307","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:37 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/1640-
+w-57th-st-chicago-il-60
+636-1z3aqa8/2/pad","tim
+estamp":"2025-12-24T19:
+08:37.402064","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:08:37 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/1640-w-57th-st-chica
+go-il-60636-1z3aqa8/2/p
+ad","timestamp":"2025-1
+2-24T19:08:37.452853","
+type":"info"},{"message
+":"[Hotpads] 
+2025-12-24 19:08:37 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:08:37.
+466908","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:37 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 2 
+beds, 1 baths, 980 sqft
+","timestamp":"2025-12-
+24T19:08:37.523831","ty
+pe":"info"},{"message":
+"[Hotpads] 2025-12-24 
+19:08:37 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 1640 W 57th 
+St #2 | 1640 W 57th 
+St, Chicago, IL 60636 
+| 2bd 1ba 980sqft","tim
+estamp":"2025-12-24T19:
+08:37.546544","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:08:37 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 1640 W 
+57th St #2 - 1640 W 
+57th St, Chicago, IL 60
+636","timestamp":"2025-
+12-24T19:08:37.592566",
+"type":"info"},{"messag
+e":"[Hotpads] 
+2025-12-24 19:08:37 
+[httpx] INFO: HTTP 
+Request: POST https://d
+lcdmldvvcynvgaftvdk.sup
+abase.co/rest/v1/hotpad
+s_listings?on_conflict=
+url&columns=%22address%
+22%2C%22contact_name%22
+%2C%22bedrooms%22%2C%22
+url%22%2C%22contact_com
+pany%22%2C%22bathrooms%
+22%2C%22listing_date%22
+%2C%22property_name%22%
+2C%22price%22%2C%22phon
+e_number%22%2C%22square
+_feet%22%2C%22email%22 
+\"HTTP/2 201 Created\""
+,"timestamp":"2025-12-2
+4T19:08:37.853710","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:08:37 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:37.855898","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:37 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:08:37.
+856198","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:37 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:37.856391","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:38 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/elmwo
+od-park-il-60707-tgk0v2
+/9/pad","timestamp":"20
+25-12-24T19:08:38.59986
+2","type":"info"},{"mes
+sage":"[Hotpads] 
+2025-12-24 19:08:38 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/elmwood-park-il-6070
+7-tgk0v2/9/pad","timest
+amp":"2025-12-24T19:08:
+38.638499","type":"info
+"},{"message":"[Hotpads
+] 2025-12-24 19:08:38 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:08:38.
+646670","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:38 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 2 
+beds, 1 baths, 1000 sqf
+t","timestamp":"2025-12
+-24T19:08:38.749908","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:08:38 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: W Fullerton 
+Ave | 7719 W Fullerton 
+Ave, Elmwood Park, IL 
+60707 | 2bd 1ba 1000sqf
+t","timestamp":"2025-12
+-24T19:08:38.776972","t
+ype":"info"},{"message"
+:"[Hotpads] 2025-12-24 
+19:08:38 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): W 
+Fullerton Ave - 7719 W 
+Fullerton Ave, Elmwood 
+Park, IL 60707","timest
+amp":"2025-12-24T19:08:
+38.777426","type":"info
+"},{"message":"[Hotpads
+] 2025-12-24 19:08:39 
+[httpx] INFO: HTTP 
+Request: POST https://d
+lcdmldvvcynvgaftvdk.sup
+abase.co/rest/v1/hotpad
+s_listings?on_conflict=
+url&columns=%22address%
+22%2C%22contact_name%22
+%2C%22bedrooms%22%2C%22
+url%22%2C%22contact_com
+pany%22%2C%22bathrooms%
+22%2C%22listing_date%22
+%2C%22property_name%22%
+2C%22price%22%2C%22phon
+e_number%22%2C%22square
+_feet%22%2C%22email%22 
+\"HTTP/2 200 OK\"","tim
+estamp":"2025-12-24T19:
+08:39.031499","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:08:39 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:39.033825","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:39 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:08:39.
+034141","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:39 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:39.034343","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:45 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/859-w
+-erie-st-chicago-il-606
+42-skg4t4/308/pad","tim
+estamp":"2025-12-24T19:
+08:45.057405","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:08:45 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/859-w-erie-st-chicag
+o-il-60642-skg4t4/308/p
+ad","timestamp":"2025-1
+2-24T19:08:45.128729","
+type":"info"},{"message
+":"[Hotpads] 
+2025-12-24 19:08:45 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:08:45.
+130127","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:45 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 1 
+beds, 1.5 baths, 800 sq
+ft","timestamp":"2025-1
+2-24T19:08:45.230629","
+type":"info"},{"message
+":"[Hotpads] 
+2025-12-24 19:08:45 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 859 W Erie St 
+#308 | 859 W Erie St, 
+Chicago, IL 60642 | 
+1bd 1.5ba 800sqft","tim
+estamp":"2025-12-24T19:
+08:45.276252","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:08:45 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 859 W Erie 
+St #308 - 859 W Erie 
+St, Chicago, IL 60642",
+"timestamp":"2025-12-24
+T19:08:45.276538","type
+":"info"},{"message":"[
+Hotpads] 2025-12-24 
+19:08:45 [httpx] INFO: 
+HTTP Request: POST http
+s://dlcdmldvvcynvgaftvd
+k.supabase.co/rest/v1/h
+otpads_listings?on_conf
+lict=url&columns=%22add
+ress%22%2C%22contact_na
+me%22%2C%22bedrooms%22%
+2C%22url%22%2C%22contac
+t_company%22%2C%22bathr
+ooms%22%2C%22listing_da
+te%22%2C%22property_nam
+e%22%2C%22price%22%2C%2
+2phone_number%22%2C%22s
+quare_feet%22%2C%22emai
+l%22 \"HTTP/2 200 OK\""
+,"timestamp":"2025-12-2
+4T19:08:45.743698","typ
+e":"info"},{"message":"
+[Hotpads] 2025-12-24 
+19:08:45 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:45.761763","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:08:45 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:08:45.
+765918","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:08:45 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:08:45.769729","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:09:01 [scrapy.extens
+ions.logstats] INFO: 
+Crawled 41 pages (at 
+22 pages/min), scraped 
+39 items (at 22 items/m
+in)","timestamp":"2025-
+12-24T19:09:01.414263",
+"type":"info"},{"messag
+e":"[Hotpads] 
+2025-12-24 19:09:03 
+[hotpads_scraper] 
+INFO: \\U0001f4c4 
+Parsing detail page: ht
+tps://hotpads.com/6212-
+n-claremont-ave-chicago
+-il-60659-1msrkf2/1/pad
+","timestamp":"2025-12-
+24T19:09:03.753995","ty
+pe":"info"},{"message":
+"[Hotpads] 2025-12-24 
+19:09:03 
+[hotpads_scraper] 
+INFO: \\U0001f3e0 
+INDIVIDUAL LISTING 
+PAGE: https://hotpads.c
+om/6212-n-claremont-ave
+-chicago-il-60659-1msrk
+f2/1/pad","timestamp":"
+2025-12-24T19:09:03.771
+987","type":"info"},{"m
+essage":"[Hotpads] 
+2025-12-24 19:09:03 
+[hotpads_scraper] 
+INFO: 
+\\U0001f3f7\\ufe0f 
+EXTRACTED PRICE 
+(XPath): ''","timestamp
+":"2025-12-24T19:09:03.
+775194","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:09:03 
+[hotpads_scraper] 
+INFO: 
+\\U0001f6cf\\ufe0f 
+EXTRACTED (XPath): 3 
+beds, 1.5 baths, 1600 s
+qft","timestamp":"2025-
+12-24T19:09:03.790668",
+"type":"info"},{"messag
+e":"[Hotpads] 
+2025-12-24 19:09:03 
+[hotpads_scraper] 
+INFO: \\U0001f4cd 
+Scraped: 6212 N 
+Claremont Ave #1 | 
+6212 N Claremont Ave, 
+Chicago, IL 60659 | 
+3bd 1.5ba 1600sqft","ti
+mestamp":"2025-12-24T19
+:09:03.794533","type":"
+info"},{"message":"[Hot
+pads] 2025-12-24 
+19:09:03 
+[hotpads_scraper] 
+INFO: \\u2713 Scraped 
+(Buffered): 6212 N 
+Claremont Ave #1 - 
+6212 N Claremont Ave, 
+Chicago, IL 60659","tim
+estamp":"2025-12-24T19:
+09:03.794766","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:09:04 [httpx] INFO: 
+HTTP Request: POST http
+s://dlcdmldvvcynvgaftvd
+k.supabase.co/rest/v1/h
+otpads_listings?on_conf
+lict=url&columns=%22add
+ress%22%2C%22contact_na
+me%22%2C%22bedrooms%22%
+2C%22url%22%2C%22contac
+t_company%22%2C%22bathr
+ooms%22%2C%22listing_da
+te%22%2C%22property_nam
+e%22%2C%22price%22%2C%2
+2phone_number%22%2C%22s
+quare_feet%22%2C%22emai
+l%22 \"HTTP/2 201 Creat
+ed\"","timestamp":"2025
+-12-24T19:09:04.120374"
+,"type":"info"},{"messa
+ge":"[Hotpads] 
+2025-12-24 19:09:04 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:09:04.121547","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:09:04 
+[hotpads_scraper] 
+INFO: SUPABASE BATCH 
+SAVED: 1 items written 
+to database","timestamp
+":"2025-12-24T19:09:04.
+121763","type":"info"},
+{"message":"[Hotpads] 
+2025-12-24 19:09:04 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:09:04.121869","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:09:04 
+[scrapy.core.engine] 
+INFO: Closing spider (f
+inished)","timestamp":"
+2025-12-24T19:09:04.123
+645","type":"info"},{"m
+essage":"[Hotpads] 
+2025-12-24 19:09:04 
+[httpx] INFO: HTTP 
+Request: GET https://dl
+cdmldvvcynvgaftvdk.supa
+base.co/rest/v1/hotpads
+_listings?select=count&
+limit=0 \"HTTP/2 206 
+Partial Content\"","tim
+estamp":"2025-12-24T19:
+09:04.352029","type":"i
+nfo"},{"message":"[Hotp
+ads] 2025-12-24 
+19:09:04 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:09:04.353035","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:09:04 
+[hotpads_scraper] 
+INFO: SUPABASE FINAL: 
+Total records in 
+database: 1418","timest
+amp":"2025-12-24T19:09:
+04.353238","type":"info
+"},{"message":"[Hotpads
+] 2025-12-24 19:09:04 
+[hotpads_scraper] 
+INFO: =================
+=======================
+====================","
+timestamp":"2025-12-24T
+19:09:04.353360","type"
+:"info"},{"message":"[H
+otpads] 2025-12-24 
+19:09:04 [httpx] INFO: 
+HTTP Request: POST http
+s://dlcdmldvvcynvgaftvd
+k.supabase.co/rest/v1/s
+crape_state \"HTTP/2 
+200 OK\"","timestamp":"
+2025-12-24T19:09:04.653
+169","type":"info"},{"m
+essage":"[Hotpads] 
+2025-12-24 19:09:04 
+[hotpads_scraper] 
+INFO: Updated 
+scrape_state for 
+hotpads: https://hotpad
+s.com/2003-n-california
+-ave-chicago-il-60647-1
+msm452/building","times
+tamp":"2025-12-24T19:09
+:04.654228","type":"inf
+o"},{"message":"[Hotpad
+s] 2025-12-24 19:09:04 
+[scrapy.extensions.feed
+export] INFO: Stored 
+csv feed (40 items) 
+in: output/Hotpads_Data
+.csv","timestamp":"2025
+-12-24T19:09:04.655344"
+,"type":"info"},{"messa
+ge":"[Hotpads] 
+2025-12-24 19:09:04 [sc
+rapy.statscollectors] 
+INFO: Dumping Scrapy st
+ats:","timestamp":"2025
+-12-24T19:09:04.656577"
+,"type":"info"},{"messa
+ge":"[Hotpads] {'downlo
+ader/request_bytes': 34
+011,","timestamp":"2025
+-12-24T19:09:04.657059"
+,"type":"info"},{"messa
+ge":"[Hotpads] 'downloa
+der/request_count': 42,
+","timestamp":"2025-12-
+24T19:09:04.657662","ty
+pe":"info"},{"message":
+"[Hotpads] 'downloader/
+request_method_count/GE
+T': 42,","timestamp":"2
+025-12-24T19:09:04.6581
+57","type":"info"},{"me
+ssage":"[Hotpads] 'down
+loader/response_bytes':
+ 23616394,","timestamp"
+:"2025-12-24T19:09:04.6
+58442","type":"info"},{
+"message":"[Hotpads] 'd
+ownloader/response_coun
+t': 42,","timestamp":"2
+025-12-24T19:09:04.6586
+39","type":"info"},{"me
+ssage":"[Hotpads] 'down
+loader/response_status_
+count/200': 42,","times
+tamp":"2025-12-24T19:09
+:04.658735","type":"inf
+o"},{"message":"[Hotpad
+s] 'elapsed_time_second
+s': 123.241356,","times
+tamp":"2025-12-24T19:09
+:04.659146","type":"inf
+o"},{"message":"[Hotpad
+s] 'feedexport/success_
+count/FileFeedStorage':
+ 1,","timestamp":"2025-
+12-24T19:09:04.659429",
+"type":"info"},{"messag
+e":"[Hotpads] 
+'finish_reason': 'finis
+hed',","timestamp":"202
+5-12-24T19:09:04.659618
+","type":"info"},{"mess
+age":"[Hotpads] 
+'finish_time': datetime
+.datetime(2025, 12, 
+24, 14, 9, 4, 654288, t
+zinfo=datetime.timezone
+.utc),","timestamp":"20
+25-12-24T19:09:04.66102
+6","type":"info"},{"mes
+sage":"[Hotpads] 
+'item_scraped_count': 4
+0,","timestamp":"2025-1
+2-24T19:09:04.661379","
+type":"info"},{"message
+":"[Hotpads] 
+'items_per_minute': Non
+e,","timestamp":"2025-1
+2-24T19:09:04.661656","
+type":"info"},{"message
+":"[Hotpads] 
+'log_count/INFO': 441,"
+,"timestamp":"2025-12-2
+4T19:09:04.661927","typ
+e":"info"},{"message":"
+[Hotpads] 
+'log_count/WARNING': 1,
+","timestamp":"2025-12-
+24T19:09:04.662788","ty
+pe":"info"},{"message":
+"[Hotpads] 
+'request_depth_max': 1,
+","timestamp":"2025-12-
+24T19:09:04.663134","ty
+pe":"info"},{"message":
+"[Hotpads] 'response_re
+ceived_count': 42,","ti
+mestamp":"2025-12-24T19
+:09:04.663429","type":"
+info"},{"message":"[Hot
+pads] 'responses_per_mi
+nute': None,","timestam
+p":"2025-12-24T19:09:04
+.663720","type":"info"}
+,{"message":"[Hotpads] 
+'scheduler/dequeued': 4
+2,","timestamp":"2025-1
+2-24T19:09:04.664010","
+type":"info"},{"message
+":"[Hotpads] 'scheduler
+/dequeued/memory': 42,"
+,"timestamp":"2025-12-2
+4T19:09:04.664278","typ
+e":"info"},{"message":"
+[Hotpads] 
+'scheduler/enqueued': 4
+2,","timestamp":"2025-1
+2-24T19:09:04.665699","
+type":"info"},{"message
+":"[Hotpads] 'scheduler
+/enqueued/memory': 42,"
+,"timestamp":"2025-12-2
+4T19:09:04.666326","typ
+e":"info"},{"message":"
+[Hotpads] 
+'scrapy-zyte-api/429': 
+0,","timestamp":"2025-1
+2-24T19:09:04.666884","
+type":"info"},{"message
+":"[Hotpads] 'scrapy-zy
+te-api/attempts': 42,",
+"timestamp":"2025-12-24
+T19:09:04.667426","type
+":"info"},{"message":"[
+Hotpads] 'scrapy-zyte-a
+pi/error_ratio': 0.0,",
+"timestamp":"2025-12-24
+T19:09:04.667814","type
+":"info"},{"message":"[
+Hotpads] 'scrapy-zyte-a
+pi/errors': 0,","timest
+amp":"2025-12-24T19:09:
+04.668200","type":"info
+"},{"message":"[Hotpads
+] 'scrapy-zyte-api/fata
+l_errors': 0,","timesta
+mp":"2025-12-24T19:09:0
+4.668977","type":"info"
+},{"message":"[Hotpads]
+ 'scrapy-zyte-api/mean_
+connection_seconds': 14
+.325732733332272,","tim
+estamp":"2025-12-24T19:
+09:04.669510","type":"i
+nfo"},{"message":"[Hotp
+ads] 'scrapy-zyte-api/m
+ean_response_seconds': 
+15.06880690952364,","ti
+mestamp":"2025-12-24T19
+:09:04.670472","type":"
+info"},{"message":"[Hot
+pads] 'scrapy-zyte-api/
+processed': 42,","times
+tamp":"2025-12-24T19:09
+:04.671327","type":"inf
+o"},{"message":"[Hotpad
+s] 'scrapy-zyte-api/req
+uest_args/browserHtml':
+ 42,","timestamp":"2025
+-12-24T19:09:04.671503"
+,"type":"info"},{"messa
+ge":"[Hotpads] 'scrapy-
+zyte-api/request_args/u
+rl': 42,","timestamp":"
+2025-12-24T19:09:04.671
+601","type":"info"},{"m
+essage":"[Hotpads] 'scr
+apy-zyte-api/status_cod
+es/200': 42,","timestam
+p":"2025-12-24T19:09:04
+.671885","type":"info"}
+,{"message":"[Hotpads] 
+'scrapy-zyte-api/succes
+s': 42,","timestamp":"2
+025-12-24T19:09:04.6719
+83","type":"info"},{"me
+ssage":"[Hotpads] 'scra
+py-zyte-api/success_rat
+io': 1.0,","timestamp":
+"2025-12-24T19:09:04.67
+2228","type":"info"},{"
+message":"[Hotpads] 'sc
+rapy-zyte-api/throttle_
+ratio': 0.0,","timestam
+p":"2025-12-24T19:09:04
+.672454","type":"info"}
+,{"message":"[Hotpads] 
+'start_time': datetime.
+datetime(2025, 12, 24, 
+14, 7, 1, 412932, tzinf
+o=datetime.timezone.utc
+)}","timestamp":"2025-1
+2-24T19:09:04.672575","
+type":"info"},{"message
+":"[Hotpads] 
+2025-12-24 19:09:04 
+[scrapy.core.engine] 
+INFO: Spider closed (fi
+nished)","timestamp":"2
+025-12-24T19:09:04.6728
+32","type":"info"},{"me
+ssage":"Hotpads 
+completed successfully.
+","timestamp":"2025-12-
+24T19:09:05.099963","ty
+pe":"success"}]
+
+

@@ -139,26 +139,31 @@ class ForSaleByOwnerSeleniumScraper:
                     options=chrome_options
                 )
             else:
-                # Try to use webdriver-manager if available, otherwise use system ChromeDriver
-                # Suppress ChromeDriver service logs
-                service_args = []
-                if USE_WEBDRIVER_MANAGER:
-                    try:
-                        from selenium.webdriver.chrome.service import Service as ChromeService
-                        from webdriver_manager.chrome import ChromeDriverManager
-                        service = ChromeService(ChromeDriverManager().install())
-                        service.service_args = service_args
-                        self.driver = webdriver.Chrome(service=service, options=chrome_options)
-                    except Exception:
-                        # Fallback to system ChromeDriver
-                        service = Service()
-                        service.service_args = service_args
-                        self.driver = webdriver.Chrome(service=service, options=chrome_options)
-                else:
-                    # Use system ChromeDriver (Selenium 4+ auto-manages it)
-                    service = Service()
-                    service.service_args = service_args
-                    self.driver = webdriver.Chrome(service=service, options=chrome_options)
+                # Set binary location for Chromium in Linux (Standard path for apt-get install chromium)
+                # This ensures production stability on Railway while remaining safe for Windows/macOS
+                service = Service()
+                if sys.platform.startswith('linux'):
+                    chrome_binary = '/usr/bin/chromium'
+                    chrome_driver = '/usr/bin/chromedriver'
+                    
+                    # Case 1: Both binary and driver found (Ideal Production State)
+                    if os.path.exists(chrome_binary) and os.path.exists(chrome_driver):
+                        chrome_options.binary_location = chrome_binary
+                        service = Service(executable_path=chrome_driver)
+                        logger.info(f"Production environment detected: Using system Chromium ({chrome_binary}) and Driver ({chrome_driver})")
+                    
+                    # Case 2: Only binary found
+                    elif os.path.exists(chrome_binary):
+                        chrome_options.binary_location = chrome_binary
+                        logger.info(f"Using system Chromium ({chrome_binary}). Let Selenium manage the driver.")
+                    
+                    # Case 3: Nothing found (Fallback/Development)
+                    else:
+                        logger.warning("Linux detected but standard Chromium binaries not found. Falling back to auto-managed drivers.")
+                        logger.warning("To fix 'Status code 127', ensure 'chromium' and 'chromium-driver' are installed.")
+
+                # Initialize the driver
+                self.driver = webdriver.Chrome(service=service, options=chrome_options)
             
             self.driver.maximize_window()
             if browserless_token:
