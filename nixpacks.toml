@@ -1,12 +1,13 @@
 [phases.setup]
-nixPkgs = ["python311", "gcc", "stdenv.cc.cc.lib", "curl"]
+nixPkgs = ["python311", "gcc", "gnumake", "curl", "stdenv.cc.cc.lib"]
 
 [phases.install]
 cmds = [
-    "python -m venv .venv",
-    "curl -sS https://bootstrap.pypa.io/get-pip.py | .venv/bin/python",
-    ".venv/bin/pip install -r requirements.txt"
+    "python3 -m venv .venv",
+    ". .venv/bin/activate && curl -sS https://bootstrap.pypa.io/get-pip.py | python",
+    ". .venv/bin/activate && pip install --upgrade pip setuptools wheel",
+    ". .venv/bin/activate && pip install -r requirements.txt"
 ]
 
 [start]
-cmd = ".venv/bin/python api_server.py"
+cmd = ". .venv/bin/activate && gunicorn -w 4 -b 0.0.0.0:$PORT api_server:app"
