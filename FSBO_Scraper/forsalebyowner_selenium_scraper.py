@@ -128,27 +128,43 @@ class ForSaleByOwnerSeleniumScraper:
             }
             chrome_options.add_experimental_option('prefs', prefs)
             
-            # Try to use webdriver-manager if available, otherwise use system ChromeDriver
-            # Suppress ChromeDriver service logs
-            service_args = []
-            if USE_WEBDRIVER_MANAGER:
-                try:
-                    service = ChromeService(ChromeDriverManager().install())
-                    service.service_args = service_args
-                    self.driver = webdriver.Chrome(service=service, options=chrome_options)
-                except Exception:
-                    # Fallback to system ChromeDriver
+            # Check for Browserless.io token
+            browserless_token = os.getenv("BROWSERLESS_TOKEN")
+            
+            if browserless_token:
+                logger.info("Connecting to Browserless.io...")
+                browserless_url = f"https://chrome.browserless.io/webdriver?token={browserless_token}"
+                self.driver = webdriver.Remote(
+                    command_executor=browserless_url,
+                    options=chrome_options
+                )
+            else:
+                # Try to use webdriver-manager if available, otherwise use system ChromeDriver
+                # Suppress ChromeDriver service logs
+                service_args = []
+                if USE_WEBDRIVER_MANAGER:
+                    try:
+                        from selenium.webdriver.chrome.service import Service as ChromeService
+                        from webdriver_manager.chrome import ChromeDriverManager
+                        service = ChromeService(ChromeDriverManager().install())
+                        service.service_args = service_args
+                        self.driver = webdriver.Chrome(service=service, options=chrome_options)
+                    except Exception:
+                        # Fallback to system ChromeDriver
+                        service = Service()
+                        service.service_args = service_args
+                        self.driver = webdriver.Chrome(service=service, options=chrome_options)
+                else:
+                    # Use system ChromeDriver (Selenium 4+ auto-manages it)
                     service = Service()
                     service.service_args = service_args
                     self.driver = webdriver.Chrome(service=service, options=chrome_options)
-            else:
-                # Use system ChromeDriver (Selenium 4+ auto-manages it)
-                service = Service()
-                service.service_args = service_args
-                self.driver = webdriver.Chrome(service=service, options=chrome_options)
             
             self.driver.maximize_window()
-            logger.info("Chrome WebDriver initialized successfully")
+            if browserless_token:
+                logger.info("Browserless.io session initialized successfully")
+            else:
+                logger.info("Chrome WebDriver initialized successfully")
             
         except Exception as e:
             logger.error(f"Failed to initialize WebDriver: {e}")

@@ -185,9 +185,22 @@ class HotPadsSpider(scrapy.Spider):
                 if url:
                     listing_urls.append(url)
 
+        # Normalize to absolute URLs and FILTER
+        raw_urls = listing_urls
+        listing_urls = []
+        for url in raw_urls:
+            full_url = response.urljoin(url) if not url.startswith('http') else url
+            
+            # CRITICAL FILTER: Actual listings usually have 'pad', 'building', or an ID-like slug.
+            # Category search pages like /chicago-il/apartments-for-rent should be skipped.
+            if any(term in full_url for term in ['/pad', '/building', '-sk', '-1ms', '-24', '-xu', '-yy']):
+                # Also exclude certain patterns that are definitely categories
+                if not any(term in full_url for term in ['?lat=', '/rooms-for-rent', '/luxury-apartments']):
+                    listing_urls.append(full_url)
+        
         # Remove duplicates
-        listing_urls = list(set(listing_urls))
-        self.logger.info(f"Total unique listing URLs found: {len(listing_urls)}")
+        listing_urls = list(dict.fromkeys(listing_urls))
+        self.logger.info(f"Total unique listing URLs found (after filtering): {len(listing_urls)}")
 
         # Record first listing for state update (assuming newest)
         if not self._first_listing_url and listing_urls:
@@ -217,10 +230,7 @@ class HotPadsSpider(scrapy.Spider):
             self.logger.info(f"Stopping pagination for {location}: 5 consecutive empty pages reached.")
             return
 
-        for url in listing_urls:
-            # Handle relative URLs
-            full_url = response.urljoin(url) if not url.startswith('http') else url
-            
+        for full_url in listing_urls:
             # Check existence
             if full_url in existing_urls:
                 self._known_hits += 1
@@ -230,10 +240,6 @@ class HotPadsSpider(scrapy.Spider):
                     return # Stop processing this page and future pagination
                 continue
             
-            # Filter out non-listing URLs
-            if '/apartments-for-rent' in full_url or 'map' in full_url:
-                continue
-
             yield scrapy.Request(
                 full_url,
                 headers=self.headers,
@@ -273,7 +279,11 @@ class HotPadsSpider(scrapy.Spider):
         sub_records = response.xpath("//ul[@class='AreaListingsContainer-listings']/li")
         building_indicator = response.xpath("//article[contains(@class, 'BuildingArticleGroup')]").get()
         
-        if sub_records or building_indicator or '/building' in item_url:
+        # TIGHTER DETECTION: Only treat as building if it has sub_records AND looks like a building URL
+        # Or if it's explicitly a /building URL but NOT a search category URL
+        is_building = (sub_records and ('/building' in item_url or building_indicator))
+        
+        if is_building:
             self.logger.info(f"🏢 BUILDING PAGE DETECTED: {item_url}")
             self.logger.info(f"   - sub_records found: {len(sub_records)}")
             self.logger.info(f"   - building_indicator: {bool(building_indicator)}")
@@ -465,16 +475,26 @@ class HotPadsSpider(scrapy.Spider):
 
         # STEP 2: XPath extraction (fallback only)
         # Extract Price with multiple fallback strategies
+        # Filter out comparison text like "Cheaper than..." or "More than..."
         xpath_price = response.xpath("//span[@data-test='listing-price']/text()").get('')
         self.logger.debug(f"Price selector 1: {xpath_price}")
-        if not xpath_price:
-            xpath_price = response.xpath("//div[contains(@class, 'Price')]/text()").get('')
+        
+        if not xpath_price or any(term in xpath_price.lower() for term in ['than', 'similar']):
+            xpath_price = response.xpath("//div[contains(@class, 'Price')]//span[contains(text(), '$')]/text()").get('')
             self.logger.debug(f"Price selector 2: {xpath_price}")
+        
         if not xpath_price:
-            xpath_price = response.xpath("//span[contains(@class, 'price')]/text()").get('')
+            xpath_price = response.xpath("//div[contains(@class, 'ListingCard-price')]/text()").get('')
             self.logger.debug(f"Price selector 3: {xpath_price}")
+            
         if xpath_price:
-            xpath_price = xpath_price.strip().replace('$', '').replace(',', '')
+            # Extract just the number
+            import re
+            match = re.search(r'\$?([\d,]+)', xpath_price)
+            if match:
+                xpath_price = match.group(0).replace('$', '').replace(',', '')
+            else:
+                xpath_price = ''
         else:
             xpath_price = ''
         self.logger.info(f"🏷️ EXTRACTED PRICE (XPath): '{xpath_price}'")
