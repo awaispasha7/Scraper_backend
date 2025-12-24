@@ -50,9 +50,13 @@ class HotPadsSpider(scrapy.Spider):
         self._first_listing_url = None
         
         # Initialize Supabase client
-        project_root = Path(__file__).resolve().parents[2]
-        env_path = project_root / '.env'
-        load_dotenv(dotenv_path=env_path)
+        try:
+            project_root = Path(__file__).resolve().parents[2]
+            env_path = project_root / '.env'
+            if env_path.exists():
+                load_dotenv(dotenv_path=env_path)
+        except Exception:
+            pass # Ignore errors, rely on system env vars
         
         url = os.getenv("SUPABASE_URL")
         key = os.getenv("SUPABASE_SERVICE_KEY")

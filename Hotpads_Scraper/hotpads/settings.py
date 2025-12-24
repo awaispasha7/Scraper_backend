@@ -102,9 +102,15 @@ FEED_EXPORT_ENCODING = "utf-8"
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-project_root = Path(__file__).resolve().parents[2]  # Go up to Scraper_backend
-env_path = project_root / '.env'
-load_dotenv(dotenv_path=env_path)
+
+# Try to load from .env file, but don't fail if it doesn't exist (e.g. on Railway)
+try:
+    project_root = Path(__file__).resolve().parents[2]  # Go up to Scraper_backend
+    env_path = project_root / '.env'
+    if env_path.exists():
+        load_dotenv(dotenv_path=env_path)
+except Exception:
+    pass
 
 ZYTE_API_KEY = os.getenv("ZYTE_API_KEY")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
