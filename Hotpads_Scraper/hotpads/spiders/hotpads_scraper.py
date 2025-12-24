@@ -43,7 +43,7 @@ class HotPadsSpider(scrapy.Spider):
     def __init__(self, *args, **kwargs):
         super(HotPadsSpider, self).__init__(*args, **kwargs)
         self.locations_file = 'input/locations.csv'
-        self.default_url = "https://hotpads.com/lincoln-park-chicago-il/for-rent-by-owner?border=false&isListedByOwner=true&lat=41.8919&listingTypes=rental&lon=-87.6612&z=12"
+        self.default_url = kwargs.get('url', "https://hotpads.com/60614/for-rent-by-owner")
         # Check if user wants to use CSV instead
         self.use_csv = kwargs.get('use_csv', 'false').lower() == 'true'
         self._known_hits = 0
@@ -192,23 +192,20 @@ class HotPadsSpider(scrapy.Spider):
             # Diagnostic: Log Title
             title = response.xpath("//title/text()").get('')
             self.logger.info(f"PAGE TITLE: {title}")
-            if any(term in title for term in ["Pardon", "Robot", "Access Denied"]):
-                self.logger.error("🚫 CAPTCHA OR BLOCK DETECTED in response title")
             
-            # Broader Card Selectors
-            # 1. Standard styles__li
-            records = response.xpath("//li[contains(@class, 'styles__li')]")
-            # 2. article or div with ListingCard
-            if not records:
-                 records = response.xpath("//article[contains(@class, 'ListingCard')] | //div[contains(@class, 'ListingCard')]")
-            # 3. data-test indicators
-            if not records:
-                records = response.xpath("//article[@data-test='listing-card'] | //div[@data-test='listing-card']")
-            # 4. Generic fallback (last resort)
-            if not records:
-                records = response.xpath("//li[.//a[contains(@href, '/chicago-il/') or contains(@href, '-il/')]]")
+            # Surgical Card Detection: Limit to actual listings container
+            # This avoids picking up hundreds of "Related Searches" or "Popular Areas" links
+            container = response.xpath("//div[@id='area-listings-container'] | //ul[contains(@class, 'AreaListingsContainer')]")
+            if container:
+                self.logger.info("Found area-listings-container, searching for cards within...")
+                records = container.xpath(".//li[contains(@class, 'styles__li')] | .//article | .//div[contains(@class, 'ListingCard')]")
+            else:
+                self.logger.warning("area-listings-container NOT found, falling back to broad search (excluding nav/footer)...")
+                records = response.xpath("//li[contains(@class, 'styles__li') and not(ancestor::nav) and not(ancestor::footer)]")
+                if not records:
+                    records = response.xpath("//article[contains(@class, 'ListingCard')] | //div[contains(@class, 'ListingCard')]")
 
-            self.logger.info(f"Found {len(records)} potential listing records via XPath")
+            self.logger.info(f"Found {len(records)} listing records via XPath")
 
             for record in records:
                 # Try to find the link within the card
@@ -217,6 +214,14 @@ class HotPadsSpider(scrapy.Spider):
                     url = record.xpath("./ancestor-or-self::a/@href").get('')
                 if url:
                     listing_urls.append(url)
+                    
+            if not listing_urls and "0 Rentals" in title:
+                self.logger.warning("Confirmed 0 listings found via Page Title. Checking body snippet for diagnostics...")
+                try:
+                    body_snippet = response.body.decode('utf-8', errors='ignore')[:500]
+                    self.logger.info(f"BODY SNIPPET: {body_snippet}...")
+                except Exception as e:
+                    self.logger.error(f"Could not log body snippet: {e}")
 
         # Normalize to absolute URLs and FILTER
         raw_urls = listing_urls
@@ -227,16 +232,17 @@ class HotPadsSpider(scrapy.Spider):
             if not url: continue
             full_url = response.urljoin(url) if not url.startswith('http') else url
             
-            # A listing URL on Hotpads usually contains /pad or /building
-            # A search/category URL usually contains terms like -apartments-for-rent, -houses-for-rent, etc.
-            is_listing = any(term in full_url for term in ['/pad', '/building'])
-            # Only count as category if it looks like a search list page
-            is_search = any(term in full_url for term in [
+            # PRIORITY FILTER: If it contains /pad or /building, it's almost certainly a listing
+            is_listingPattern = any(term in full_url for term in ['/pad', '/building'])
+            
+            # Search categories usually contain '-for-rent' or '/rooms-for-rent' but NOT /pad or /building
+            is_searchPattern = not is_listingPattern and any(term in full_url for term in [
                 '-apartments-for-rent', '-houses-for-rent', '-condos-for-rent', '-townhomes-for-rent',
-                '/luxury-apartments', '/furnished-apartments', '/affordable-apartments', '/rooms-for-rent'
+                '/luxury-apartments', '/furnished-apartments', '/affordable-apartments', '/rooms-for-rent',
+                '-for-rent-by-owner'
             ])
             
-            if is_listing and not is_search:
+            if is_listingPattern and not is_searchPattern:
                 listing_urls.append(full_url)
             else:
                 filtered_out.append(full_url)
