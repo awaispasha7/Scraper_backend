@@ -365,6 +365,7 @@ def trigger_hotpads():
     def worker():
         base_dir = os.path.dirname(os.path.abspath(__file__))
         scraper_dir = os.path.join(base_dir, "Hotpads_Scraper")
+        add_log("Manual trigger for Hotpads received from API", "info")
         run_process_with_logging(
             [sys.executable, "-m", "scrapy", "crawl", "hotpads_scraper"], 
             scraper_dir, 

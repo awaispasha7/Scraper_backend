@@ -28,5 +28,5 @@ EXPOSE 8080
 ENV PYTHONUNBUFFERED=1
 ENV PORT=8080
 
-# Start command using Gunicorn
-CMD ["sh", "-c", "gunicorn -w 4 -b 0.0.0.0:$PORT api_server:app"]
+# Start command using Gunicorn (using 1 worker to maintain in-memory state consistency)
+CMD ["sh", "-c", "gunicorn -w 1 -b 0.0.0.0:$PORT api_server:app"]
