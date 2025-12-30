@@ -228,6 +228,15 @@ class BatchDataWorker:
             self._mark_no_data(address_hash, f"Orphaned: Not found in {listing_source}")
             return
 
+        # SMART SKIP: Check if listing already has owner info (saves money!)
+        existing_owner = self._check_existing_owner_info(listing_source, address_hash)
+        if existing_owner:
+            logger.info(f"SMART SKIP: {address_hash[:8]} already has owner '{existing_owner[:30]}...' - No API call needed!")
+            # Copy existing owner info to property_owners table
+            self._copy_existing_owner_to_central(listing_source, address_hash)
+            self._mark_enriched_from_scrape(address_hash)
+            return
+
         try:
             # Call BatchData API
             result = self.call_batchdata(address)
@@ -480,6 +489,127 @@ class BatchDataWorker:
         except Exception as e:
             logger.error(f"Pre-flight check error: {e}")
             return True  # On error, allow to proceed (fail-safe)
+
+    def _check_existing_owner_info(self, listing_source: str, address_hash: str) -> Optional[str]:
+        """
+        SMART SKIP: Check if source table already has owner info.
+        Returns owner_name if exists, None otherwise.
+        """
+        if not listing_source:
+            return None
+            
+        source_lower = listing_source.lower()
+        source_map = {
+            'fsbo': ('listings', 'owner_name'),
+            'forsalebyowner': ('listings', 'owner_name'),
+            'zillow-fsbo': ('zillow_fsbo_listings', 'owner_name'),
+            'zillow fsbo': ('zillow_fsbo_listings', 'owner_name'),
+            'zillow-frbo': ('zillow_frbo_listings', 'owner_name'),
+            'zillow frbo': ('zillow_frbo_listings', 'owner_name'),
+            'hotpads': ('hotpads_listings', 'owner_name'),
+            'apartments': ('apartments_frbo_chicago', 'owner_name'),
+            'apartments.com': ('apartments_frbo_chicago', 'owner_name'),
+            'trulia': ('trulia_listings', 'owner_name'),
+            'redfin': ('redfin_listings', 'owner_name')
+        }
+        
+        table_info = source_map.get(source_lower)
+        if not table_info:
+            return None
+            
+        target_table, owner_col = table_info
+        
+        try:
+            result = self.supabase.table(target_table) \
+                .select(owner_col) \
+                .eq("address_hash", address_hash) \
+                .limit(1) \
+                .execute()
+            
+            if result.data and result.data[0].get(owner_col):
+                owner_name = result.data[0][owner_col]
+                if owner_name and owner_name.strip() and owner_name.lower() not in ['n/a', 'unknown', 'none', '']:
+                    return owner_name
+            return None
+        except Exception as e:
+            logger.error(f"Smart skip check error: {e}")
+            return None
+
+    def _copy_existing_owner_to_central(self, listing_source: str, address_hash: str):
+        """
+        Copy existing owner info from source table to central property_owners table.
+        """
+        source_lower = listing_source.lower() if listing_source else ""
+        
+        # Map sources to tables and their column names
+        source_map = {
+            'fsbo': 'listings',
+            'forsalebyowner': 'listings',
+            'zillow-fsbo': 'zillow_fsbo_listings',
+            'zillow fsbo': 'zillow_fsbo_listings',
+            'zillow-frbo': 'zillow_frbo_listings',
+            'zillow frbo': 'zillow_frbo_listings',
+            'hotpads': 'hotpads_listings',
+            'apartments': 'apartments_frbo_chicago',
+            'apartments.com': 'apartments_frbo_chicago',
+            'trulia': 'trulia_listings',
+            'redfin': 'redfin_listings'
+        }
+        
+        target_table = source_map.get(source_lower)
+        if not target_table:
+            return
+            
+        try:
+            # Fetch existing owner data from source
+            result = self.supabase.table(target_table) \
+                .select("*") \
+                .eq("address_hash", address_hash) \
+                .limit(1) \
+                .execute()
+            
+            if not result.data:
+                return
+                
+            row = result.data[0]
+            
+            # Extract owner info based on table structure
+            owner_name = row.get('owner_name')
+            owner_email = row.get('owner_email') or row.get('email')
+            owner_phone = row.get('owner_phone') or row.get('phone_number')
+            
+            # For listings table, emails/phones might be arrays
+            if target_table == 'listings':
+                emails = row.get('owner_emails', [])
+                phones = row.get('owner_phones', [])
+                if emails and isinstance(emails, list) and len(emails) > 0:
+                    owner_email = emails[0]
+                if phones and isinstance(phones, list) and len(phones) > 0:
+                    owner_phone = phones[0]
+            
+            # Save to central property_owners table
+            payload = {
+                "address_hash": address_hash,
+                "owner_name": owner_name,
+                "owner_email": owner_email,
+                "owner_phone": owner_phone,
+                "source": "scraped",  # Indicate this came from original scrape, not BatchData
+                "listing_source": listing_source
+            }
+            self.supabase.table("property_owners").upsert(payload, on_conflict="address_hash").execute()
+            logger.info(f"Copied existing owner to central: {address_hash[:8]}")
+            
+        except Exception as e:
+            logger.error(f"Error copying existing owner: {e}")
+
+    def _mark_enriched_from_scrape(self, address_hash: str):
+        """Mark as enriched but note that data came from original scrape, not API."""
+        self.supabase.table("property_owner_enrichment_state").update({
+            "status": "enriched",
+            "locked": True,
+            "checked_at": datetime.now().isoformat(),
+            "source_used": "scraped"  # Different from 'batchdata' - indicates no API cost
+        }).eq("address_hash", address_hash).execute()
 
     def _run_dry_mode(self):
         """

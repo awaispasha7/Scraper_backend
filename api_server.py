@@ -585,6 +585,60 @@ def get_enrichment_status():
         "error": enrichment_status["error"]
     })
 
+@app.route('/api/enrichment-stats', methods=['GET'])
+def get_enrichment_stats():
+    """Return enrichment statistics for dashboard display."""
+    try:
+        from supabase import create_client
+        from dotenv import load_dotenv
+        load_dotenv()
+        
+        url = os.environ.get("SUPABASE_URL")
+        key = os.environ.get("SUPABASE_KEY") or os.environ.get("SUPABASE_SERVICE_KEY")
+        if not url or not key:
+            return jsonify({"error": "Database not configured"}), 500
+            
+        supabase = create_client(url, key)
+        
+        # Get counts by status
+        pending = supabase.table("property_owner_enrichment_state") \
+            .select("*", count="exact", head=True) \
+            .eq("status", "never_checked") \
+            .eq("locked", False) \
+            .execute()
+            
+        enriched = supabase.table("property_owner_enrichment_state") \
+            .select("*", count="exact", head=True) \
+            .eq("status", "enriched") \
+            .execute()
+            
+        no_data = supabase.table("property_owner_enrichment_state") \
+            .select("*", count="exact", head=True) \
+            .eq("status", "no_owner_data") \
+            .execute()
+        
+        # Count by source_used to show smart skips
+        scraped = supabase.table("property_owner_enrichment_state") \
+            .select("*", count="exact", head=True) \
+            .eq("source_used", "scraped") \
+            .execute()
+            
+        batchdata = supabase.table("property_owner_enrichment_state") \
+            .select("*", count="exact", head=True) \
+            .eq("source_used", "batchdata") \
+            .execute()
+        
+        return jsonify({
+            "pending": pending.count or 0,
+            "enriched": enriched.count or 0,
+            "no_data": no_data.count or 0,
+            "smart_skipped": scraped.count or 0,
+            "api_calls": batchdata.count or 0,
+            "is_running": enrichment_status["running"]
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     # Start scheduler in background
     start_scheduler()
