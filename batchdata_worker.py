@@ -2,7 +2,7 @@ import os
 import time
 import logging
 import requests
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List, Dict, Any, Optional
 from supabase import create_client, Client
 from dotenv import load_dotenv
@@ -47,7 +47,7 @@ class BatchDataWorker:
         
     def check_daily_usage(self) -> int:
         """Counts how many BatchData calls were made in the last 24 hours."""
-        today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
+        today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
         try:
             response = self.supabase.table("property_owner_enrichment_state") \
                 .select("id", count="exact") \
@@ -163,13 +163,13 @@ class BatchDataWorker:
             # 1. PRIORITY SOURCE ACQUISITION
             if priority_source:
                 # We try a semi-atomic approach for the priority source
-                now = datetime.now().isoformat()
+                now = datetime.now(timezone.utc).isoformat()
                 # Find one
                 res = self.supabase.table("property_owner_enrichment_state") \
                     .select("*") \
                     .eq("status", "never_checked") \
                     .eq("locked", False) \
-                    .eq("listing_source", priority_source) \
+                    .ilike("listing_source", priority_source) \
                     .limit(1) \
                     .execute()
                 
@@ -200,7 +200,7 @@ class BatchDataWorker:
 
     def clear_stale_locks(self):
         """Unlock any properties that have been locked for more than 15 minutes but not processed."""
-        fifteen_mins_ago = (datetime.now() - timedelta(minutes=15)).isoformat()
+        fifteen_mins_ago = (datetime.now(timezone.utc) - timedelta(minutes=15)).isoformat()
         try:
             # We look for never_checked properties that are locked and haven't been updated recently
             res = self.supabase.table("property_owner_enrichment_state") \
@@ -462,7 +462,7 @@ class BatchDataWorker:
         self.supabase.table("property_owner_enrichment_state").update({
             "status": "enriched",
             "locked": True,
-            "checked_at": datetime.now().isoformat(),
+            "checked_at": datetime.now(timezone.utc).isoformat(),
             "source_used": "batchdata",
             "batchdata_request_id": req_id
         }).eq("address_hash", address_hash).execute()
@@ -473,7 +473,7 @@ class BatchDataWorker:
             "status": "no_owner_data",
             "locked": True,
             "failure_reason": reason,
-            "checked_at": datetime.now().isoformat(),
+            "checked_at": datetime.now(timezone.utc).isoformat(),
             "source_used": "batchdata"
         }).eq("address_hash", address_hash).execute()
 
@@ -537,47 +537,67 @@ class BatchDataWorker:
 
     def _check_existing_owner_info(self, listing_source: str, address_hash: str) -> Optional[str]:
         """
-        SMART SKIP: Check if source table already has owner info.
-        Returns owner_name if exists, None otherwise.
+        SMART SKIP: Check if source table already has ANY valid owner info (name, email, or phone).
+        Returns owner_name if found and valid, otherwise "Existing Contact Info" if email/phone found, 
+        or None if no valid info exists.
         """
         if not listing_source:
             return None
             
         source_lower = listing_source.lower()
         source_map = {
-            'fsbo': ('listings', 'owner_name'),
-            'forsalebyowner': ('listings', 'owner_name'),
-            'zillow-fsbo': ('zillow_fsbo_listings', 'owner_name'),
-            'zillow fsbo': ('zillow_fsbo_listings', 'owner_name'),
-            'zillow-frbo': ('zillow_frbo_listings', 'owner_name'),
-            'zillow frbo': ('zillow_frbo_listings', 'owner_name'),
-            'hotpads': ('hotpads_listings', 'owner_name'),
-            'apartments': ('apartments_frbo_chicago', 'owner_name'),
-            'apartments.com': ('apartments_frbo_chicago', 'owner_name'),
-            'trulia': ('trulia_listings', 'owner_name'),
-            'redfin': ('redfin_listings', 'owner_name')
+            'fsbo': ('listings', ['owner_name', 'owner_emails', 'owner_phones']),
+            'forsalebyowner': ('listings', ['owner_name', 'owner_emails', 'owner_phones']),
+            'zillow-fsbo': ('zillow_fsbo_listings', ['owner_name', 'owner_email', 'phone_number']),
+            'zillow fsbo': ('zillow_fsbo_listings', ['owner_name', 'owner_email', 'phone_number']),
+            'zillow-frbo': ('zillow_frbo_listings', ['owner_name', 'owner_email', 'phone_number']),
+            'zillow frbo': ('zillow_frbo_listings', ['owner_name', 'owner_email', 'phone_number']),
+            'hotpads': ('hotpads_listings', ['owner_name', 'email', 'owner_phone', 'phone_number']),
+            'apartments': ('apartments_frbo_chicago', ['owner_name', 'owner_email', 'phone_numbers']),
+            'apartments.com': ('apartments_frbo_chicago', ['owner_name', 'owner_email', 'phone_numbers']),
+            'trulia': ('trulia_listings', ['owner_name', 'emails', 'phones']),
+            'redfin': ('redfin_listings', ['owner_name', 'emails', 'phones'])
         }
         
         table_info = source_map.get(source_lower)
         if not table_info:
             return None
             
-        target_table, owner_col = table_info
+        target_table, cols = table_info
         
         try:
+            # Select all relevant columns at once
             result = self.supabase.table(target_table) \
-                .select(owner_col) \
+                .select(",".join(cols)) \
                 .eq("address_hash", address_hash) \
                 .limit(1) \
                 .execute()
             
-            if result.data and result.data[0].get(owner_col):
-                owner_name = result.data[0][owner_col]
-                if owner_name and owner_name.strip() and owner_name.lower() not in ['n/a', 'unknown', 'none', '']:
-                    return owner_name
+            if result.data:
+                row = result.data[0]
+                # Check for ANY valid data in specified columns
+                # We consider info "valid" if it's not empty, null, or a placeholder
+                placeholders = ['n/a', 'unknown', 'none', '', '[]', '{}']
+                
+                found_name = None
+                has_any_contact = False
+                
+                for col in cols:
+                    val = row.get(col)
+                    if val:
+                        # Normalize value for checking
+                        check_val = str(val).strip().lower()
+                        if check_val not in placeholders:
+                            if 'name' in col:
+                                found_name = val
+                            has_any_contact = True
+                
+                if has_any_contact:
+                    return found_name or "Existing Contact Info"
+                    
             return None
         except Exception as e:
-            logger.error(f"Smart skip check error: {e}")
+            logger.error(f"Aggressive smart skip check error: {e}")
             return None
 
     def _copy_existing_owner_to_central(self, listing_source: str, address_hash: str):
@@ -652,7 +672,7 @@ class BatchDataWorker:
         self.supabase.table("property_owner_enrichment_state").update({
             "status": "enriched",
             "locked": True,
-            "checked_at": datetime.now().isoformat(),
+            "checked_at": datetime.now(timezone.utc).isoformat(),
             "source_used": "scraped"  # Different from 'batchdata' - indicates no API cost
         }).eq("address_hash", address_hash).execute()
 
