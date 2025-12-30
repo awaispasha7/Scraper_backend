@@ -1,5 +1,6 @@
 from supabase import create_client, Client
 import sys
+import os
 from pathlib import Path
 
 # Add Scraper_backend to sys.path to import utils
@@ -8,6 +9,7 @@ if str(backend_root) not in sys.path:
     sys.path.append(str(backend_root))
 
 from utils.enrichment_manager import EnrichmentManager
+from utils.placeholder_utils import is_placeholder_email
 
 class HotpadsPipeline:
     def __init__(self):
@@ -104,10 +106,14 @@ class HotpadsPipeline:
                 for item_data in self.items_buffer:
                     try:
                         # Map Hotpads fields to generic enrichment fields
+                        email = item_data.get("email")
+                        if email and is_placeholder_email(email):
+                            email = None  # Treat as missing
+                            
                         enrichment_data = {
                             "address": item_data.get("address"),
                             "owner_name": item_data.get("contact_name"),
-                            "owner_email": item_data.get("email"),
+                            "owner_email": email,
                             "owner_phone": item_data.get("phone_number"),
                         }
                         address_hash = self.enrichment_manager.process_listing(enrichment_data, listing_source="Hotpads")

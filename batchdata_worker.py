@@ -40,54 +40,75 @@ class BatchDataWorker:
         self.api_key = os.getenv("BATCHDATA_API_KEY")
         self.api_enabled = os.getenv("BATCHDATA_ENABLED", "false").lower() == "true"
         self.daily_limit = int(os.getenv("BATCHDATA_DAILY_LIMIT", "50"))
+        # Phase 2: Add DRY RUN flag
+        self.dry_run = os.getenv("BATCHDATA_DRY_RUN", "false").lower() == "true"
+        self.cost_per_call = 0.085  # USD (Updated from $0.07)
         self.api_url = "https://api.batchdata.com/api/v1/property/skip-trace"
         
     def check_daily_usage(self) -> int:
         """Counts how many BatchData calls were made in the last 24 hours."""
-        yesterday = (datetime.now() - timedelta(days=1)).isoformat()
+        today_start = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0).isoformat()
         try:
             response = self.supabase.table("property_owner_enrichment_state") \
                 .select("id", count="exact") \
                 .eq("source_used", "batchdata") \
-                .gte("checked_at", yesterday) \
+                .gte("checked_at", today_start) \
                 .execute()
             return response.count or 0
         except Exception as e:
             logger.error(f"Error checking daily usage: {e}")
             return 9999 # Safety: assume limit reached on error
-            
-    def get_pending_properties(self, limit: int = 10) -> List[Dict[str, Any]]:
-        """Fetches properties that need enrichment and are not locked."""
-        try:
-            response = self.supabase.table("property_owner_enrichment_state") \
-                .select("*") \
-                .eq("status", "never_checked") \
-                .eq("locked", False) \
-                .limit(limit) \
-                .execute()
-            return response.data or []
-        except Exception as e:
-            logger.error(f"Error fetching pending properties: {e}")
-            return []
 
     def parse_address_string(self, address: str) -> Dict[str, str]:
-        """Simple parser to split full address into street, city, state, zip."""
-        # Expected format: "Street Address, City, State Zip"
-        parts = [p.strip() for p in address.split(',')]
+        """
+        Robustly split address into components. 
+        Handles "Street, City, State Zip" OR "STREET CITY STATE ZIP"
+        """
+        if not address:
+            return {"street": "", "city": "", "state": "", "zip": ""}
+        
         result = {"street": "", "city": "", "state": "", "zip": ""}
         
-        if len(parts) >= 3:
-            result["street"] = parts[0]
-            result["city"] = parts[1]
-            state_zip = parts[2].split()
-            if len(state_zip) >= 2:
-                result["state"] = state_zip[0]
-                result["zip"] = state_zip[1]
-            elif len(state_zip) == 1:
-                result["state"] = state_zip[0]
-        elif len(parts) == 2:
-            result["street"] = parts[0]
-            result["city"] = parts[1]
+        # 1. Try splitting by comma first (Best for original addresses)
+        if ',' in address:
+            parts = [p.strip() for p in address.split(',')]
+            if len(parts) >= 3:
+                result["street"] = parts[0]
+                result["city"] = parts[1]
+                state_zip = parts[2].split()
+                if len(state_zip) >= 2:
+                    result["state"] = state_zip[0]
+                    result["zip"] = state_zip[1]
+                elif len(state_zip) == 1:
+                    result["state"] = state_zip[0]
+            elif len(parts) == 2:
+                result["street"] = parts[0]
+                result["city"] = parts[1]
+            return result
+
+        # 2. Fallback for Comma-less/Normalized addresses
+        # Format: STREET_PARTS CITY STATE ZIP
+        parts = address.split()
+        if len(parts) < 4:
+            result["street"] = address
+            return result
+            
+        # Zip is almost always last
+        if parts[-1].isdigit() or '-' in parts[-1]:
+            result["zip"] = parts.pop()
+            
+        # State is usually 2 letters after zip is gone
+        if len(parts) >= 1 and len(parts[-1]) == 2:
+            result["state"] = parts.pop()
+            
+        # For the remaining parts, it's Street + City. 
+        # This is the hardest part. Usually City is 1 word in this context if commas are missing.
+        # But we'll do our best:
+        if len(parts) >= 2:
+            result["city"] = parts.pop()
+            result["street"] = " ".join(parts)
+        else:
+            result["street"] = " ".join(parts)
             
         return result
 
@@ -121,7 +142,11 @@ class BatchDataWorker:
         try:
             logger.info(f"Calling BatchData v1 for: {address_str}")
             response = requests.post(self.api_url, json=payload, headers=headers, timeout=15)
-            response.raise_for_status()
+            # If 401/403, it's a config error, log critical
+            if response.status_code in [401, 403]:
+                logger.critical(f"BatchData Auth Error: {response.text}")
+                return None
+                
             return response.json()
         except Exception as e:
             logger.error(f"BatchData API v1 error: {e}")
@@ -129,53 +154,91 @@ class BatchDataWorker:
                 logger.error(f"Response body: {e.response.text}")
             return None
 
-    def run_enrichment(self, max_runs: int = 2):
-        """Main loop to process pending enrichments."""
-        if not self.api_enabled:
+    def _acquire_next_property(self) -> Optional[Dict]:
+        """
+        ATOMIC lock acquisition - prevents race conditions.
+        Returns property dict if lock acquired, None otherwise.
+        """
+        try:
+            # Atomically find and lock ONE unlocked property
+            # This query updates exactly one row using the custom RPC function
+            result = self.supabase.rpc('acquire_enrichment_lock').execute()
+            
+            if result.data and len(result.data) > 0:
+                logger.info(f"Acquired lock for {result.data[0]['address_hash'][:8]}")
+                return result.data[0]
+            return None
+        except Exception as e:
+            logger.error(f"Error acquiring lock: {e}")
+            return None
+
+    def run_enrichment(self, max_runs: int = 50):
+        """Main loop to process pending enrichments with PAID-SAFE guarantees."""
+        if not self.api_enabled and not self.dry_run:
             logger.warning("BatchData enrichment is DISABLED (BATCHDATA_ENABLED=false).")
             return
 
+        # DRY RUN MODE - No API calls, no DB modifications
+        if self.dry_run:
+            self._run_dry_mode()
+            return
+
         current_usage = self.check_daily_usage()
-        if current_usage >= self.daily_limit:
-            logger.warning(f"Daily limit reached ({current_usage}/{self.daily_limit}). Stopping.")
+        remaining = self.daily_limit - current_usage
+        
+        if remaining <= 0:
+            logger.warning(f"Daily limit reached ({current_usage}/{self.daily_limit}). "
+                          f"Today's estimated cost: ${current_usage * self.cost_per_call:.2f}")
             return
 
-        pending = self.get_pending_properties(limit=max_runs)
-        if not pending:
-            logger.info("No pending properties for enrichment.")
-            return
+        # Limit runs to remaining quota
+        actual_runs = min(max_runs, remaining)
+        logger.info(f"Starting enrichment. Usage: {current_usage}/{self.daily_limit}. "
+                   f"Will process up to {actual_runs} properties.")
 
-        logger.info(f"Starting enrichment for {len(pending)} properties. Current usage: {current_usage}")
-
-        for prop in pending:
-            address_hash = prop['address_hash']
-            address = prop['normalized_address']
-            listing_source = prop.get('listing_source')
+        processed = 0
+        for _ in range(actual_runs):
+            # Get and lock ONE property atomically
+            prop = self._acquire_next_property()
+            if not prop:
+                logger.info("No more pending properties to process.")
+                break
+                
+            self._process_single_property(prop)
+            processed += 1
             
-            # 1. Update status to 'checking'
-            self.supabase.table("property_owner_enrichment_state") \
-                .update({"status": "checking", "checked_at": datetime.now().isoformat()}) \
-                .eq("address_hash", address_hash).execute()
+        # Final summary
+        total_cost = (current_usage + processed) * self.cost_per_call
+        logger.info(f"Enrichment complete. Processed: {processed}. "
+                   f"Total API calls today: {current_usage + processed}. "
+                   f"Estimated cost today: ${total_cost:.2f}")
 
-            # 2. Call BatchData v1
+    def _process_single_property(self, prop: Dict):
+        """Process one property with proper state management."""
+        address_hash = prop['address_hash']
+        address = prop.get('normalized_address')
+        listing_source = prop.get('listing_source')
+        
+        logger.info(f"Processing: {address} ({address_hash[:8]})")
+        
+        try:
+            # Call BatchData API
             result = self.call_batchdata(address)
             
-            # success logic for v1 (based on sandbox test)
+            # Check for API-level errors or success
             if result and result.get('status', {}).get('code') == 200:
                 results_obj = result.get('results', {})
                 persons_list = results_obj.get('persons', [])
                 
                 if not persons_list:
-                    self._mark_failed(address_hash, "No persons found in response")
-                    continue
-                    
-                first_person = persons_list[0]
-                # Check for match (v1 meta structure)
-                person_matched = first_person.get('meta', {}).get('matched')
-                if not person_matched:
-                    self._mark_failed(address_hash, "No match found for this person")
-                    continue
+                    self._mark_no_data(address_hash, "No persons found in response")
+                    return
 
+                first_person = persons_list[0]
+                
+                # Check match confidence if available (optional)
+                
+                # Extract Data
                 # Extract Owner Name
                 # Priority 1: property.owner.name
                 # Priority 2: first_person.name
@@ -190,56 +253,228 @@ class BatchDataWorker:
                     p_name = first_person.get('name', {})
                     full_name = f"{p_name.get('first', '')} {p_name.get('last', '')}".strip()
 
+                # Extract Mailing Address
+                # Usually under property.owner.mailingAddress
+                mailing_address = None
+                mailing_obj = owner_obj.get('mailingAddress', {})
+                if mailing_obj:
+                    m_street = mailing_obj.get('street', '')
+                    m_city = mailing_obj.get('city', '')
+                    m_state = mailing_obj.get('state', '')
+                    m_zip = mailing_obj.get('zip', '')
+                    if m_street and m_city:
+                        mailing_address = f"{m_street}, {m_city}, {m_state} {m_zip}".strip()
+
                 # Extract Emails and Phones
                 emails = [e.get('email') for e in first_person.get('emails', []) if e.get('email')]
-                # v1 uses 'phoneNumbers' instead of 'phones'
-                phones = [p.get('number') for p in first_person.get('phoneNumbers', []) if p.get('number')]
+                phones = [p.get('number') for p in first_person.get('phoneNumbers', []) if p.get('number')] # v1 uses phoneNumbers
 
                 email = emails[0] if emails else None
                 phone = phones[0] if phones else None
                 
                 clean_name, clean_email, clean_phone = clean_owner_data(full_name, email, phone)
                 
-                if any([clean_name, clean_email, clean_phone]):
-                    # Save to property_owners
-                    self.supabase.table("property_owners").upsert({
-                        "address_hash": address_hash,
-                        "owner_name": clean_name or full_name,
+                # Check if we have enough data to count as enriched
+                # Now we really want mailing address too.
+                # If we have clean_name AND (email OR phone OR mailing_address) -> consider success?
+                # User said: "Upsert owner_name, email, phone, mailing_address". 
+                # And "if owner data found (including mailing address ideally): status='enriched'"
+                
+                if any([clean_name, clean_email, clean_phone, mailing_address]):
+                    # SUCCESS WITH DATA
+                    owner_data = {
+                        "owner_name": clean_name or full_name, 
                         "owner_email": clean_email,
                         "owner_phone": clean_phone,
-                        "source": "batchdata",
-                        "listing_source": listing_source,
-                        "raw_response": result
-                    }, on_conflict="address_hash").execute()
-                    
-                    # Update state
-                    req_id = results_obj.get('meta', {}).get('requestId')
-                    self.supabase.table("property_owner_enrichment_state").update({
-                        "status": "enriched",
-                        "locked": True,
-                        "source_used": "batchdata",
-                        "batchdata_request_id": req_id
-                    }).eq("address_hash", address_hash).execute()
-                    logger.info(f"Successfully enriched v1: {address}")
+                        "mailing_address": mailing_address
+                    }
+                    self._save_enriched_data(address_hash, owner_data, result, listing_source)
+                    self._mark_enriched(address_hash, result)
+                    logger.info(f"Enriched: {address_hash[:8]}")
                 else:
-                    self._mark_failed(address_hash, "No valid contact info in response")
+                    # SUCCESS BUT NO DATA FOUND (after cleaning)
+                    self._mark_no_data(address_hash, "No valid contact info or mailing address after cleaning")
+                    
             else:
-                reason = "BatchData API error or empty status"
-                if result:
-                    reason = result.get('status', {}).get('text', reason)
-                self._mark_failed(address_hash, reason)
+                # API ERROR or no result
+                error_msg = result.get('status', {}).get('text', 'Unknown API error') if result else 'No response from API'
+                self._mark_failed(address_hash, f"API error: {error_msg}")
+                logger.error(f"Enrichment failed: {address_hash[:8]} - {error_msg}")
+                
+        except Exception as e:
+            # ANY EXCEPTION - Mark as failed (terminal)
+            # This is critical for cost safety - do not infinite retry on crash
+            self._mark_failed(address_hash, f"Exception: {str(e)[:200]}")
+            logger.exception(f"Exception processing {address_hash[:8]}")
 
-    def _mark_failed(self, address_hash: str, reason: str):
-        """Helper to mark enrichment as failed."""
+    def _save_enriched_data(self, address_hash: str, owner_data: Dict, raw_response: Dict, listing_source: str):
+        # Save to central owner table
+        payload = {
+            "address_hash": address_hash,
+            "owner_name": owner_data.get('owner_name'),
+            "owner_email": owner_data.get('owner_email'),
+            "owner_phone": owner_data.get('owner_phone'),
+            "mailing_address": owner_data.get('mailing_address'),
+            "source": "batchdata",
+            "listing_source": listing_source,
+        }
+        self.supabase.table("property_owners").upsert(payload, on_conflict="address_hash").execute()
+
+        # SYNC BACK to source listing table if possible
+        try:
+            # Map various source name formats to table names
+            source_lower = listing_source.lower() if listing_source else ""
+            
+            source_map = {
+                'fsbo': 'listings',
+                'forsalebyowner': 'listings',
+                'zillow-fsbo': 'zillow_fsbo_listings',
+                'zillow fsbo': 'zillow_fsbo_listings',
+                'zillow-frbo': 'zillow_frbo_listings',
+                'zillow frbo': 'zillow_frbo_listings',
+                'hotpads': 'hotpads_listings',
+                'apartments': 'apartments_frbo_chicago',
+                'apartments.com': 'apartments_frbo_chicago',
+                'trulia': 'trulia_listings',
+                'redfin': 'redfin_listings'
+            }
+            
+            target_table = source_map.get(source_lower)
+            if target_table:
+                update_payload = {
+                    "owner_name": owner_data.get('owner_name')
+                }
+                
+                # Only add mailing_address if the table has that column
+                # Based on schema dump:
+                # listings, trulia_listings, redfin_listings have mailing_address
+                if target_table in ['listings', 'trulia_listings', 'redfin_listings']:
+                    update_payload["mailing_address"] = owner_data.get('owner_address') or owner_data.get('mailing_address')
+
+                # Special handling for tables with specific column names or types
+                if target_table == 'listings':
+                    # listings table uses JSONB arrays for emails and phones
+                    if owner_data.get('owner_email'):
+                        update_payload["owner_emails"] = [owner_data.get('owner_email')]
+                    if owner_data.get('owner_phone'):
+                        update_payload["owner_phones"] = [owner_data.get('owner_phone')]
+                
+                elif target_table in ['zillow_fsbo_listings', 'zillow_frbo_listings']:
+                    # These tables use 'phone_number' column and 'owner_email'
+                    if owner_data.get('owner_phone'):
+                        update_payload["phone_number"] = owner_data.get('owner_phone')
+                    if owner_data.get('owner_email'):
+                        update_payload["owner_email"] = owner_data.get('owner_email')
+                
+                elif target_table == 'apartments_frbo_chicago':
+                    # Has owner_email, owner_name, and phone_numbers (list)
+                    if owner_data.get('owner_email'):
+                        update_payload["owner_email"] = owner_data.get('owner_email')
+                    if owner_data.get('owner_phone'):
+                        update_payload["phone_numbers"] = [owner_data.get('owner_phone')]
+                
+                elif target_table == 'hotpads_listings':
+                    # Has email, owner_name, owner_phone, phone_number
+                    if owner_data.get('owner_email'):
+                        update_payload["email"] = owner_data.get('owner_email')
+                    if owner_data.get('owner_phone'):
+                        update_payload["owner_phone"] = owner_data.get('owner_phone')
+                        update_payload["phone_number"] = owner_data.get('owner_phone')
+
+                elif target_table in ['trulia_listings', 'redfin_listings']:
+                    # These tables use 'emails' (string/list) and 'phones' (string/list)
+                    if owner_data.get('owner_email'):
+                        update_payload["emails"] = owner_data.get('owner_email')
+                    if owner_data.get('owner_phone'):
+                        update_payload["phones"] = owner_data.get('owner_phone')
+                
+                # Update the source record using address_hash as key
+                self.supabase.table(target_table).update(update_payload).eq("address_hash", address_hash).execute()
+                logger.info(f"Synced back enriched data to {target_table} for {address_hash[:8]}")
+                
+        except Exception as e:
+            logger.warning(f"Failed to sync back enriched data to {listing_source}: {e}")
+            # Don't fail the whole enrichment if sync-back fails
+
+    def _mark_enriched(self, address_hash: str, raw_response: Dict):
+        req_id = raw_response.get('results', {}).get('meta', {}).get('requestId')
+        self.supabase.table("property_owner_enrichment_state").update({
+            "status": "enriched",
+            "locked": True,
+            "checked_at": datetime.now().isoformat(),
+            "source_used": "batchdata",
+            "batchdata_request_id": req_id
+        }).eq("address_hash", address_hash).execute()
+
+    def _mark_no_data(self, address_hash: str, reason: str = "No data"):
+        """Terminal state for no data found"""
         self.supabase.table("property_owner_enrichment_state").update({
             "status": "no_owner_data",
             "locked": True,
             "failure_reason": reason,
+            "checked_at": datetime.now().isoformat(),
             "source_used": "batchdata"
         }).eq("address_hash", address_hash).execute()
-        logger.warning(f"Enrichment marked as failed: {reason}")
+
+    def _mark_failed(self, address_hash: str, reason: str):
+        """
+        TERMINAL STATE - Property will NEVER be retried.
+        This is critical for cost safety.
+        """
+        self.supabase.table("property_owner_enrichment_state").update({
+            "status": "failed",  # TERMINAL - no retry
+            "locked": False, # Technically false so we could inspect it, but status 'failed' prevents pickup
+            "failure_reason": reason[:500],
+            "source_used": "batchdata",
+            "checked_at": datetime.now().isoformat()
+        }).eq("address_hash", address_hash).execute()
+        logger.warning(f"TERMINAL FAIL: {address_hash[:8]} - {reason}")
+
+    def _run_dry_mode(self):
+        """
+        DRY RUN MODE - For cost estimation.
+        NO API calls. NO database modifications.
+        """
+        logger.info("=" * 60)
+        logger.info("DRY RUN MODE - No API calls or DB changes will be made")
+        logger.info("=" * 60)
+        
+        # Count eligible properties using head=True to get exact count without fetching all rows
+        # This avoids the default 1000 row limit
+        result = self.supabase.table("property_owner_enrichment_state") \
+            .select("*", count="exact", head=True) \
+            .eq("status", "never_checked") \
+            .eq("locked", False) \
+            .execute()
+        
+        count = result.count
+        estimated_cost = count * self.cost_per_call
+        
+        logger.info(f"\nEligible properties for enrichment: {count}")
+        logger.info(f"Estimated cost if processed: ${estimated_cost:.2f}")
+        logger.info(f"Cost per call: ${self.cost_per_call}")
+        
+        if count > 0:
+            logger.info("\nSample of eligible properties:")
+            # Fetch a small sample to display
+            sample_res = self.supabase.table("property_owner_enrichment_state") \
+                .select("address_hash, normalized_address, listing_source") \
+                .eq("status", "never_checked") \
+                .eq("locked", False) \
+                .limit(10) \
+                .execute()
+                
+            sample = sample_res.data or []
+            for i, prop in enumerate(sample):
+                logger.info(f"  {i+1}. {prop['address_hash'][:16]}... | {prop.get('listing_source', 'Unknown')} | {prop['normalized_address'][:50]}...")
+            
+            if count > 10:
+                logger.info(f"  ... and {count - 10} more")
+        
+        logger.info("=" * 60)
+        logger.info("DRY RUN COMPLETE - No changes made")
+        logger.info("=" * 60)
 
 if __name__ == "__main__":
     worker = BatchDataWorker()
-    # For testing, we only process 2 listings as requested
-    worker.run_enrichment(max_runs=2)
+    worker.run_enrichment()

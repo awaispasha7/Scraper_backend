@@ -1,0 +1,382 @@
+[
+  {
+    "id": "aca8d451-2413-4da9-961f-669ce436d8be",
+    "address_hash": "e1d3e9cec6e0a6fcbd86fb6d77dfb93d7164d9635e3fc41b6140bd796a518f75",
+    "normalized_address": "5338 south wabash avenue chicago il 60615",
+    "status": "orphaned",
+    "missing_fields": {
+      "owner_name": true,
+      "owner_email": true,
+      "owner_phone": true
+    },
+    "locked": false,
+    "checked_at": null,
+    "source_used": null,
+    "failure_reason": null,
+    "batchdata_request_id": null,
+    "created_at": "2025-12-25T09:48:32.12995+00:00",
+    "updated_at": "2025-12-29T21:42:55.196964+00:00",
+    "listing_source": "ForSaleByOwner"
+  },
+  {
+    "id": "1e947e57-2a0c-4092-bcf8-47f88b40919b",
+    "address_hash": "5ec622d907e883a3f654875c9238ea5bd1a7a937696b45b8c756efba0460a940",
+    "normalized_address": "6236 north ridgeway avenue chicago il 60659",
+    "status": "orphaned",
+    "missing_fields": {
+      "owner_name": true,
+      "owner_email": true,
+      "owner_phone": true
+    },
+    "locked": false,
+    "checked_at": null,
+    "source_used": null,
+    "failure_reason": null,
+    "batchdata_request_id": null,
+    "created_at": "2025-12-25T09:48:32.12995+00:00",
+    "updated_at": "2025-12-29T21:40:28.770743+00:00",
+    "listing_source": "ForSaleByOwner"
+  },
+  {
+    "id": "6895aa2e-3e59-4436-8f83-cbba7fe9860d",
+    "address_hash": "787aa449efd526d1de55705ba60c8d38f0c8c2ef6ea83ace10162401ce2cc7e3",
+    "normalized_address": "4118 west 63rd street chicago il 60629",
+    "status": "orphaned",
+    "missing_fields": {
+      "owner_name": true,
+      "owner_email": true,
+      "owner_phone": true
+    },
+    "locked": false,
+    "checked_at": null,
+    "source_used": null,
+    "failure_reason": null,
+    "batchdata_request_id": null,
+    "created_at": "2025-12-25T09:48:32.12995+00:00",
+    "updated_at": "2025-12-29T21:39:53.889715+00:00",
+    "listing_source": "ForSaleByOwner"
+  },
+  {
+    "id": "d9a90a0a-63f7-4bd0-a2d1-93b81674ef02",
+    "address_hash": "6750822fe5a577bcefe004c6033b05d90d34f8f8c49d4375c008306a6df83df7",
+    "normalized_address": "1030 north state street chicago il 60610",
+    "status": "orphaned",
+    "missing_fields": {
+      "owner_name": true,
+      "owner_email": true,
+      "owner_phone": true
+    },
+    "locked": false,
+    "checked_at": null,
+    "source_used": null,
+    "failure_reason": null,
+    "batchdata_request_id": null,
+    "created_at": "2025-12-25T09:48:32.12995+00:00",
+    "updated_at": "2025-12-29T21:40:23.816038+00:00",
+    "listing_source": "ForSaleByOwner"
+  },
+  {
+    "id": "49bf1f9c-1112-4fc3-ace2-7cf7c6821300",
+    "address_hash": "bde3c236ca815fdbc9c1c00307bd5afe",
+    "normalized_address": "1809 Fairside Dr,Sandwich, IL 60548",
+    "status": "orphaned",
+    "missing_fields": {
+      "owner_name": true,
+      "owner_email": true,
+      "owner_phone": true
+    },
+    "locked": true,
+    "checked_at": "2025-12-25T13:22:34.535484+00:00",
+    "source_used": "batchdata",
+    "failure_reason": null,
+    "batchdata_request_id": "01KDA9MK5XW7KYKBAK382N0N8T",
+    "created_at": "2025-12-25T08:18:40.310907+00:00",
+    "updated_at": "2025-12-29T21:40:25.705604+00:00",
+    "listing_source": null
+  },
+  {
+    "id": "cb9bc1d6-0945-4c96-83b4-dbd90424905b",
+    "address_hash": "8a2a1e6d11c11a615241d342202ed6894c283d1af8606751e2a39c22180a7bf9",
+    "normalized_address": "12838 s green chicago il 60643",
+    "status": "orphaned",
+    "missing_fields": {
+      "owner_name": true,
+      "owner_email": true,
+      "owner_phone": true
+    },
+    "locked": false,
+    "checked_at": null,
+    "source_used": null,
+    "failure_reason": null,
+    "batchdata_request_id": null,
+    "created_at": "2025-12-25T09:48:32.12995+00:00",
+    "updated_at": "2025-12-29T21:40:38.983134+00:00",
+    "listing_source": "ForSaleByOwner"
+  },
+  {
+    "id": "6839c13c-3dc8-43f4-ad91-004ef37d28c0",
+    "address_hash": "9799e13b83281c31b60fa6ed70e73554374a47917e463129765f229fc222ce31",
+    "normalized_address": "7814 south yates boulevard chicago il 60649",
+    "status": "orphaned",
+    "missing_fields": {
+      "owner_name": true,
+      "owner_email": true,
+      "owner_phone": true
+    },
+    "locked": false,
+    "checked_at": null,
+    "source_used": null,
+    "failure_reason": null,
+    "batchdata_request_id": null,
+    "created_at": "2025-12-25T09:48:32.12995+00:00",
+    "updated_at": "2025-12-29T21:40:49.368696+00:00",
+    "listing_source": "ForSaleByOwner"
+  },
+  {
+    "id": "80351b99-bce5-49fc-9411-ce7a5ea6e392",
+    "address_hash": "28028ed59a301c27126cc59689e5c6bf73e746bef0c9f6f31db17ef3201ec027",
+    "normalized_address": "1500 east marquette road chicago il 60637",
+    "status": "orphaned",
+    "missing_fields": {
+      "owner_name": true,
+      "owner_email": true,
+      "owner_phone": true
+    },
+    "locked": false,
+    "checked_at": null,
+    "source_used": null,
+    "failure_reason": null,
+    "batchdata_request_id": null,
+    "created_at": "2025-12-25T09:48:32.12995+00:00",
+    "updated_at": "2025-12-29T21:41:00.27049+00:00",
+    "listing_source": "ForSaleByOwner"
+  },
+  {
+    "id": "7c4d9ae9-6488-49c3-92db-9c3c771f7366",
+    "address_hash": "ab0a232c3b4ae0702f149570ce4634f9e9973c8e95848d813511d149d93a57fa",
+    "normalized_address": "1800 west roscoe street chicago il 60657",
+    "status": "orphaned",
+    "missing_fields": {
+      "owner_name": true,
+      "owner_email": true,
+      "owner_phone": true
+    },
+    "locked": false,
+    "checked_at": null,
+    "source_used": null,
+    "failure_reason": null,
+    "batchdata_request_id": null,
+    "created_at": "2025-12-25T09:48:32.12995+00:00",
+    "updated_at": "2025-12-29T21:41:01.271975+00:00",
+    "listing_source": "ForSaleByOwner"
+  },
+  {
+    "id": "92c1081c-b1c3-4ef4-99ba-115edd456802",
+    "address_hash": "46434d14e7f20cc49d648bea603305ee034dd8f99a5950013c1cde833d66ae31",
+    "normalized_address": "4826 west potomac avenue chicago il 60651",
+    "status": "orphaned",
+    "missing_fields": {
+      "owner_name": true,
+      "owner_email": true,
+      "owner_phone": true
+    },
+    "locked": false,
+    "checked_at": null,
+    "source_used": null,
+    "failure_reason": null,
+    "batchdata_request_id": null,
+    "created_at": "2025-12-25T09:48:32.12995+00:00",
+    "updated_at": "2025-12-29T21:41:04.613712+00:00",
+    "listing_source": "ForSaleByOwner"
+  },
+  {
+    "id": "1659046b-98fe-4a30-8687-f60708ffb8ac",
+    "address_hash": "a4b408c354f81708467ff022b74f44b12836587f9b525567dba357c24a4d5106",
+    "normalized_address": "3033 north sheridan road chicago il 60657",
+    "status": "orphaned",
+    "missing_fields": {
+      "owner_name": true,
+      "owner_email": true,
+      "owner_phone": true
+    },
+    "locked": false,
+    "checked_at": null,
+    "source_used": null,
+    "failure_reason": null,
+    "batchdata_request_id": null,
+    "created_at": "2025-12-25T09:48:32.12995+00:00",
+    "updated_at": "2025-12-29T21:41:06.057961+00:00",
+    "listing_source": "ForSaleByOwner"
+  },
+  {
+    "id": "2957e807-bfae-40e6-9bee-8715dafa4760",
+    "address_hash": "05ecf6ef0d1b409785a1331ed577cd1bb53f13268fdec33298b5503d526cf3d2",
+    "normalized_address": "south paulina street chicago il 60620",
+    "status": "orphaned",
+    "missing_fields": {
+      "owner_name": true,
+      "owner_email": true,
+      "owner_phone": true
+    },
+    "locked": false,
+    "checked_at": null,
+    "source_used": null,
+    "failure_reason": null,
+    "batchdata_request_id": null,
+    "created_at": "2025-12-25T09:48:32.12995+00:00",
+    "updated_at": "2025-12-29T21:41:07.01376+00:00",
+    "listing_source": "ForSaleByOwner"
+  },
+  {
+    "id": "f561a973-52c5-49ff-a3c8-12e6958a5e0d",
+    "address_hash": "c1f5e9676e92b553ba9242591c865c96bbcddb2e5d45e8c3fe5dac16abe38693",
+    "normalized_address": "6616 west melrose street chicago il 60634",
+    "status": "orphaned",
+    "missing_fields": {
+      "owner_name": true,
+      "owner_email": true,
+      "owner_phone": true
+    },
+    "locked": false,
+    "checked_at": null,
+    "source_used": null,
+    "failure_reason": null,
+    "batchdata_request_id": null,
+    "created_at": "2025-12-25T09:48:32.12995+00:00",
+    "updated_at": "2025-12-29T21:41:08.493418+00:00",
+    "listing_source": "ForSaleByOwner"
+  },
+  {
+    "id": "fdb52298-8169-4e69-846a-085ca27ea140",
+    "address_hash": "5c4b2a8ca8b274e83675b5df31ef312228bbd860e021dc0ea83a62d700dd4a52",
+    "normalized_address": "7420 north winchester avenue chicago il 60626",
+    "status": "orphaned",
+    "missing_fields": {
+      "owner_name": true,
+      "owner_email": true,
+      "owner_phone": true
+    },
+    "locked": false,
+    "checked_at": null,
+    "source_used": null,
+    "failure_reason": null,
+    "batchdata_request_id": null,
+    "created_at": "2025-12-25T09:48:32.12995+00:00",
+    "updated_at": "2025-12-29T21:41:09.436837+00:00",
+    "listing_source": "ForSaleByOwner"
+  },
+  {
+    "id": "8117cfb9-274c-49b6-805f-afe1528ef9ab",
+    "address_hash": "6977c4345642e3914aec0eb1f4a4a51c415ea197d0e3f99424b802e6b88f54e8",
+    "normalized_address": "1008 west 115th street chicago il 60643",
+    "status": "orphaned",
+    "missing_fields": {
+      "owner_name": true,
+      "owner_email": true,
+      "owner_phone": true
+    },
+    "locked": false,
+    "checked_at": null,
+    "source_used": null,
+    "failure_reason": null,
+    "batchdata_request_id": null,
+    "created_at": "2025-12-25T09:48:32.12995+00:00",
+    "updated_at": "2025-12-29T21:41:10.377296+00:00",
+    "listing_source": "ForSaleByOwner"
+  },
+  {
+    "id": "10bc013e-c850-4fa8-b9e7-f9893478a242",
+    "address_hash": "6b6c3f0ce7fdda674b5ac66949e9ee984841148fdda6a19937979077c9516ba2",
+    "normalized_address": "5862 north lincoln avenue chicago il 60659",
+    "status": "orphaned",
+    "missing_fields": {
+      "owner_name": true,
+      "owner_email": true,
+      "owner_phone": true
+    },
+    "locked": false,
+    "checked_at": null,
+    "source_used": null,
+    "failure_reason": null,
+    "batchdata_request_id": null,
+    "created_at": "2025-12-25T09:48:32.12995+00:00",
+    "updated_at": "2025-12-29T21:41:23.455912+00:00",
+    "listing_source": "ForSaleByOwner"
+  },
+  {
+    "id": "64860e20-c33f-41cb-bab8-eee8cb8c397a",
+    "address_hash": "5532e3eea5c4a9a143e0d9390c03ade95cad6b1e8d8a87135085040dc9e8c79e",
+    "normalized_address": "2543 west winona street chicago il 60625",
+    "status": "orphaned",
+    "missing_fields": {
+      "owner_name": true,
+      "owner_email": true,
+      "owner_phone": true
+    },
+    "locked": false,
+    "checked_at": null,
+    "source_used": null,
+    "failure_reason": null,
+    "batchdata_request_id": null,
+    "created_at": "2025-12-25T09:48:32.12995+00:00",
+    "updated_at": "2025-12-29T21:41:24.518542+00:00",
+    "listing_source": "ForSaleByOwner"
+  },
+  {
+    "id": "c490550d-acb5-4846-a9da-aa72cb7d956c",
+    "address_hash": "dcc54754efc417cef0ceb6324cdf89a1a142948cc547f6a8eba4f0946a5d91d6",
+    "normalized_address": "1632 south indiana avenue chicago il 60616",
+    "status": "orphaned",
+    "missing_fields": {
+      "owner_name": true,
+      "owner_email": true,
+      "owner_phone": true
+    },
+    "locked": false,
+    "checked_at": null,
+    "source_used": null,
+    "failure_reason": null,
+    "batchdata_request_id": null,
+    "created_at": "2025-12-25T09:48:32.12995+00:00",
+    "updated_at": "2025-12-29T21:41:26.893285+00:00",
+    "listing_source": "ForSaleByOwner"
+  },
+  {
+    "id": "acb6a079-c0e0-4975-b14c-2598f90b35e5",
+    "address_hash": "bc36fb41285c618afc1dd5b7f0758883ff18baa3252dd32c5d392b6be3f4f221",
+    "normalized_address": "5247 s hermitage ave chicago il 60609",
+    "status": "orphaned",
+    "missing_fields": {
+      "owner_name": true,
+      "owner_email": true,
+      "owner_phone": true
+    },
+    "locked": false,
+    "checked_at": null,
+    "source_used": null,
+    "failure_reason": null,
+    "batchdata_request_id": null,
+    "created_at": "2025-12-25T09:48:32.12995+00:00",
+    "updated_at": "2025-12-29T21:41:28.806052+00:00",
+    "listing_source": "ForSaleByOwner"
+  },
+  {
+    "id": "d0931685-2748-4d77-8aec-63a47f048ea3",
+    "address_hash": "ac24797329fa315cf317b4dcd7d94eb960187c1a2bc849f3164df57d45c075ec",
+    "normalized_address": "814 south tripp avenue chicago il 60624",
+    "status": "orphaned",
+    "missing_fields": {
+      "owner_name": true,
+      "owner_email": true,
+      "owner_phone": true
+    },
+    "locked": false,
+    "checked_at": null,
+    "source_used": null,
+    "failure_reason": null,
+    "batchdata_request_id": null,
+    "created_at": "2025-12-25T09:48:32.12995+00:00",
+    "updated_at": "2025-12-29T21:41:49.693562+00:00",
+    "listing_source": "ForSaleByOwner"
+  }
+]
