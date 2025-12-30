@@ -154,14 +154,40 @@ class BatchDataWorker:
                 logger.error(f"Response body: {e.response.text}")
             return None
 
-    def _acquire_next_property(self) -> Optional[Dict]:
+    def _acquire_next_property(self, priority_source: Optional[str] = None) -> Optional[Dict]:
         """
         ATOMIC lock acquisition - prevents race conditions.
-        Returns property dict if lock acquired, None otherwise.
+        If priority_source is provided, tries to find a listing from that source first.
         """
         try:
+            # 1. PRIORITY SOURCE ACQUISITION
+            if priority_source:
+                # We try a semi-atomic approach for the priority source
+                now = datetime.now().isoformat()
+                # Find one
+                res = self.supabase.table("property_owner_enrichment_state") \
+                    .select("*") \
+                    .eq("status", "never_checked") \
+                    .eq("locked", False) \
+                    .eq("listing_source", priority_source) \
+                    .limit(1) \
+                    .execute()
+                
+                if res.data:
+                    prop = res.data[0]
+                    # Try to lock it specifically
+                    lock_res = self.supabase.table("property_owner_enrichment_state") \
+                        .update({"locked": True, "locked_at": now}) \
+                        .eq("address_hash", prop['address_hash']) \
+                        .eq("locked", False) \
+                        .execute()
+                    
+                    if lock_res.data:
+                        logger.info(f"Acquired PRIORITY lock for {priority_source}: {prop['address_hash'][:8]}")
+                        return prop
+
+            # 2. STANDARD ACQUISITION (RPC)
             # Atomically find and lock ONE unlocked property
-            # This query updates exactly one row using the custom RPC function
             result = self.supabase.rpc('acquire_enrichment_lock').execute()
             
             if result.data and len(result.data) > 0:
@@ -172,8 +198,27 @@ class BatchDataWorker:
             logger.error(f"Error acquiring lock: {e}")
             return None
 
-    def run_enrichment(self, max_runs: int = 50):
+    def clear_stale_locks(self):
+        """Unlock any properties that have been locked for more than 15 minutes but not processed."""
+        fifteen_mins_ago = (datetime.now() - timedelta(minutes=15)).isoformat()
+        try:
+            # We look for never_checked properties that are locked and haven't been updated recently
+            res = self.supabase.table("property_owner_enrichment_state") \
+                .update({"locked": False}) \
+                .eq("locked", True) \
+                .eq("status", "never_checked") \
+                .lt("updated_at", fifteen_mins_ago) \
+                .execute()
+            
+            if res.data and len(res.data) > 0:
+                logger.info(f"CLEARED {len(res.data)} stale locks (stuck in 'never_checked').")
+        except Exception as e:
+            logger.error(f"Error clearing stale locks: {e}")
+
+    def run_enrichment(self, max_runs: int = 50, priority_source: Optional[str] = None):
         """Main loop to process pending enrichments with PAID-SAFE guarantees."""
+        # Cleanup first
+        self.clear_stale_locks()
         if not self.api_enabled and not self.dry_run:
             logger.warning("BatchData enrichment is DISABLED (BATCHDATA_ENABLED=false).")
             return
@@ -199,7 +244,7 @@ class BatchDataWorker:
         processed = 0
         for _ in range(actual_runs):
             # Get and lock ONE property atomically
-            prop = self._acquire_next_property()
+            prop = self._acquire_next_property(priority_source=priority_source)
             if not prop:
                 logger.info("No more pending properties to process.")
                 break
@@ -660,7 +705,8 @@ if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Run BatchData Enrichment")
     parser.add_argument("--limit", type=int, default=50, help="Maximum number of properties to process")
+    parser.add_argument("--source", type=str, default=None, help="Priority source to process first (e.g. Trulia)")
     args = parser.parse_args()
 
     worker = BatchDataWorker()
-    worker.run_enrichment(max_runs=args.limit)
+    worker.run_enrichment(max_runs=args.limit, priority_source=args.source)

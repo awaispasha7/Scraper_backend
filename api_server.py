@@ -555,6 +555,8 @@ def trigger_enrichment():
         return jsonify({"error": "Enrichment is already running"}), 400
     
     limit = request.args.get("limit", 50)
+    source = request.args.get("source") # Optional priority source
+    
     try:
         limit = int(limit)
     except:
@@ -562,10 +564,13 @@ def trigger_enrichment():
         
     def worker():
         base_dir = os.path.dirname(os.path.abspath(__file__))
-        # Run batchdata_worker.py as subprocess with --limit
-        # Force a fresh run
+        
+        cmd = [sys.executable, "batchdata_worker.py", "--limit", str(limit)]
+        if source:
+            cmd.extend(["--source", source])
+            
         run_process_with_logging(
-            [sys.executable, "batchdata_worker.py", "--limit", str(limit)],
+            cmd,
             base_dir,
             "Enrichment",
             enrichment_status
@@ -575,7 +580,11 @@ def trigger_enrichment():
     thread.daemon = True
     thread.start()
     
-    return jsonify({"message": f"Enrichment started with limit {limit}"})
+    msg = f"Enrichment started with limit {limit}"
+    if source:
+        msg += f" (Prioritizing {source})"
+        
+    return jsonify({"message": msg})
 
 @app.route('/api/status-enrichment', methods=['GET'])
 def get_enrichment_status():
