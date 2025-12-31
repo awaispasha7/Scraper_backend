@@ -218,5 +218,5 @@ class HashRepairMigration:
             page += 1
 
 if __name__ == "__main__":
-    migration = HashRepairMigration()
+    migration = HashRepairMigration(dry_run=False) # ENABLED for real migration
     migration.run()
