@@ -276,10 +276,10 @@ class BatchDataWorker:
         existing_owner = self._check_existing_owner_info(listing_source, address_hash)
         if existing_owner:
             logger.info(f"SMART SKIP: {address_hash[:8]} already has owner '{existing_owner[:30]}...' - No API call needed!")
-            # Copy existing owner info to property_owners table
+            logger.info(f"Smart Skip: {address_hash[:8]} already has owner info: {existing_owner}")
             self._copy_existing_owner_to_central(listing_source, address_hash)
-            self._mark_enriched_from_scrape(address_hash)
-            return
+            self._mark_enriched_from_scrape(address_hash, listing_source)
+            return # Changed from 'continue' to 'return' to match original logic of exiting the function for this property.
 
         try:
             # Call BatchData API
@@ -353,7 +353,7 @@ class BatchDataWorker:
                     logger.info(f"Enriched: {address_hash[:8]}")
                 else:
                     # SUCCESS BUT NO DATA FOUND (after cleaning)
-                    self._mark_no_data(address_hash, "No valid contact info or mailing address after cleaning")
+                    self._mark_no_data(address_hash, listing_source, "No valid contact info or mailing address after cleaning")
                     
             else:
                 # API ERROR or no result
@@ -449,12 +449,42 @@ class BatchDataWorker:
                         update_payload["phones"] = owner_data.get('owner_phone')
                 
                 # Update the source record using address_hash as key
+                update_payload["enrichment_status"] = "enriched"
                 self.supabase.table(target_table).update(update_payload).eq("address_hash", address_hash).execute()
                 logger.info(f"Synced back enriched data to {target_table} for {address_hash[:8]}")
                 
         except Exception as e:
             logger.warning(f"Failed to sync back enriched data to {listing_source}: {e}")
             # Don't fail the whole enrichment if sync-back fails
+
+    def _update_source_status(self, address_hash: str, listing_source: str, status: str):
+        """Helper to update enrichment_status in the original listing table."""
+        if not listing_source:
+            return
+
+        source_lower = listing_source.lower()
+        source_map = {
+            'fsbo': 'listings',
+            'forsalebyowner': 'listings',
+            'zillow-fsbo': 'zillow_fsbo_listings',
+            'zillow fsbo': 'zillow_fsbo_listings',
+            'zillow-frbo': 'zillow_frbo_listings',
+            'zillow frbo': 'zillow_frbo_listings',
+            'hotpads': 'hotpads_listings',
+            'apartments': 'apartments_frbo_chicago',
+            'apartments.com': 'apartments_frbo_chicago',
+            'trulia': 'trulia_listings',
+            'redfin': 'redfin_listings'
+        }
+
+        target_table = source_map.get(source_lower)
+        if not target_table:
+            return
+
+        try:
+            self.supabase.table(target_table).update({"enrichment_status": status}).eq("address_hash", address_hash).execute()
+        except Exception as e:
+            logger.warning(f"Failed to update source status for {listing_source}: {e}")
 
     def _mark_enriched(self, address_hash: str, raw_response: Dict):
         req_id = raw_response.get('results', {}).get('meta', {}).get('requestId')
@@ -466,7 +496,7 @@ class BatchDataWorker:
             "batchdata_request_id": req_id
         }).eq("address_hash", address_hash).execute()
 
-    def _mark_no_data(self, address_hash: str, reason: str = "No data"):
+    def _mark_no_data(self, address_hash: str, listing_source: str = None, reason: str = "No data"):
         """Terminal state for no data found"""
         self.supabase.table("property_owner_enrichment_state").update({
             "status": "no_owner_data",
@@ -475,6 +505,9 @@ class BatchDataWorker:
             "checked_at": datetime.now(timezone.utc).isoformat(),
             "source_used": "batchdata"
         }).eq("address_hash", address_hash).execute()
+        
+        if listing_source:
+            self._update_source_status(address_hash, listing_source, "no_owner_data")
 
     def _mark_failed(self, address_hash: str, reason: str):
         """
@@ -666,7 +699,7 @@ class BatchDataWorker:
         except Exception as e:
             logger.error(f"Error copying existing owner: {e}")
 
-    def _mark_enriched_from_scrape(self, address_hash: str):
+    def _mark_enriched_from_scrape(self, address_hash: str, listing_source: str = None):
         """Mark as enriched but note that data came from original scrape, not API."""
         self.supabase.table("property_owner_enrichment_state").update({
             "status": "enriched",
@@ -674,6 +707,9 @@ class BatchDataWorker:
             "checked_at": datetime.now(timezone.utc).isoformat(),
             "source_used": "scraped"  # Different from 'batchdata' - indicates no API cost
         }).eq("address_hash", address_hash).execute()
+        
+        if listing_source:
+            self._update_source_status(address_hash, listing_source, "enriched")
 
     def _run_dry_mode(self):
         """
