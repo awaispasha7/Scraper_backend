@@ -85,6 +85,9 @@ class SupabasePipeline:
                 logger.warning(f"👻 Skipping Ghost Listing (No Address): {data.get('url')}")
                 return item
             
+            # Actually upsert the data to Supabase
+            self.supabase.table(self.table_name).upsert(data, on_conflict="url").execute()
+            
             logger.info(f"✅ Saved to Supabase: {data.get('address', 'Unknown')} (ZPID: {data.get('zpid', 'N/A')})")
             
             # Enrichment Integration

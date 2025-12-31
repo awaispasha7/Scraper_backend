@@ -347,9 +347,13 @@ class SupabasePipeline:
         
         try:
             # Use upsert to handle duplicates (update if listing_url exists, insert if new)
-            result = self.supabase_client.table(self.table_name).upsert(
+            self.supabase_client.table(self.table_name).upsert(
                 self.batch,
                 on_conflict="listing_url"
+            ).execute()
+            
+            batch_count = len(self.batch)
+            self.upload_count += batch_count
             spider.logger.debug(f"📤 Uploaded {batch_count} items to Supabase (total: {self.upload_count})")
             
             # Enrichment Integration

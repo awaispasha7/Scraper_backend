@@ -17,7 +17,9 @@ def dump_schemas():
         'hotpads_listings', 
         'apartments_frbo_chicago', 
         'trulia_listings', 
-        'redfin_listings'
+        'redfin_listings',
+        'property_owner_enrichment_state',
+        'property_owners'
     ]
     
     schemas = {}

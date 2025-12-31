@@ -57,6 +57,9 @@ class SupabasePipeline:
                 "phone_number": item.get("Phone_Number", ""),
             }
             
+            # Actually upsert the data to Supabase
+            self.supabase.table("zillow_fsbo_listings").upsert(data, on_conflict="detail_url").execute()
+            
             spider.logger.info(f"Successfully uploaded: {item.get('Address', 'Unknown')}")
             
             # Enrichment Integration
