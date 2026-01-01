@@ -104,8 +104,8 @@ class ZillowSpiderSpider(scrapy.Spider):
             existing_urls = set()
             if self.supabase and listing_urls:
                 try:
-                    response = self.supabase.table("zillow_fsbo_listings").select("detail_url").in_("detail_url", listing_urls).execute()
-                    existing_urls = {row['detail_url'] for row in response.data}
+                    db_response = self.supabase.table("zillow_fsbo_listings").select("detail_url").in_("detail_url", listing_urls).execute()
+                    existing_urls = {row['detail_url'] for row in db_response.data}
                     self.logger.info(f"Check results: {len(existing_urls)} listings already exist in database")
                 except Exception as e:
                     self.logger.error(f"Error checking Supabase existence: {e}")

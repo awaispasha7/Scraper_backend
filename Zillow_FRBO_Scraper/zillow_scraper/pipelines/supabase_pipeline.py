@@ -1,3 +1,6 @@
+import os
+import logging
+from pathlib import Path
 from supabase import create_client, Client
 from dotenv import load_dotenv
 import sys

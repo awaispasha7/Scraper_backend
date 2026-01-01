@@ -187,8 +187,8 @@ class RedfinSpiderSpider(scrapy.Spider):
             if self.supabase and property_urls_list:
                 try:
                     # Redfin uses 'listing_link' field in Supabase
-                    response = self.supabase.table("redfin_listings").select("listing_link").in_("listing_link", property_urls_list).execute()
-                    existing_urls = {row['listing_link'] for row in response.data}
+                    db_response = self.supabase.table("redfin_listings").select("listing_link").in_("listing_link", property_urls_list).execute()
+                    existing_urls = {row['listing_link'] for row in db_response.data}
                     self.logger.info(f"Check results: {len(existing_urls)} listings already exist in database")
                 except Exception as e:
                     self.logger.error(f"Error checking Supabase existence: {e}")
