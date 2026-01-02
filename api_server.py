@@ -611,14 +611,14 @@ def get_enrichment_stats():
             
         supabase = create_client(url, key)
         
-        # Get counts by status
+        # Get counts by status from enrichment_state (for queue tracking)
         pending = supabase.table("property_owner_enrichment_state") \
             .select("*", count="exact", head=True) \
             .eq("status", "never_checked") \
             .eq("locked", False) \
             .execute()
             
-        enriched = supabase.table("property_owner_enrichment_state") \
+        enriched_state = supabase.table("property_owner_enrichment_state") \
             .select("*", count="exact", head=True) \
             .eq("status", "enriched") \
             .execute()
@@ -641,9 +641,16 @@ def get_enrichment_stats():
             .neq("status", "never_checked") \
             .execute()
         
+        # Get ACTUAL count from property_owners table (source of truth)
+        # This is the real number of addresses with owner data
+        property_owners_total = supabase.table("property_owners") \
+            .select("*", count="exact", head=True) \
+            .execute()
+        
         return jsonify({
             "pending": pending.count or 0,
-            "enriched": enriched.count or 0,
+            "enriched": enriched_state.count or 0,  # Count from enrichment_state (for queue tracking)
+            "enriched_owners": property_owners_total.count or 0,  # ACTUAL count from property_owners table
             "no_data": no_data.count or 0,
             "smart_skipped": scraped.count or 0,
             "api_calls": batchdata.count or 0,
