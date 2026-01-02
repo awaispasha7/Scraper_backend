@@ -170,7 +170,9 @@ class ZillowSpiderSpider(scrapy.Spider):
 
             meta = {'new_detailUrl': detail_url}
             meta["zyte_api"] = {"browserHtml": True, "geolocation": "US"}
-            yield response.follow(url=detail_url, callback=self.detail_page, meta=meta)
+            # Use scrapy.Request instead of response.follow to support Zyte API
+            absolute_url = response.urljoin(detail_url)
+            yield scrapy.Request(url=absolute_url, callback=self.detail_page, meta=meta)
 
         # Handle pagination
         next_page = response.xpath("//a[@title='Next page']/@href").get('')

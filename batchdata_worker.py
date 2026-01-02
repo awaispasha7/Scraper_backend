@@ -31,7 +31,7 @@ class BatchDataWorker:
     def __init__(self):
         # Supabase config
         url = os.getenv("SUPABASE_URL")
-        key = os.getenv("SUPABASE_KEY") or os.getenv("SUPABASE_SERVICE_KEY")
+        key = os.getenv("SUPABASE_KEY") or os.getenv("SUPABASE_SERVICE_KEY") or os.getenv("SUPABASE_SERVICE_ROLE_KEY")
         if not url or not key:
             raise ValueError("Supabase credentials missing.")
         self.supabase: Client = create_client(url, key)

@@ -111,7 +111,7 @@ class RedfinScraperPipeline:
             # Extract beds and baths
             beds, baths = self._extract_beds_baths(item_data.get('Beds / Baths', ''))
             
-            # Prepare record for Supabase
+            # Prepare record for Supabase (exclude 'id' field - let database generate it)
             record = {
                 'address': item_data.get('Address', '').strip() or None,
                 'price': self._clean_price(item_data.get('Asking Price', '')) or None,
@@ -133,11 +133,19 @@ class RedfinScraperPipeline:
             if not record['address'] and not record['listing_link']:
                 return False
             
-            # Upsert into Supabase to handle duplicates (on_conflict='listing_link')
-            result = self.supabase.table('redfin_listings').upsert(
-                record,
-                on_conflict='listing_link'
-            ).execute()
+            # Check if listing already exists
+            listing_link = record['listing_link']
+            existing = self.supabase.table('redfin_listings').select('id').eq('listing_link', listing_link).execute()
+            
+            if existing.data and len(existing.data) > 0:
+                # Update existing record
+                existing_id = existing.data[0]['id']
+                result = self.supabase.table('redfin_listings').update(record).eq('id', existing_id).execute()
+                spider.logger.debug(f"Updated existing Redfin listing (ID: {existing_id}): {record.get('address', 'N/A')}")
+            else:
+                # Insert new record (id will be auto-generated)
+                result = self.supabase.table('redfin_listings').insert(record).execute()
+                spider.logger.debug(f"Inserted new Redfin listing: {record.get('address', 'N/A')}")
             
             if result.data:
                 inserted_id = result.data[0].get('id', 'N/A')

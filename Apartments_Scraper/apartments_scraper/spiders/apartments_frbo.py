@@ -579,7 +579,9 @@ class ApartmentsFrboSpider(scrapy.Spider):
                     self.logger.debug(f"[OK] Listing #{listing_idx}: {item.get('title', 'N/A')[:40]}... | {item.get('price', 'N/A')} | {item.get('phone_numbers', 'N/A')}")
                 
                 # Visit detail page for remaining fields (beds, baths, sqft, email, owner_name)
-                yield response.follow(url, callback=self.parse_detail, 
+                # Use scrapy.Request instead of response.follow to support Zyte API
+                absolute_url = response.urljoin(url)
+                yield scrapy.Request(absolute_url, callback=self.parse_detail, 
                                      meta={'partial_item': item}, errback=self.handle_error)
             
             self.logger.info(f"✅ Page {self._page_count}: Processed {processed_count} listings from JSON-LD (skipped: {skipped_count})")
@@ -745,7 +747,9 @@ class ApartmentsFrboSpider(scrapy.Spider):
             
             # Follow each listing to detail page (with partial item data)
             for url, partial_item in items_from_cards:
-                yield response.follow(url, callback=self.parse_detail, 
+                # Use scrapy.Request instead of response.follow to support Zyte API
+                absolute_url = response.urljoin(url)
+                yield scrapy.Request(absolute_url, callback=self.parse_detail, 
                                     meta={'partial_item': partial_item}, errback=self.handle_error)
         
         # Pagination: find next page link (improved selectors with fallback methods)
@@ -1011,7 +1015,9 @@ class ApartmentsFrboSpider(scrapy.Spider):
                 
                 self.logger.info(f"➡️  Following pagination to page {self._page_count + 1}: {next_page}")
                 # Use dont_filter=True to allow revisiting pages (prevents duplicate filter from stopping scraper)
-                yield response.follow(next_page, callback=self.parse_search, errback=self.handle_error, dont_filter=True)
+                # Use scrapy.Request instead of response.follow to support Zyte API
+                absolute_url = response.urljoin(next_page)
+                yield scrapy.Request(absolute_url, callback=self.parse_search, errback=self.handle_error, dont_filter=True)
             else:
                 self.logger.warning(f"⚠️ Invalid pagination URL, skipping: {next_page}")
                 # Always try fallback with correct city
@@ -1020,7 +1026,8 @@ class ApartmentsFrboSpider(scrapy.Spider):
                 fallback_url = f"https://www.apartments.com/{self.city}/for-rent-by-owner/{next_page_num}/"
                 self.logger.info(f"🔄 Trying fallback URL: {fallback_url}")
                 # Use dont_filter=True to allow revisiting pages
-                yield response.follow(fallback_url, callback=self.parse_search, errback=self.handle_error, dont_filter=True)
+                # Use scrapy.Request instead of response.follow to support Zyte API
+                yield scrapy.Request(fallback_url, callback=self.parse_search, errback=self.handle_error, dont_filter=True)
         else:
             # No next page found - check if we should continue with fallback
             # IMPROVEMENT: More aggressive - use website total as target if detected
@@ -1048,7 +1055,8 @@ class ApartmentsFrboSpider(scrapy.Spider):
                 else:
                     self.logger.info(f"🔄 No next link found, but continuing with fallback URL (empty pages: {self._consecutive_empty_pages}): {fallback_url}")
                 # Use dont_filter=True to allow revisiting pages
-                yield response.follow(fallback_url, callback=self.parse_search, errback=self.handle_error, dont_filter=True)
+                # Use scrapy.Request instead of response.follow to support Zyte API
+                yield scrapy.Request(fallback_url, callback=self.parse_search, errback=self.handle_error, dont_filter=True)
     
     def handle_error(self, failure):
         """Handle request errors gracefully and automatically skip blocked pages."""
