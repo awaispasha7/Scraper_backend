@@ -237,22 +237,6 @@ def health_check():
         "timestamp": datetime.now().isoformat()
     })
 
-@app.route('/api/logs', methods=['GET'])
-def get_logs():
-    """Get logs, optionally filtering by query param 'since' (timestamp)"""
-    since = request.args.get('since')
-    if since:
-        filtered = [l for l in LOG_BUFFER if l['timestamp'] > since]
-        return jsonify(filtered)
-    return jsonify(LOG_BUFFER)
-
-@app.route('/api/status', methods=['GET'])
-def get_status():
-    return jsonify({
-        "status": "running" if scraper_status["running"] else "idle",
-        "last_run": scraper_status["last_run"],
-        "error": scraper_status["error"]
-    })
 
 @app.route('/api/trigger', methods=['POST', 'GET'])
 def trigger_scraper():
