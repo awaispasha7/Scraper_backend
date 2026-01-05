@@ -121,7 +121,10 @@ class SupabasePipeline:
             data = {k: v for k, v in data.items() if v is not None}
             
             # Actually upsert the data to Supabase
-            self.supabase.table(self.table_name).upsert(data, on_conflict="listing_link").execute()
+            # Ensure 'id' is not in data to avoid primary key conflicts
+            data_without_id = {k: v for k, v in data.items() if k != 'id'}
+            
+            self.supabase.table(self.table_name).upsert(data_without_id, on_conflict="listing_link").execute()
             
             self.uploaded_count += 1
             logger.info(f"[OK] Saved to Supabase: {address[:50]}... | Price: {data.get('price', 'N/A')} | Beds: {beds or 'N/A'} | Baths: {baths or 'N/A'}")

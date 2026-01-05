@@ -75,7 +75,10 @@ class TruliaSpider(scrapy.Spider):
         direct_url = getattr(self, 'url', None) or getattr(self, 'start_url', None) or os.getenv('TRULIA_FRBO_URL')
         if direct_url:
             logger.info(f"Using Direct URL: {direct_url}")
-            meta = {'zipcode': 'Direct URL'}
+            # When URL is provided, disable early stopping (set MAX_KNOWN_HITS to very high value)
+            # This allows scraping all pages even if some listings already exist
+            self.MAX_KNOWN_HITS = 999999
+            meta = {'zipcode': 'Direct URL', 'url_provided': True}
             meta["zyte_api"] = {"browserHtml": True, "geolocation": "US"}
             yield scrapy.Request(url=direct_url, headers=HEADERS, meta=meta, dont_filter=True)
             return
@@ -151,7 +154,10 @@ class TruliaSpider(scrapy.Spider):
             if detail_url in existing_urls:
                 self._known_hits += 1
                 logger.info(f"Listing already exists ({self._known_hits}/{self.MAX_KNOWN_HITS}): {detail_url}")
-                if self._known_hits >= self.MAX_KNOWN_HITS:
+                # Only stop early if URL was NOT provided (default behavior for batch scraping)
+                # When URL is provided, continue scraping all pages even if some listings exist
+                url_provided = response.meta.get('url_provided', False)
+                if not url_provided and self._known_hits >= self.MAX_KNOWN_HITS:
                     logger.info(f"Stopping: Reached {self.MAX_KNOWN_HITS} known listings.")
                     return
                 continue
@@ -170,7 +176,7 @@ class TruliaSpider(scrapy.Spider):
         
         if next_page:
             logger.info(f"Location {zipcode}: Found next page")
-            meta = {'zipcode': zipcode, 'consecutive_empty': consecutive_empty}
+            meta = {'zipcode': zipcode, 'consecutive_empty': consecutive_empty, 'url_provided': response.meta.get('url_provided', False)}
             meta["zyte_api"] = {"browserHtml": True, "geolocation": "US"}
             yield scrapy.Request(response.urljoin(next_page), headers=HEADERS, callback=self.parse, meta=meta, dont_filter=True)
 
