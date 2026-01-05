@@ -78,7 +78,7 @@ class ImmediateCsvPipeline:
                     if parent == check_dir:  # Reached root
                         break
                     check_dir = parent
-                csv_filename = os.path.join(project_root, 'output', 'apartments_frbo_chicago-il.csv')
+                csv_filename = os.path.join(project_root, 'output', 'apartments_frbo-il.csv')
             
             # Ensure output directory exists
             output_dir = os.path.dirname(csv_filename)
@@ -193,7 +193,7 @@ class SupabasePipeline:
     
     def __init__(self):
         self.enabled = False
-        self.table_name = "apartments_frbo_chicago"
+        self.table_name = "apartments_frbo"
         self.supabase_client = None
         self.enrichment_manager = None
         self.upload_count = 0

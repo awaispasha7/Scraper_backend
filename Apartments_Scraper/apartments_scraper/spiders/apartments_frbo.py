@@ -497,8 +497,8 @@ class ApartmentsFrboSpider(scrapy.Spider):
             existing_urls = set()
             if self.supabase and normalized_urls:
                 try:
-                    # Apartments uses 'apartments_frbo_chicago' table in Supabase
-                    response = self.supabase.table("apartments_frbo_chicago").select("listing_url").in_("listing_url", normalized_urls).execute()
+                    # Apartments uses 'apartments_frbo' table in Supabase
+                    response = self.supabase.table("apartments_frbo").select("listing_url").in_("listing_url", normalized_urls).execute()
                     existing_urls = {row['listing_url'] for row in response.data}
                     self.logger.info(f"Check results: {len(existing_urls)} listings already exist in database")
                 except Exception as e:

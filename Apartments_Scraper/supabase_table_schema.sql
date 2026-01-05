@@ -1,8 +1,8 @@
--- SQL script to create apartments_frbo_chicago table in Supabase
+-- SQL script to create apartments_frbo table in Supabase
 -- Run this in the Supabase SQL Editor (Dashboard > SQL Editor)
 
 -- Create the table
-CREATE TABLE IF NOT EXISTS apartments_frbo_chicago (
+CREATE TABLE IF NOT EXISTS apartments_frbo (
     id BIGSERIAL PRIMARY KEY,
     listing_url TEXT UNIQUE NOT NULL,
     title TEXT,
@@ -25,10 +25,10 @@ CREATE TABLE IF NOT EXISTS apartments_frbo_chicago (
 );
 
 -- Create indexes for better query performance
-CREATE INDEX IF NOT EXISTS idx_apartments_listing_url ON apartments_frbo_chicago(listing_url);
-CREATE INDEX IF NOT EXISTS idx_apartments_city ON apartments_frbo_chicago(city);
-CREATE INDEX IF NOT EXISTS idx_apartments_zip_code ON apartments_frbo_chicago(zip_code);
-CREATE INDEX IF NOT EXISTS idx_apartments_state ON apartments_frbo_chicago(state);
+CREATE INDEX IF NOT EXISTS idx_apartments_listing_url ON apartments_frbo(listing_url);
+CREATE INDEX IF NOT EXISTS idx_apartments_city ON apartments_frbo(city);
+CREATE INDEX IF NOT EXISTS idx_apartments_zip_code ON apartments_frbo(zip_code);
+CREATE INDEX IF NOT EXISTS idx_apartments_state ON apartments_frbo(state);
 
 -- Create a function to automatically update updated_at timestamp
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -41,24 +41,24 @@ $$ language 'plpgsql';
 
 -- Create trigger to automatically update updated_at
 CREATE TRIGGER update_apartments_updated_at 
-    BEFORE UPDATE ON apartments_frbo_chicago
+    BEFORE UPDATE ON apartments_frbo
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 
 -- Enable Row Level Security (RLS) - adjust policies as needed
-ALTER TABLE apartments_frbo_chicago ENABLE ROW LEVEL SECURITY;
+ALTER TABLE apartments_frbo ENABLE ROW LEVEL SECURITY;
 
 -- Create a policy to allow public read access (adjust as needed)
-CREATE POLICY "Allow public read access" ON apartments_frbo_chicago
+CREATE POLICY "Allow public read access" ON apartments_frbo
     FOR SELECT
     USING (true);
 
 -- Create a policy to allow authenticated users to insert/update (adjust as needed)
-CREATE POLICY "Allow authenticated insert" ON apartments_frbo_chicago
+CREATE POLICY "Allow authenticated insert" ON apartments_frbo
     FOR INSERT
     WITH CHECK (auth.role() = 'authenticated');
 
-CREATE POLICY "Allow authenticated update" ON apartments_frbo_chicago
+CREATE POLICY "Allow authenticated update" ON apartments_frbo
     FOR UPDATE
     USING (auth.role() = 'authenticated');
 

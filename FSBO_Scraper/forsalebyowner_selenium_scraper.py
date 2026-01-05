@@ -2110,7 +2110,24 @@ class ForSaleByOwnerSeleniumScraper:
 
 def main():
     """Main function to run the scraper."""
-    url = "https://www.forsalebyowner.com/search/list/chicago-illinois"
+    import argparse
+    
+    parser = argparse.ArgumentParser(description='ForSaleByOwner.com Scraper')
+    parser.add_argument(
+        '--url',
+        type=str,
+        default="https://www.forsalebyowner.com/search/list/chicago-illinois",
+        help='Base URL to scrape (default: chicago-illinois)'
+    )
+    parser.add_argument(
+        '--base-url',
+        type=str,
+        dest='url',
+        help='Alias for --url'
+    )
+    args = parser.parse_args()
+    
+    url = args.url or os.getenv('FSBO_BASE_URL', "https://www.forsalebyowner.com/search/list/chicago-illinois")
     
     print("=" * 60)
     print("ForSaleByOwner.com Scraper (Selenium Version)")

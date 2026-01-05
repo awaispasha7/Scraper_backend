@@ -92,7 +92,7 @@
     "updated_at",
     "url"
   ],
-  "apartments_frbo_chicago": [
+  "apartments_frbo": [
     "address_hash",
     "baths",
     "beds",

@@ -14,6 +14,10 @@ import queue
 import schedule
 from datetime import datetime
 
+# Import URL detection and routing utilities
+from utils.url_detector import URLDetector
+from utils.table_router import TableRouter
+
 app = Flask(__name__)
 # Enable CORS for all routes - allows frontend to call backend API
 CORS(app)
@@ -65,7 +69,7 @@ def stream_output(process, scraper_name):
             add_log(f"[{scraper_name}] {line.strip()}", "info")
     process.stdout.close()
 
-def run_process_with_logging(cmd, cwd, scraper_name, status_dict):
+def run_process_with_logging(cmd, cwd, scraper_name, status_dict, env=None):
     """Run a subprocess and stream its output to logs"""
     try:
         add_log(f"Starting {scraper_name}...", "info")
@@ -80,7 +84,8 @@ def run_process_with_logging(cmd, cwd, scraper_name, status_dict):
             stderr=subprocess.STDOUT, # Merge stderr into stdout for simple logging
             text=True,
             bufsize=1, # Line buffered
-            universal_newlines=True
+            universal_newlines=True,
+            env=env
         )
         
         # Register process for stopping
@@ -445,6 +450,139 @@ def get_trulia_status():
         "status": "running" if trulia_status["running"] else "idle",
         "last_run": trulia_status["last_run"],
         "error": trulia_status["error"]
+    })
+
+@app.route('/api/validate-url', methods=['POST', 'GET'])
+def validate_url():
+    """Validate URL and detect platform without triggering scraper."""
+    # Get URL from request (POST body or GET query param)
+    if request.is_json and request.json:
+        url = request.json.get('url')
+        expected_platform = request.json.get('expected_platform')
+    else:
+        url = request.args.get('url') or (request.form.get('url') if request.form else None)
+        expected_platform = request.args.get('expected_platform') or (request.form.get('expected_platform') if request.form else None)
+    
+    if not url:
+        return jsonify({"error": "URL parameter is required"}), 400
+    
+    # Validate URL format
+    if not url.startswith(('http://', 'https://')):
+        return jsonify({
+            "error": "Invalid URL format. URL must start with http:// or https://",
+            "isValid": False
+        }), 400
+    
+    # Detect platform and route
+    platform, table_name, scraper_config, location = TableRouter.route_url(url)
+    
+    # Validate against expected platform if provided
+    if expected_platform and platform != expected_platform:
+        return jsonify({
+            "platform": platform,
+            "table": table_name,
+            "location": location,
+            "isValid": False,
+            "error": f"URL is for {platform or 'unknown platform'}, but expected {expected_platform}"
+        }), 400
+    
+    if not platform or not table_name:
+        return jsonify({
+            "platform": None,
+            "table": None,
+            "location": location,
+            "isValid": False,
+            "error": "Unknown or unsupported platform"
+        }), 400
+    
+    return jsonify({
+        "platform": platform,
+        "table": table_name,
+        "location": location,
+        "isValid": True
+    })
+
+@app.route('/api/trigger-from-url', methods=['POST', 'GET'])
+def trigger_from_url():
+    """Trigger scraper from any URL - automatically detects platform and routes to appropriate scraper."""
+    # Get URL from request (POST body or GET query param)
+    if request.is_json and request.json:
+        url = request.json.get('url')
+    else:
+        url = request.args.get('url') or (request.form.get('url') if request.form else None)
+    
+    if not url:
+        return jsonify({"error": "URL parameter is required"}), 400
+    
+    # Validate URL format
+    if not url.startswith(('http://', 'https://')):
+        return jsonify({"error": "Invalid URL format. URL must start with http:// or https://"}), 400
+    
+    # Detect platform and route
+    platform, table_name, scraper_config, location = TableRouter.route_url(url)
+    
+    if not platform or not scraper_config:
+        # Unknown platform - return error (for now, generic scraper handler can be added later)
+        return jsonify({
+            "error": "Unknown or unsupported platform",
+            "url": url,
+            "detected_location": location
+        }), 400
+    
+    # Get status dict based on platform
+    status_dict_map = {
+        'apartments.com': apartments_scraper_status,
+        'hotpads': hotpads_status,
+        'redfin': redfin_status,
+        'trulia': trulia_status,
+        'zillow_fsbo': zillow_fsbo_status,
+        'zillow_frbo': zillow_frbo_status,
+        'fsbo': scraper_status,
+    }
+    
+    status_dict = status_dict_map.get(platform)
+    if not status_dict:
+        return jsonify({"error": f"No status tracking for platform: {platform}"}), 500
+    
+    # Check if scraper is already running
+    if status_dict["running"]:
+        return jsonify({
+            "error": f"Scraper for {platform} is already running",
+            "platform": platform,
+            "table": table_name
+        }), 400
+    
+    # Build command based on scraper config
+    scraper_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), scraper_config['scraper_dir'])
+    url_param = scraper_config['url_param']
+    
+    if scraper_config['scraper_name'] == 'forsalebyowner_selenium_scraper':
+        # FSBO uses a different command structure - now supports --url argument
+        cmd = [sys.executable, scraper_config['command'][0], '--url', url]
+        env = None
+    else:
+        # Scrapy-based scrapers
+        cmd = [sys.executable] + scraper_config['command'] + [f"{url_param}={url}"]
+        env = None
+    
+    def worker():
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        run_process_with_logging(cmd, scraper_dir, platform, status_dict, env=env)
+    
+    thread = threading.Thread(target=worker)
+    thread.daemon = True
+    thread.start()
+    
+    return jsonify({
+        "message": f"Scraper started for {platform}",
+        "platform": platform,
+        "table": table_name,
+        "url": url,
+        "location": location,
+        "scraper_config": {
+            "scraper_name": scraper_config['scraper_name'],
+            "scraper_dir": scraper_config['scraper_dir']
+        }
     })
 
 @app.route('/api/trigger-all', methods=['POST', 'GET'])

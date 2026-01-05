@@ -215,7 +215,7 @@ All components read Supabase credentials from environment variables. Verify each
    - ✅ `zillow_fsbo_listings`
    - ✅ `zillow_frbo_listings`
    - ✅ `hotpads_listings`
-   - ✅ `apartments_frbo_chicago`
+   - ✅ `apartments_frbo`
    - ✅ `property_owners`
    - ✅ `property_owner_enrichment_state`
    - ✅ `addresses`

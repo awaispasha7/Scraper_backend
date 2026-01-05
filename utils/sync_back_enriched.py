@@ -26,8 +26,8 @@ class SyncBackEnriched:
             'zillow-frbo': 'zillow_frbo_listings',
             'zillow frbo': 'zillow_frbo_listings',
             'hotpads': 'hotpads_listings',
-            'apartments': 'apartments_frbo_chicago',
-            'apartments.com': 'apartments_frbo_chicago',
+            'apartments': 'apartments_frbo',
+            'apartments.com': 'apartments_frbo',
             'trulia': 'trulia_listings',
             'redfin': 'redfin_listings'
         }
@@ -115,7 +115,7 @@ class SyncBackEnriched:
                 if owner_data.get('owner_phone'):
                     update_payload["phone_number"] = owner_data.get('owner_phone')
             
-            elif target_table == 'apartments_frbo_chicago':
+            elif target_table == 'apartments_frbo':
                 if owner_data.get('owner_email'):
                     update_payload["owner_email"] = owner_data.get('owner_email')
                 if owner_data.get('owner_phone'):

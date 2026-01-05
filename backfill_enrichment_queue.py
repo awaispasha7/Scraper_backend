@@ -55,7 +55,7 @@ LISTING_TABLES = [
         "owner_cols": ["contact_name", "url", "phone_number"] # email is often placeholder, check contact_name/phone
     },
     {
-        "table": "apartments_frbo_chicago",
+        "table": "apartments_frbo",
         "address_col": "full_address", # Or title? full_address seems better
         "source": "Apartments.com",
         "owner_cols": ["owner_name", "owner_email", "phone_numbers"]
@@ -71,6 +71,12 @@ LISTING_TABLES = [
         "address_col": "address",
         "source": "Redfin",
         "owner_cols": ["owner_name", "emails", "phones"]
+    },
+    {
+        "table": "other_listings",
+        "address_col": "address",
+        "source": "Other",
+        "owner_cols": []  # Generic table - owner data stored in property_owners
     }
 ]
 

@@ -10,7 +10,7 @@ TABLES = [
     'zillow_fsbo_listings', 
     'zillow_frbo_listings', 
     'hotpads_listings', 
-    'apartments_frbo_chicago', 
+    'apartments_frbo', 
     'trulia_listings', 
     'redfin_listings'
 ]

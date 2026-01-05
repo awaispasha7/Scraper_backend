@@ -25,7 +25,7 @@ LISTING_TABLES = [
     {"table": "zillow_fsbo_listings", "address_col": "address"},
     {"table": "zillow_frbo_listings", "address_col": "address"},
     {"table": "hotpads_listings", "address_col": "address"},
-    {"table": "apartments_frbo_chicago", "address_col": "full_address"},
+    {"table": "apartments_frbo", "address_col": "full_address"},
     {"table": "trulia_listings", "address_col": "address"},
     {"table": "redfin_listings", "address_col": "address"}
 ]

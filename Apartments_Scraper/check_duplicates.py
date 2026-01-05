@@ -1,7 +1,7 @@
 import csv
 from collections import Counter
 
-csv_file = "output/apartments_frbo_chicago-il.csv"
+csv_file = "output/apartments_frbo-il.csv"
 
 print("🔍 Checking for duplicates in CSV file...")
 print("=" * 60)

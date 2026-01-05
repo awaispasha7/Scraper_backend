@@ -131,7 +131,7 @@ def get_supabase_client(supabase_url=None, supabase_key=None) -> Client:
 def create_table_sql() -> str:
     """Return SQL to create the apartments table."""
     return """
-    CREATE TABLE IF NOT EXISTS apartments_frbo_chicago (
+    CREATE TABLE IF NOT EXISTS apartments_frbo (
         id BIGSERIAL PRIMARY KEY,
         listing_url TEXT UNIQUE NOT NULL,
         title TEXT,
@@ -154,13 +154,13 @@ def create_table_sql() -> str:
     );
     
     -- Create index on listing_url for faster lookups
-    CREATE INDEX IF NOT EXISTS idx_apartments_listing_url ON apartments_frbo_chicago(listing_url);
+    CREATE INDEX IF NOT EXISTS idx_apartments_listing_url ON apartments_frbo(listing_url);
     
     -- Create index on city for filtering
-    CREATE INDEX IF NOT EXISTS idx_apartments_city ON apartments_frbo_chicago(city);
+    CREATE INDEX IF NOT EXISTS idx_apartments_city ON apartments_frbo(city);
     
     -- Create index on zip_code for filtering
-    CREATE INDEX IF NOT EXISTS idx_apartments_zip_code ON apartments_frbo_chicago(zip_code);
+    CREATE INDEX IF NOT EXISTS idx_apartments_zip_code ON apartments_frbo(zip_code);
     """
 
 
@@ -181,7 +181,7 @@ def read_csv_file(csv_path: str) -> List[Dict]:
     return listings
 
 
-def upload_to_supabase(csv_path: str, table_name: str = "apartments_frbo_chicago", batch_size: int = 100, supabase_url: str = None, supabase_key: str = None):
+def upload_to_supabase(csv_path: str, table_name: str = "apartments_frbo", batch_size: int = 100, supabase_url: str = None, supabase_key: str = None):
     """
     Upload CSV data to Supabase.
     
@@ -322,14 +322,14 @@ def main():
     parser.add_argument(
         "--csv",
         type=str,
-        default="output/apartments_frbo_chicago-il.csv",
-        help="Path to CSV file (default: output/apartments_frbo_chicago-il.csv)"
+        default="output/apartments_frbo-il.csv",
+        help="Path to CSV file (default: output/apartments_frbo-il.csv)"
     )
     parser.add_argument(
         "--table",
         type=str,
-        default="apartments_frbo_chicago",
-        help="Supabase table name (default: apartments_frbo_chicago)"
+        default="apartments_frbo",
+        help="Supabase table name (default: apartments_frbo)"
     )
     parser.add_argument(
         "--batch-size",

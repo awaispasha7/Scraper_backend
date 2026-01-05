@@ -393,8 +393,8 @@ class BatchDataWorker:
                 'zillow-frbo': 'zillow_frbo_listings',
                 'zillow frbo': 'zillow_frbo_listings',
                 'hotpads': 'hotpads_listings',
-                'apartments': 'apartments_frbo_chicago',
-                'apartments.com': 'apartments_frbo_chicago',
+                'apartments': 'apartments_frbo',
+                'apartments.com': 'apartments_frbo',
                 'trulia': 'trulia_listings',
                 'redfin': 'redfin_listings'
             }
@@ -426,7 +426,7 @@ class BatchDataWorker:
                     if owner_data.get('owner_email'):
                         update_payload["owner_email"] = owner_data.get('owner_email')
                 
-                elif target_table == 'apartments_frbo_chicago':
+                elif target_table == 'apartments_frbo':
                     # Has owner_email, owner_name, and phone_numbers (list)
                     if owner_data.get('owner_email'):
                         update_payload["owner_email"] = owner_data.get('owner_email')
@@ -471,8 +471,8 @@ class BatchDataWorker:
             'zillow-frbo': 'zillow_frbo_listings',
             'zillow frbo': 'zillow_frbo_listings',
             'hotpads': 'hotpads_listings',
-            'apartments': 'apartments_frbo_chicago',
-            'apartments.com': 'apartments_frbo_chicago',
+            'apartments': 'apartments_frbo',
+            'apartments.com': 'apartments_frbo',
             'trulia': 'trulia_listings',
             'redfin': 'redfin_listings'
         }
@@ -541,8 +541,8 @@ class BatchDataWorker:
             'zillow-frbo': 'zillow_frbo_listings',
             'zillow frbo': 'zillow_frbo_listings',
             'hotpads': 'hotpads_listings',
-            'apartments': 'apartments_frbo_chicago',
-            'apartments.com': 'apartments_frbo_chicago',
+            'apartments': 'apartments_frbo',
+            'apartments.com': 'apartments_frbo',
             'trulia': 'trulia_listings',
             'redfin': 'redfin_listings'
         }
@@ -585,8 +585,8 @@ class BatchDataWorker:
             'zillow-frbo': ('zillow_frbo_listings', ['owner_name', 'owner_email', 'phone_number']),
             'zillow frbo': ('zillow_frbo_listings', ['owner_name', 'owner_email', 'phone_number']),
             'hotpads': ('hotpads_listings', ['owner_name', 'email', 'owner_phone', 'phone_number']),
-            'apartments': ('apartments_frbo_chicago', ['owner_name', 'owner_email', 'phone_numbers']),
-            'apartments.com': ('apartments_frbo_chicago', ['owner_name', 'owner_email', 'phone_numbers']),
+            'apartments': ('apartments_frbo', ['owner_name', 'owner_email', 'phone_numbers']),
+            'apartments.com': ('apartments_frbo', ['owner_name', 'owner_email', 'phone_numbers']),
             'trulia': ('trulia_listings', ['owner_name', 'emails', 'phones']),
             'redfin': ('redfin_listings', ['owner_name', 'emails', 'phones'])
         }
@@ -647,8 +647,8 @@ class BatchDataWorker:
             'zillow-frbo': 'zillow_frbo_listings',
             'zillow frbo': 'zillow_frbo_listings',
             'hotpads': 'hotpads_listings',
-            'apartments': 'apartments_frbo_chicago',
-            'apartments.com': 'apartments_frbo_chicago',
+            'apartments': 'apartments_frbo',
+            'apartments.com': 'apartments_frbo',
             'trulia': 'trulia_listings',
             'redfin': 'redfin_listings'
         }
