@@ -3,6 +3,7 @@ Simple Flask API server for Railway deployment
 Provides endpoints to trigger scraper and check status
 """
 
+
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import subprocess
