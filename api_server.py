@@ -601,6 +601,39 @@ def get_all_status():
         "trulia": { "status": "running" if trulia_status["running"] else "idle", "last_run": trulia_status["last_run"], "last_result": trulia_status["last_result"] },
     })
 
+@app.route('/api/logs', methods=['GET'])
+def get_logs():
+    """Get logs from the log buffer, optionally filtered by scraper name"""
+    scraper_name = request.args.get('scraper', None)
+    limit = request.args.get('limit', type=int)
+    
+    # Get logs from buffer (most recent first)
+    logs = list(LOG_BUFFER)
+    
+    # Filter by scraper name if provided (logs have format "[scraper_name] message")
+    if scraper_name:
+        # Map platform names to scraper names used in logs
+        scraper_name_map = {
+            'apartments': 'Apartments',
+            'hotpads': 'Hotpads',
+            'redfin': 'Redfin',
+            'trulia': 'Trulia',
+            'zillow_fsbo': 'Zillow_FSBO',
+            'zillow_frbo': 'Zillow_FRBO',
+            'fsbo': 'FSBO'
+        }
+        log_scraper_name = scraper_name_map.get(scraper_name, scraper_name)
+        logs = [log for log in logs if log["message"].startswith(f"[{log_scraper_name}]")]
+    
+    # Limit number of logs if specified (most recent)
+    if limit and limit > 0:
+        logs = logs[-limit:]
+    
+    return jsonify({
+        "logs": logs,
+        "total": len(logs)
+    })
+
 @app.route('/api/stop-scraper', methods=['GET', 'POST'])
 def stop_scraper():
     id = request.args.get('id')
