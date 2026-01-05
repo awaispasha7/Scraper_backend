@@ -1,8 +1,11 @@
 from supabase import create_client, Client
 from dotenv import load_dotenv
 import sys
+import os
+import re
 import logging
 from pathlib import Path
+from datetime import datetime
 
 # Add Scraper_backend to sys.path to import utils
 

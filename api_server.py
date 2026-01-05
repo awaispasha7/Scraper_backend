@@ -105,19 +105,25 @@ def run_process_with_logging(cmd, cwd, scraper_name, status_dict, env=None):
         success = returncode == 0
         status_dict["running"] = False
         
-        result_info = {
-            "success": success,
-            "returncode": returncode,
-            "timestamp": datetime.now().isoformat()
-        }
-        status_dict["last_result"] = result_info
-        
         if success:
+            result_info = {
+                "success": True,
+                "returncode": returncode,
+                "timestamp": datetime.now().isoformat()
+            }
             add_log(f"{scraper_name} completed successfully.", "success")
         else:
             msg = f"{scraper_name} failed with return code {returncode}."
+            result_info = {
+                "success": False,
+                "returncode": returncode,
+                "error": msg,
+                "timestamp": datetime.now().isoformat()
+            }
             add_log(msg, "error")
             status_dict["error"] = msg
+        
+        status_dict["last_result"] = result_info
             
         return success
         
