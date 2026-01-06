@@ -443,6 +443,55 @@ def get_trulia_status():
         "error": trulia_status["error"]
     })
 
+@app.route('/api/search-location', methods=['POST', 'GET'])
+def search_location():
+    """Search a platform for a location and return the actual listing URL."""
+    from utils.location_searcher import LocationSearcher
+    
+    # Get platform and location from request
+    if request.is_json and request.json:
+        platform = request.json.get('platform')
+        location = request.json.get('location')
+    else:
+        platform = request.args.get('platform') or (request.form.get('platform') if request.form else None)
+        location = request.args.get('location') or (request.form.get('location') if request.form else None)
+    
+    if not platform:
+        return jsonify({"error": "Platform parameter is required"}), 400
+    
+    if not location:
+        return jsonify({"error": "Location parameter is required"}), 400
+    
+    try:
+        url = LocationSearcher.search_platform(platform, location)
+        
+        if not url:
+            return jsonify({
+                "error": f"Could not find listing URL for '{location}' on {platform}",
+                "platform": platform,
+                "location": location
+            }), 404
+        
+        # Validate the URL using URLDetector
+        from utils.url_detector import URLDetector
+        detected_platform, extracted_location = URLDetector.detect_and_extract(url)
+        
+        return jsonify({
+            "url": url,
+            "platform": detected_platform or platform,
+            "location": extracted_location,
+            "success": True
+        })
+        
+    except Exception as e:
+        import logging
+        logging.error(f"Error searching location: {e}")
+        return jsonify({
+            "error": f"Error searching location: {str(e)}",
+            "platform": platform,
+            "location": location
+        }), 500
+
 @app.route('/api/validate-url', methods=['POST', 'GET'])
 def validate_url():
     """Validate URL and detect platform without triggering scraper."""
