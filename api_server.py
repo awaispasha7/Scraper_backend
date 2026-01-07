@@ -21,7 +21,14 @@ from utils.table_router import TableRouter
 
 app = Flask(__name__)
 # Enable CORS for all routes - allows frontend to call backend API
-CORS(app)
+# Explicitly allow all origins and methods for Railway deployment
+CORS(app, resources={
+    r"/api/*": {
+        "origins": "*",
+        "methods": ["GET", "POST", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization"]
+    }
+})
 
 # Global status dictionaries
 scraper_status = {"running": False, "last_run": None, "last_result": None, "error": None}
@@ -503,10 +510,26 @@ def search_location():
     try:
         add_log(f"Starting location search: platform={platform}, location={location}", "info")
         
-        # Run the location search
+        # Run the location search with additional error handling
         # Note: Selenium timeouts are handled in location_searcher.py (20 second waits)
         # Total search time should be under 30-40 seconds
-        url = LocationSearcher.search_platform(platform, location)
+        try:
+            url = LocationSearcher.search_platform(platform, location)
+        except Exception as selenium_error:
+            # Catch Selenium-specific errors that might crash the server
+            error_msg = str(selenium_error)
+            add_log(f"Selenium error during location search: {error_msg}", "error")
+            add_log(f"Selenium traceback: {traceback.format_exc()}", "error")
+            
+            # Return a user-friendly error
+            response = jsonify({
+                "error": f"Browser automation failed: {error_msg}. Please ensure Chrome/Chromium is available on the server.",
+                "platform": platform,
+                "location": location,
+                "error_type": "selenium_error"
+            })
+            response.headers.add('Access-Control-Allow-Origin', '*')
+            return response, 500
         
         if not url:
             add_log(f"Could not find URL for {platform}/{location}", "warning")

@@ -42,31 +42,35 @@ class LocationSearcher:
         # Check for Browserless.io token
         browserless_token = os.getenv("BROWSERLESS_TOKEN")
         
-        if browserless_token:
-            logger.info("[LocationSearcher] Connecting to Browserless.io...")
-            browserless_url = f"https://chrome.browserless.io/webdriver?token={browserless_token}"
-            driver = webdriver.Remote(
-                command_executor=browserless_url,
-                options=chrome_options
-            )
-        else:
-            service = Service()
-            if sys.platform.startswith('linux'):
-                chrome_binary = '/usr/bin/chromium'
-                chrome_driver = '/usr/bin/chromedriver'
+        try:
+            if browserless_token:
+                logger.info("[LocationSearcher] Connecting to Browserless.io...")
+                browserless_url = f"https://chrome.browserless.io/webdriver?token={browserless_token}"
+                driver = webdriver.Remote(
+                    command_executor=browserless_url,
+                    options=chrome_options
+                )
+            else:
+                service = Service()
+                if sys.platform.startswith('linux'):
+                    chrome_binary = '/usr/bin/chromium'
+                    chrome_driver = '/usr/bin/chromedriver'
+                    
+                    if os.path.exists(chrome_binary) and os.path.exists(chrome_driver):
+                        chrome_options.binary_location = chrome_binary
+                        service = Service(executable_path=chrome_driver)
+                        logger.info(f"[LocationSearcher] Using system Chromium ({chrome_binary}) and Driver ({chrome_driver})")
+                    elif os.path.exists(chrome_binary):
+                        chrome_options.binary_location = chrome_binary
+                        logger.info(f"[LocationSearcher] Using system Chromium ({chrome_binary})")
                 
-                if os.path.exists(chrome_binary) and os.path.exists(chrome_driver):
-                    chrome_options.binary_location = chrome_binary
-                    service = Service(executable_path=chrome_driver)
-                    logger.info(f"[LocationSearcher] Using system Chromium ({chrome_binary}) and Driver ({chrome_driver})")
-                elif os.path.exists(chrome_binary):
-                    chrome_options.binary_location = chrome_binary
-                    logger.info(f"[LocationSearcher] Using system Chromium ({chrome_binary})")
+                driver = webdriver.Chrome(service=service, options=chrome_options)
             
-            driver = webdriver.Chrome(service=service, options=chrome_options)
-        
-        driver.maximize_window()
-        return driver
+            driver.maximize_window()
+            return driver
+        except Exception as e:
+            logger.error(f"[LocationSearcher] Failed to initialize WebDriver: {e}")
+            raise Exception(f"Could not initialize browser: {str(e)}. Please ensure Chrome/Chromium is installed or BROWSERLESS_TOKEN is set.")
     
     @classmethod
     def search_trulia(cls, location: str) -> Optional[str]:
