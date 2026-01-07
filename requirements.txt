@@ -29,7 +29,7 @@ gunicorn==21.2.0
 selenium==4.15.2
 webdriver-manager==4.0.1
 # Zyte Smart Proxy Manager integration for Selenium
-zyte-smartproxy-selenium
+zyte-smartproxy-selenium==1.0.10
 # Playwright for Browserless.io fallback (when bot detection occurs) - deprecated, using Zyte instead
 playwright==1.40.0
 
