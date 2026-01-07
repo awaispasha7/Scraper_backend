@@ -678,271 +678,322 @@ class LocationSearcher:
     @classmethod
     def search_apartments(cls, location: str) -> Optional[str]:
         """
-        Search Apartments.com for a location using their search box.
-        Enters the location, clicks search, and returns the resulting URL.
-        Note: Apartments.com URLs are always in format: https://www.apartments.com/hub/{location}/
+        Search Apartments.com for a location.
+        Apartments.com blocks headless browsers, so use Playwright with Browserless.io.
         """
-        driver = None
+        location_clean = location.strip()
+        logger.info(f"[LocationSearcher] Searching Apartments.com for: {location_clean}")
+        
+        # Apartments.com blocks headless browsers - use Playwright with Browserless.io
+        print(f"[LocationSearcher] Apartments.com blocks headless browsers - using Playwright with Browserless.io")
+        result = cls._search_apartments_with_playwright(location_clean)
+        
+        if result:
+            return result
+        
+        # If browser automation failed, return None (no URL construction fallback for Apartments.com)
+        return None
+    
+    @classmethod
+    def _search_apartments_with_playwright(cls, location: str) -> Optional[str]:
+        """
+        Search Apartments.com using Playwright with Browserless.io (required due to bot detection)
+        """
         try:
+            from playwright.sync_api import sync_playwright
+            
+            browserless_token = os.getenv("BROWSERLESS_TOKEN")
+            if not browserless_token:
+                print("[LocationSearcher] No BROWSERLESS_TOKEN - cannot use Playwright for Apartments.com")
+                return None
+            
+            browserless_token = browserless_token.strip()
             location_clean = location.strip()
-            logger.info(f"[LocationSearcher] Searching Apartments.com for: {location_clean}")
+            print(f"[LocationSearcher] Trying Playwright with Browserless.io for Apartments.com: {location_clean}")
             
-            driver = cls._get_driver()
-            print(f"[LocationSearcher] Navigating to Apartments.com...")
-            logger.info("[STATUS] Loading Apartments.com...")
-            driver.get("https://www.apartments.com")
+            # Get region (default: sfo)
+            region = os.getenv("BROWSERLESS_REGION", "sfo").lower()
+            if region not in ["sfo", "lon", "ams"]:
+                region = "sfo"
             
-            # Wait a bit longer for page to fully load
-            time.sleep(5)  # Increased wait time
+            # Browserless.io WebSocket endpoint for CDP connection with stealth mode
+            browserless_url = f"wss://production-{region}.browserless.io?token={browserless_token}&stealth=true"
             
-            # Check what page actually loaded
-            current_url = driver.current_url
-            page_title = driver.title
-            print(f"[LocationSearcher] Page loaded - URL: {current_url}")
-            print(f"[LocationSearcher] Page title: {page_title}")
-            
-            # Check if page is blocked or redirected
-            if 'apartments.com' not in current_url.lower():
-                print(f"[LocationSearcher] WARNING: Page redirected or blocked. Current URL: {current_url}")
-            
-            # Wait for search box using WebDriverWait - Apartments.com uses specific ID
-            # Use shorter timeout per selector to fail faster (5 seconds each)
-            wait_short = WebDriverWait(driver, 5)  # 5 seconds per selector to fail faster
-            
-            print(f"[LocationSearcher] Waiting for Apartments.com search box to appear...")
-            logger.info("[STATUS] Locating search box on Apartments.com...")
-            
-            # First, wait for page to be interactive (JavaScript loaded)
+            browser = None
             try:
-                print(f"[LocationSearcher] Waiting for page JavaScript to load...")
-                driver.execute_script("return document.readyState")  # Check if JS is ready
-                time.sleep(2)  # Additional wait for dynamic content
-            except:
-                pass
+                with sync_playwright() as p:
+                    print(f"[LocationSearcher] Connecting to Browserless.io via Playwright CDP...")
+                    print(f"[LocationSearcher] Endpoint: wss://production-{region}.browserless.io (region: {region}, stealth: true)")
+                    
+                    browser = p.chromium.connect_over_cdp(browserless_url)
+                    print(f"[LocationSearcher] Successfully connected to Browserless.io")
+                    
+                    # Create a fresh context with stealth settings
+                    context = browser.new_context(
+                        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+                        viewport={"width": 1920, "height": 1080},
+                        locale="en-US",
+                        timezone_id="America/New_York",
+                        permissions=["geolocation"],
+                        extra_http_headers={
+                            "Accept-Language": "en-US,en;q=0.9",
+                            "Accept-Encoding": "gzip, deflate, br",
+                            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                            "Sec-Fetch-Dest": "document",
+                            "Sec-Fetch-Mode": "navigate",
+                            "Sec-Fetch-Site": "none",
+                            "Upgrade-Insecure-Requests": "1",
+                        }
+                    )
+                    
+                    # Add stealth scripts
+                    context.add_init_script("""
+                        Object.defineProperty(navigator, 'plugins', {
+                            get: () => [1, 2, 3, 4, 5]
+                        });
+                        Object.defineProperty(navigator, 'languages', {
+                            get: () => ['en-US', 'en']
+                        });
+                        Object.defineProperty(navigator, 'webdriver', {
+                            get: () => undefined
+                        });
+                        window.chrome = {
+                            runtime: {}
+                        };
+                    """)
+                    
+                    page = context.new_page()
+                    print(f"[LocationSearcher] Created new page with stealth configuration")
+                    
+            except Exception as connect_error:
+                print(f"[LocationSearcher] Failed to connect to Browserless.io: {connect_error}")
+                import traceback
+                print(f"[LocationSearcher] Connection traceback: {traceback.format_exc()}")
+                return None
             
-            # Try selectors in order of specificity - use WebDriverWait for each
+            # Navigate to Apartments.com
+            print(f"[LocationSearcher] Navigating to Apartments.com...")
+            logger.info("[STATUS] Bypassing bot detection... This may take 30-60 seconds")
+            print(f"[LocationSearcher] [STATUS] Bypassing bot detection... This may take 30-60 seconds")
+            
+            try:
+                page.goto("https://www.apartments.com", wait_until="domcontentloaded", timeout=60000)
+                time.sleep(3)  # Wait for page to fully load
+            except Exception as goto_error:
+                if "timeout" in str(goto_error).lower():
+                    logger.warning("[STATUS] Page load timeout - retrying...")
+                    try:
+                        page.goto("https://www.apartments.com", wait_until="networkidle", timeout=90000)
+                        time.sleep(3)
+                    except Exception as retry_error:
+                        logger.error(f"Failed to load Apartments.com after retry: {retry_error}")
+                        raise
+                else:
+                    raise
+            
+            page_title = page.title()
+            current_url = page.url
+            print(f"[LocationSearcher] Page title: {page_title}, URL: {current_url}")
+            
+            # Check if page was blocked
+            if 'access denied' in page_title.lower() or 'blocked' in page_title.lower():
+                print(f"[LocationSearcher] Page still blocked even with Browserless.io")
+                try:
+                    browser.close()
+                except:
+                    pass
+                return None
+            
+            # Find search box - use the specific ID from HTML
+            print(f"[LocationSearcher] Looking for search box...")
+            logger.info("[STATUS] Locating search box...")
+            
             search_box = None
-            search_selectors = [
-                "input#quickSearchLookup",  # Specific ID from HTML provided
-                "input.quickSearchLookup",  # Class name from HTML
-                "input[aria-label='Location, School, or Point of Interest']",  # Exact aria-label match
-                "input[placeholder='Location, School, or Point of Interest']",  # Exact placeholder match
-                "input[aria-label*='Location, School']",  # Partial aria-label
-                "input[placeholder*='Location, School']",  # Partial placeholder
+            search_box_selectors = [
+                "input#quickSearchLookup",
+                "input.quickSearchLookup",
+                "input[aria-label='Location, School, or Point of Interest']",
+                "input[placeholder='Location, School, or Point of Interest']",
             ]
             
-            for selector in search_selectors:
+            for selector in search_box_selectors:
                 try:
-                    print(f"[LocationSearcher] Trying selector: {selector}")
-                    search_box = wait_short.until(EC.presence_of_element_located((By.CSS_SELECTOR, selector)))
-                    # Check if element is visible and enabled
-                    if search_box.is_displayed() and search_box.is_enabled():
-                        logger.info(f"[LocationSearcher] ✓ Found Apartments.com search box with selector: {selector}")
-                        print(f"[LocationSearcher] ✓ Found search box: {selector}")
-                        break
-                    else:
-                        print(f"[LocationSearcher] Search box found but not visible/enabled: {selector}")
-                        search_box = None
-                except TimeoutException:
-                    print(f"[LocationSearcher] Timeout waiting for selector: {selector} (5s)")
-                    continue
-                except Exception as e:
-                    print(f"[LocationSearcher] Error with selector {selector}: {e}")
-                    continue
-            
-            # Fallback: Try finding by iterating through all inputs if specific selectors failed
-            if not search_box:
-                print(f"[LocationSearcher] Specific selectors failed, trying fallback method...")
-                try:
-                    # Check page source first to see if search box exists
-                    page_source_lower = driver.page_source.lower()
-                    if 'quicksearchlookup' in page_source_lower:
-                        print(f"[LocationSearcher] DEBUG: 'quickSearchLookup' found in page source but Selenium can't locate it")
-                    else:
-                        print(f"[LocationSearcher] DEBUG: 'quickSearchLookup' NOT in page source - page structure may differ")
-                    
-                    # Try to find any text inputs (with shorter timeout)
-                    try:
-                        wait_short.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "input[type='text']")))
-                    except:
-                        # If no text inputs found at all, check for any inputs
-                        print(f"[LocationSearcher] No text inputs found, checking for any input elements...")
+                    search_box = page.query_selector(selector)
+                    if search_box:
                         try:
-                            wait_short.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "input")))
+                            if search_box.is_visible():
+                                print(f"[LocationSearcher] ✓ Found search box: {selector}")
+                                break
                         except:
-                            print(f"[LocationSearcher] WARNING: No input elements found on page at all!")
-                    
-                    all_inputs = driver.find_elements(By.CSS_SELECTOR, "input[type='text'], input:not([type]), input")
-                    print(f"[LocationSearcher] Found {len(all_inputs)} total inputs, checking each one...")
-                    
-                    for i, inp in enumerate(all_inputs[:10]):  # Limit to first 10 to save time
-                        try:
-                            if inp.is_displayed() and inp.is_enabled():
-                                placeholder = (inp.get_attribute('placeholder') or '').lower()
-                                aria_label = (inp.get_attribute('aria-label') or '').lower()
-                                input_id = (inp.get_attribute('id') or '').lower()
-                                input_class = (inp.get_attribute('class') or '').lower()
-                                
-                                print(f"[LocationSearcher] Input #{i}: id='{input_id}', class='{input_class[:40]}', placeholder='{placeholder[:40]}'")
-                                
-                                # Check for Apartments.com specific indicators
-                                if ('quicksearch' in input_id or 
-                                    'quicksearch' in input_class or
-                                    'location, school' in placeholder or 
-                                    'location, school' in aria_label or
-                                    'point of interest' in placeholder):
-                                    search_box = inp
-                                    logger.info(f"[LocationSearcher] ✓ Found Apartments.com search box via fallback: id={input_id}, placeholder={placeholder[:50]}")
-                                    print(f"[LocationSearcher] ✓ Found search box via fallback")
-                                    break
-                        except Exception as inp_err:
-                            print(f"[LocationSearcher] Error checking input #{i}: {inp_err}")
-                            continue
-                    
-                    # Last resort: use first visible text input
-                    if not search_box and len(all_inputs) > 0:
-                        print(f"[LocationSearcher] No matching input found, trying first visible input as last resort...")
-                        for inp in all_inputs[:5]:  # Try first 5
-                            try:
-                                if inp.is_displayed() and inp.is_enabled():
-                                    search_box = inp
-                                    print(f"[LocationSearcher] Using first visible input as search box (last resort)")
-                                    break
-                            except:
-                                continue
-                except Exception as e:
-                    print(f"[LocationSearcher] Fallback method error: {e}")
-                    import traceback
-                    print(f"[LocationSearcher] Fallback traceback: {traceback.format_exc()}")
-                    import traceback
-                    print(f"[LocationSearcher] Fallback traceback: {traceback.format_exc()}")
+                            print(f"[LocationSearcher] ✓ Found search box (visibility uncertain): {selector}")
+                            break
+                except:
+                    continue
             
             if not search_box:
-                # Get page info for debugging
+                print(f"[LocationSearcher] Search box not found")
                 try:
-                    page_source_snippet = driver.page_source[:500].lower()
-                    page_source_length = len(driver.page_source)
-                    print(f"[LocationSearcher] DEBUG: Page source length: {page_source_length} characters")
-                    print(f"[LocationSearcher] DEBUG: Current URL: {driver.current_url}")
-                    print(f"[LocationSearcher] DEBUG: Page title: {driver.title}")
-                    print(f"[LocationSearcher] DEBUG: Page source preview: {driver.page_source[:300]}...")
-                    
-                    # Check if page might be blocked
-                    if 'blocked' in page_source_snippet or 'access denied' in page_source_snippet or 'bot' in page_source_snippet:
-                        print(f"[LocationSearcher] WARNING: Page might be blocked or detecting bot")
-                    
-                    # Check if quickSearchLookup exists at all in page source
-                    if 'quicksearchlookup' in page_source_snippet or 'quickSearchLookup' in driver.page_source:
-                        print(f"[LocationSearcher] DEBUG: Found 'quickSearchLookup' in page source but couldn't locate element")
-                    else:
-                        print(f"[LocationSearcher] DEBUG: 'quickSearchLookup' NOT found in page source - page structure may be different")
-                except Exception as debug_err:
-                    print(f"[LocationSearcher] Error getting debug info: {debug_err}")
-                
-                raise TimeoutException("Search box not found on Apartments.com after trying all selectors. Page may not have loaded correctly, structure is different, or page is blocking automated access.")
+                    browser.close()
+                except:
+                    pass
+                return None
             
-            # Get initial URL before search
-            initial_url = driver.current_url
+            # Get initial URL
+            initial_url = page.url
             print(f"[LocationSearcher] Initial URL: {initial_url}")
             
-            # Clear the search box
-            search_box.clear()
+            # Fill search box
+            print(f"[LocationSearcher] Entering location '{location_clean}' into search box...")
+            logger.info(f"[STATUS] Searching for: {location_clean}")
+            search_box.click()
             time.sleep(0.5)
-            
-            # Enter location text
-            search_box.send_keys(location_clean)
-            logger.info(f"[LocationSearcher] Entered '{location_clean}' into Apartments.com search box")
-            time.sleep(2.5)  # Wait for autocomplete suggestions to appear
-            
-            # IMPORTANT: Enter key does NOT work on Apartments.com
-            # Must either: 1) Click first suggestion, OR 2) Click search button (button.typeaheadSearch)
+            search_box.fill("")  # Clear
+            search_box.fill(location_clean)  # Type location
+            time.sleep(2.5)  # Wait for autocomplete suggestions
             
             search_submitted = False
             
-            # Method 1: Try clicking first autocomplete suggestion (preferred method)
+            # Method 1: Click first autocomplete suggestion (preferred)
             try:
-                # Wait for suggestions to appear
-                suggestions = WebDriverWait(driver, 5).until(
-                    EC.presence_of_all_elements_located((By.CSS_SELECTOR, "ul[role='listbox'] li, div[class*='suggestion'] li, li[class*='suggestion'], div[role='option'], ul[class*='autocomplete'] li"))
-                )
+                # Wait for suggestions
+                time.sleep(1)
+                suggestion_selectors = [
+                    "ul[role='listbox'] li",
+                    "div[role='listbox'] div",
+                    "ul[class*='autocomplete'] li",
+                    "li[class*='suggestion']",
+                    "div[role='option']",
+                ]
                 
-                if suggestions and len(suggestions) > 0:
-                    # Click first autocomplete suggestion (preferred - works like user clicking)
-                    suggestion_text = suggestions[0].text if hasattr(suggestions[0], 'text') else 'N/A'
-                    logger.info(f"[LocationSearcher] Found {len(suggestions)} autocomplete suggestions, clicking first one: {suggestion_text[:50]}")
-                    print(f"[LocationSearcher] Clicking first suggestion: {suggestion_text[:50]}")
-                    suggestions[0].click()
+                suggestion = None
+                for selector in suggestion_selectors:
+                    try:
+                        suggestions = page.query_selector_all(selector)
+                        if suggestions:
+                            for sug in suggestions:
+                                try:
+                                    if sug.is_visible():
+                                        text = sug.inner_text().lower()
+                                        # Skip generic suggestions
+                                        if any(skip in text for skip in ['current location', 'popular searches']):
+                                            continue
+                                        # If it contains our location or looks like a location
+                                        if location_clean.lower() in text or ',' in text:
+                                            suggestion = sug
+                                            print(f"[LocationSearcher] Found suggestion: {text[:50]}")
+                                            break
+                                except:
+                                    continue
+                            if suggestion:
+                                break
+                    except:
+                        continue
+                
+                if suggestion:
+                    print(f"[LocationSearcher] Clicking first autocomplete suggestion...")
+                    suggestion.click()
                     search_submitted = True
-                    time.sleep(3)  # Wait for redirect after clicking suggestion
-                else:
-                    # No suggestions - will use search button below
-                    print(f"[LocationSearcher] No suggestions found, will use search button")
-            except TimeoutException:
-                # No suggestions appeared - will use search button instead
-                print(f"[LocationSearcher] No autocomplete suggestions appeared, using search button")
+                    time.sleep(3)  # Wait for navigation
             except Exception as sug_err:
-                print(f"[LocationSearcher] Error finding suggestions: {sug_err}, using search button")
+                print(f"[LocationSearcher] Error with suggestions: {sug_err}")
             
             # Method 2: Click search button (button.typeaheadSearch) - Enter key does NOT work
             if not search_submitted:
                 try:
-                    # Use the specific selector from HTML: button.typeaheadSearch
-                    search_button = driver.find_element(By.CSS_SELECTOR, "button.typeaheadSearch")
-                    logger.info(f"[LocationSearcher] Clicking search button (typeaheadSearch)")
-                    print(f"[LocationSearcher] Clicking search button...")
-                    search_button.click()
-                    search_submitted = True
-                    time.sleep(3)  # Wait for navigation
-                except Exception as btn_err:
-                    print(f"[LocationSearcher] Could not find/click search button: {btn_err}")
-                    # Last resort: Try other button selectors
-                    try:
+                    search_button = page.query_selector("button.typeaheadSearch")
+                    if search_button and search_button.is_visible():
+                        print(f"[LocationSearcher] Clicking search button (typeaheadSearch)...")
+                        logger.info("[STATUS] Submitting search...")
+                        search_button.click()
+                        search_submitted = True
+                        time.sleep(3)  # Wait for navigation
+                    else:
+                        # Try alternative button selectors
                         alt_selectors = [
                             "button[title*='Search apartments']",
                             "button[aria-label*='Search apartments']",
                             "button[class*='search']",
-                            "button[type='submit']",
                         ]
                         for selector in alt_selectors:
                             try:
-                                btn = driver.find_element(By.CSS_SELECTOR, selector)
-                                if btn.is_displayed():
-                                    logger.info(f"[LocationSearcher] Clicking alternative search button: {selector}")
+                                btn = page.query_selector(selector)
+                                if btn and btn.is_visible():
+                                    print(f"[LocationSearcher] Clicking alternative search button: {selector}")
                                     btn.click()
                                     search_submitted = True
                                     time.sleep(3)
                                     break
                             except:
                                 continue
-                    except Exception as alt_err:
-                        print(f"[LocationSearcher] All search button methods failed: {alt_err}")
-                        # Do NOT use Enter key - it doesn't work on Apartments.com
-                        logger.warning(f"[LocationSearcher] Enter key does not work on Apartments.com - search may fail")
+                except Exception as btn_err:
+                    print(f"[LocationSearcher] Error clicking search button: {btn_err}")
             
-            # Wait a bit more for any redirects or page updates
-            time.sleep(3)
+            # Wait for navigation and get final URL
+            print(f"[LocationSearcher] Waiting for navigation...")
+            logger.info("[STATUS] Waiting for page to redirect...")
             
-            # Get the current URL after search - use whatever URL the website redirected us to
-            # Examples: apartments.com/missouri-city-tx/ or apartments.com/hub/new-york-ny/
-            current_url = driver.current_url
-            logger.info(f"[LocationSearcher] Apartments.com final URL after search: {current_url}")
+            final_url = None
+            max_wait_seconds = 10
+            check_interval = 0.3
+            max_checks = int(max_wait_seconds / check_interval)
             
-            # Simply return whatever URL we ended up on
-            # The website's natural redirect will give us the correct URL format
-            if 'apartments.com' in current_url:
-                return current_url
+            for check_attempt in range(max_checks):
+                time.sleep(check_interval)
+                try:
+                    if page.is_closed():
+                        print(f"[LocationSearcher] Page closed during URL polling")
+                        break
+                    
+                    current_check_url = page.url
+                    if current_check_url != initial_url and 'apartments.com' in current_check_url:
+                        final_url = current_check_url
+                        elapsed = (check_attempt + 1) * check_interval
+                        print(f"[LocationSearcher] ✓ URL change detected after {elapsed:.1f}s! {initial_url} → {final_url}")
+                        break
+                    elif check_attempt == max_checks - 1:
+                        print(f"[LocationSearcher] URL did not change after {max_wait_seconds}s. Still at: {current_check_url}")
+                        final_url = current_check_url
+                except Exception as poll_err:
+                    if 'closed' in str(poll_err).lower():
+                        break
+                    print(f"[LocationSearcher] Error checking URL: {poll_err}")
             
+            # Get final URL
+            if not final_url:
+                try:
+                    if not page.is_closed():
+                        final_url = page.url
+                except:
+                    pass
+            
+            # Close browser
+            try:
+                browser.close()
+            except:
+                pass
+            
+            # Return URL if valid
+            if final_url and 'apartments.com' in final_url and final_url != 'https://www.apartments.com' and final_url != 'https://www.apartments.com/':
+                print(f"[LocationSearcher] ✓ Success! Returning URL: {final_url}")
+                return final_url
+            
+            print(f"[LocationSearcher] Could not find URL for {location_clean} on Apartments.com")
             return None
             
-        except TimeoutException:
-            logger.error(f"[LocationSearcher] Timeout waiting for Apartments.com search box")
+        except ImportError:
+            print("[LocationSearcher] Playwright not installed - cannot use Browserless.io for Apartments.com")
             return None
         except Exception as e:
-            logger.error(f"[LocationSearcher] Error searching Apartments.com: {e}")
+            print(f"[LocationSearcher] Playwright error for Apartments.com: {e}")
+            import traceback
+            print(f"[LocationSearcher] Traceback: {traceback.format_exc()}")
             return None
         finally:
-            if driver:
-                driver.quit()
+            if browser:
+                try:
+                    browser.close()
+                except:
+                    pass
     
     @classmethod
     def search_redfin(cls, location: str) -> Optional[str]:

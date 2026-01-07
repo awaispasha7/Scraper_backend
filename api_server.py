@@ -566,7 +566,7 @@ def search_location():
             add_log(f"Starting location search: platform={platform}, location={location}", "info")
             
             # For platforms with heavy bot detection, inform user it may take longer
-            if platform.lower() in ['trulia', 'redfin']:
+            if platform.lower() in ['trulia', 'redfin', 'apartments.com']:
                 add_log("⚠️ This platform has aggressive bot detection. Bypassing CAPTCHAs and anti-bot measures... This may take 30-90 seconds", "info")
             
             # Run the location search with timeout protection
