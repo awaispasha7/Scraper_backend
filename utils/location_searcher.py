@@ -68,12 +68,16 @@ class LocationSearcher:
         try:
             if browserless_token:
                 logger.info("[LocationSearcher] Connecting to Browserless.io...")
+                print("[LocationSearcher] BROWSERLESS_TOKEN found - Using Browserless.io for browser automation")
                 browserless_url = f"https://chrome.browserless.io/webdriver?token={browserless_token}"
+                print(f"[LocationSearcher] Connecting to Browserless.io at: {browserless_url.split('?')[0]}...")
                 driver = webdriver.Remote(
                     command_executor=browserless_url,
                     options=chrome_options
                 )
+                print("[LocationSearcher] Successfully connected to Browserless.io")
             else:
+                print("[LocationSearcher] No BROWSERLESS_TOKEN found - Using local Chrome/Chromium")
                 service = Service()
                 if sys.platform.startswith('linux'):
                     chrome_binary = '/usr/bin/chromium'
