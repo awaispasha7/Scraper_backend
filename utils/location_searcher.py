@@ -773,6 +773,7 @@ class LocationSearcher:
     def search_apartments(cls, location: str) -> Optional[str]:
         """
         Search Apartments.com for a location using Selenium with Zyte proxy.
+        The search box has a prefilled value that needs to be clicked to reveal the placeholder.
         """
         driver = None
         try:
@@ -782,80 +783,161 @@ class LocationSearcher:
             # Use Selenium with Zyte proxy (direct config, same as scrapers)
             driver = cls._get_driver(use_zyte_proxy=True)
             driver.get("https://www.apartments.com")
-            time.sleep(3)  # Wait for page to load
+            time.sleep(4)  # Wait for page to fully load
             
-            # Wait for search box
-            wait = WebDriverWait(driver, 15)
+            wait = WebDriverWait(driver, 20)
             print(f"[LocationSearcher] Looking for Apartments.com search box...")
             
+            # Try to find search box by ID first (most reliable)
             search_box = None
-            search_selectors = [
-                "input#quickSearchLookup",
-                "input.quickSearchLookup",
-                "input[aria-label='Location, School, or Point of Interest']",
-                "input[placeholder='Location, School, or Point of Interest']",
-            ]
-            
-            for selector in search_selectors:
-                try:
-                    search_box = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, selector)))
-                    if search_box.is_displayed() and search_box.is_enabled():
+            try:
+                # Wait for element to be present in DOM
+                search_box = wait.until(EC.presence_of_element_located((By.ID, "quickSearchLookup")))
+                print(f"[LocationSearcher] ✓ Found search box by ID: quickSearchLookup")
+            except TimeoutException:
+                # Try alternative selectors
+                print(f"[LocationSearcher] ID not found, trying alternative selectors...")
+                search_selectors = [
+                    "input.quickSearchLookup",
+                    "input[aria-label='Location, School, or Point of Interest']",
+                    "input[placeholder='Location, School, or Point of Interest']",
+                ]
+                
+                for selector in search_selectors:
+                    try:
+                        search_box = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, selector)))
                         print(f"[LocationSearcher] ✓ Found search box: {selector}")
                         break
-                except TimeoutException:
-                    continue
+                    except TimeoutException:
+                        continue
             
             if not search_box:
                 raise TimeoutException("Search box not found on Apartments.com")
             
-            # Get initial URL
-            initial_url = driver.current_url
-            print(f"[LocationSearcher] Initial URL: {initial_url}")
+            # Wait for element to be visible and clickable
+            wait.until(EC.element_to_be_clickable((By.ID, "quickSearchLookup")))
             
-            # Enter location and submit
-            search_box.clear()
-            search_box.send_keys(location_clean)
-            time.sleep(2.5)  # Wait for autocomplete
-            
-            # Try clicking first suggestion or search button
-            search_submitted = False
+            # Click the search box first to reveal placeholder and clear prefilled value
+            print(f"[LocationSearcher] Clicking search box to reveal placeholder...")
             try:
-                suggestions = WebDriverWait(driver, 5).until(
-                    EC.presence_of_all_elements_located((By.CSS_SELECTOR, "ul[role='listbox'] li, div[role='option']"))
-                )
-                if suggestions:
-                    suggestions[0].click()
-                    search_submitted = True
-                    time.sleep(3)
+                # Scroll element into view if needed
+                driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", search_box)
+                time.sleep(0.5)
             except:
                 pass
             
+            # Click to focus and clear prefilled value
+            search_box.click()
+            time.sleep(1)  # Wait for placeholder to appear
+            
+            # Clear any existing value
+            search_box.clear()
+            time.sleep(0.5)
+            
+            # Also try Ctrl+A to select all and delete, in case clear() didn't work
+            try:
+                search_box.send_keys(Keys.CONTROL + "a")
+                time.sleep(0.3)
+                search_box.send_keys(Keys.DELETE)
+                time.sleep(0.5)
+            except:
+                pass
+            
+            print(f"[LocationSearcher] Typing location: {location_clean}")
+            # Type the location character by character (more human-like)
+            for char in location_clean:
+                search_box.send_keys(char)
+                time.sleep(random.uniform(0.05, 0.15))
+            
+            time.sleep(2.5)  # Wait for autocomplete suggestions to appear
+            
+            print(f"[LocationSearcher] Looking for autocomplete suggestions...")
+            # Try clicking first suggestion or search button
+            search_submitted = False
+            
+            # First, try to find and click autocomplete suggestions
+            try:
+                # Wait for suggestions to appear
+                suggestions_wait = WebDriverWait(driver, 5)
+                suggestions = suggestions_wait.until(
+                    EC.presence_of_all_elements_located((By.CSS_SELECTOR, "ul[role='listbox'] li, div[role='option'], ul.autocompleteList li, div.typeaheadItem"))
+                )
+                if suggestions:
+                    print(f"[LocationSearcher] Found {len(suggestions)} suggestions, clicking first one...")
+                    # Scroll suggestion into view
+                    driver.execute_script("arguments[0].scrollIntoView({block: 'center'});", suggestions[0])
+                    time.sleep(0.5)
+                    suggestions[0].click()
+                    search_submitted = True
+                    time.sleep(3)
+                    print(f"[LocationSearcher] ✓ Clicked first suggestion")
+            except TimeoutException:
+                print(f"[LocationSearcher] No suggestions found, trying search button...")
+            
+            # If no suggestions, try clicking the search button
             if not search_submitted:
                 try:
-                    button = driver.find_element(By.CSS_SELECTOR, "button.typeaheadSearch")
-                    button.click()
+                    # Look for search button (magnifying glass icon)
+                    button_selectors = [
+                        "button.typeaheadSearch",
+                        "button[type='submit']",
+                        "button[aria-label*='search' i]",
+                        "button[class*='search' i]",
+                        "svg[class*='search']",
+                    ]
+                    
+                    for selector in button_selectors:
+                        try:
+                            button = driver.find_element(By.CSS_SELECTOR, selector)
+                            if button.is_displayed():
+                                print(f"[LocationSearcher] Found search button: {selector}")
+                                button.click()
+                                search_submitted = True
+                                time.sleep(3)
+                                print(f"[LocationSearcher] ✓ Clicked search button")
+                                break
+                        except:
+                            continue
+                except Exception as e:
+                    print(f"[LocationSearcher] Could not find search button: {e}")
+            
+            # Last resort: press Enter
+            if not search_submitted:
+                print(f"[LocationSearcher] Pressing Enter as last resort...")
+                try:
+                    search_box.send_keys(Keys.RETURN)
                     time.sleep(3)
+                    search_submitted = True
                 except:
                     pass
             
             # Get final URL
             final_url = driver.current_url
+            print(f"[LocationSearcher] Initial URL: https://www.apartments.com")
+            print(f"[LocationSearcher] Final URL: {final_url}")
             logger.info(f"[LocationSearcher] Apartments.com final URL: {final_url}")
             
-            if 'apartments.com' in final_url and final_url != 'https://www.apartments.com':
+            # Verify we got a different URL (navigation occurred)
+            if 'apartments.com' in final_url and final_url != 'https://www.apartments.com' and final_url != 'https://www.apartments.com/':
                 return final_url
             
+            print(f"[LocationSearcher] ⚠️ URL did not change, search may have failed")
             return None
             
-        except TimeoutException:
-            logger.error(f"[LocationSearcher] Timeout waiting for Apartments.com search box")
+        except TimeoutException as e:
+            logger.error(f"[LocationSearcher] Timeout waiting for Apartments.com search box: {e}")
             return None
         except Exception as e:
             logger.error(f"[LocationSearcher] Error searching Apartments.com: {e}")
+            import traceback
+            print(f"[LocationSearcher] Traceback: {traceback.format_exc()}")
             return None
         finally:
             if driver:
-                driver.quit()
+                try:
+                    driver.quit()
+                except:
+                    pass
     
     @classmethod
     def _search_apartments_with_zyte(cls, location: str, zyte_api_key: str) -> Optional[str]:
