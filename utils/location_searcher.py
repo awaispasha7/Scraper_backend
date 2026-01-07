@@ -683,32 +683,81 @@ class LocationSearcher:
             # Use Selenium with Zyte proxy (direct config, same as scrapers)
             driver = cls._get_driver(use_zyte_proxy=True)
             driver.get("https://www.trulia.com")
-            time.sleep(3)
             
-            # Wait for search box
-            wait = WebDriverWait(driver, 15)
+            wait = WebDriverWait(driver, 20)
+            # Wait for page to load
+            try:
+                wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+                time.sleep(3)  # Additional wait for dynamic content
+            except:
+                time.sleep(5)  # Fallback wait
+            
             print(f"[LocationSearcher] Looking for Trulia search box...")
             
+            # Check if page is blocked (CAPTCHA or access denied)
+            page_title = driver.title.lower()
+            if 'access denied' in page_title or 'captcha' in page_title or 'blocked' in page_title:
+                print(f"[LocationSearcher] Page appears blocked: {driver.title}")
+                logger.warning(f"[LocationSearcher] Trulia page may be blocked: {driver.title}")
+                # Still try to find search box, but log warning
+            
             search_box = None
+            
+            # Strategy 1: Try specific selectors with wait for clickable
             search_selectors = [
                 "input[data-testid='location-search-input']",
                 "input#banner-search",
-                "input[aria-label*='Search for City']",
+                "input[aria-label*='Search for City' i]",
+                "input[aria-label*='Search' i][aria-label*='City' i]",
                 "input.react-autosuggest__input",
+                "input[placeholder*='Search' i]",
+                "input[placeholder*='City' i]",
             ]
             
             for selector in search_selectors:
                 try:
-                    search_box = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, selector)))
+                    print(f"[LocationSearcher] Trying selector: {selector}")
+                    search_box = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector)))
                     if search_box.is_displayed() and search_box.is_enabled():
                         print(f"[LocationSearcher] ✓ Found Trulia search box: {selector}")
                         break
+                    else:
+                        search_box = None
                 except TimeoutException:
+                    search_box = None
                     continue
+                except Exception as e:
+                    print(f"[LocationSearcher] Error with selector {selector}: {e}")
+                    search_box = None
+                    continue
+                
+                if search_box:
+                    break
+            
+            # Strategy 2: Find by placeholder text (like FSBO)
+            if not search_box:
+                try:
+                    print(f"[LocationSearcher] Trying placeholder text search...")
+                    all_inputs = driver.find_elements(By.CSS_SELECTOR, "input[type='text'], input[placeholder]")
+                    for inp in all_inputs:
+                        try:
+                            if inp.is_displayed() and inp.is_enabled():
+                                placeholder = (inp.get_attribute('placeholder') or '').lower()
+                                aria_label = (inp.get_attribute('aria-label') or '').lower()
+                                # Trulia might have "Search for City", "Enter a city", etc.
+                                if any(keyword in placeholder or keyword in aria_label for keyword in ['search', 'city', 'location', 'address']):
+                                    search_box = inp
+                                    print(f"[LocationSearcher] ✓ Found Trulia search box by placeholder/aria-label")
+                                    logger.info(f"[LocationSearcher] Found Trulia search box by placeholder: {placeholder[:50]}...")
+                                    break
+                        except:
+                            continue
+                except Exception as e:
+                    print(f"[LocationSearcher] Placeholder search failed: {e}")
             
             if not search_box:
                 # Fallback to URL construction if search box not found
-                print(f"[LocationSearcher] Search box not found, trying URL construction fallback...")
+                print(f"[LocationSearcher] Search box not found after all strategies, trying URL construction fallback...")
                 return cls._try_construct_trulia_url(location_clean)
             
             # Get initial URL
@@ -783,39 +832,78 @@ class LocationSearcher:
             # Use Selenium with Zyte proxy (direct config, same as scrapers)
             driver = cls._get_driver(use_zyte_proxy=True)
             driver.get("https://www.apartments.com")
-            time.sleep(4)  # Wait for page to fully load
             
-            wait = WebDriverWait(driver, 20)
+            wait = WebDriverWait(driver, 25)
+            # Wait for page to load
+            try:
+                wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+                time.sleep(4)  # Additional wait for dynamic content
+            except:
+                time.sleep(6)  # Fallback wait
+            
+            # Check if page is blocked
+            page_title = driver.title.lower()
+            page_source = driver.page_source.lower()
+            if 'access denied' in page_title or 'captcha' in page_source or 'blocked' in page_title:
+                print(f"[LocationSearcher] ⚠️ Page may be blocked: {driver.title}")
+                logger.warning(f"[LocationSearcher] Apartments.com page may be blocked: {driver.title}")
+            
             print(f"[LocationSearcher] Looking for Apartments.com search box...")
             
-            # Try to find search box by ID first (most reliable)
+            # Strategy 1: Try to find search box by ID first (most reliable)
             search_box = None
             try:
-                # Wait for element to be present in DOM
-                search_box = wait.until(EC.presence_of_element_located((By.ID, "quickSearchLookup")))
+                # Wait for element to be clickable (ensures it's visible)
+                search_box = wait.until(EC.element_to_be_clickable((By.ID, "quickSearchLookup")))
                 print(f"[LocationSearcher] ✓ Found search box by ID: quickSearchLookup")
             except TimeoutException:
-                # Try alternative selectors
                 print(f"[LocationSearcher] ID not found, trying alternative selectors...")
+                
+                # Strategy 2: Try alternative selectors
                 search_selectors = [
                     "input.quickSearchLookup",
                     "input[aria-label='Location, School, or Point of Interest']",
                     "input[placeholder='Location, School, or Point of Interest']",
+                    "input[placeholder*='Location, School' i]",
+                    "input[aria-label*='Location' i]",
                 ]
                 
                 for selector in search_selectors:
                     try:
-                        search_box = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, selector)))
+                        print(f"[LocationSearcher] Trying selector: {selector}")
+                        search_box = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector)))
                         print(f"[LocationSearcher] ✓ Found search box: {selector}")
                         break
                     except TimeoutException:
                         continue
+                    except Exception as e:
+                        print(f"[LocationSearcher] Error with selector {selector}: {e}")
+                        continue
+            
+            # Strategy 3: Find by placeholder text (like FSBO)
+            if not search_box:
+                try:
+                    print(f"[LocationSearcher] Trying placeholder text search...")
+                    all_inputs = driver.find_elements(By.CSS_SELECTOR, "input[type='text'], input[placeholder]")
+                    for inp in all_inputs:
+                        try:
+                            if inp.is_displayed() and inp.is_enabled():
+                                placeholder = (inp.get_attribute('placeholder') or '').lower()
+                                aria_label = (inp.get_attribute('aria-label') or '').lower()
+                                # Look for "Location, School, or Point of Interest"
+                                if 'location' in placeholder or 'location' in aria_label:
+                                    if 'school' in placeholder or 'point of interest' in placeholder:
+                                        search_box = inp
+                                        print(f"[LocationSearcher] ✓ Found Apartments.com search box by placeholder/aria-label")
+                                        logger.info(f"[LocationSearcher] Found Apartments.com search box by placeholder: {placeholder[:50]}...")
+                                        break
+                        except:
+                            continue
+                except Exception as e:
+                    print(f"[LocationSearcher] Placeholder search failed: {e}")
             
             if not search_box:
-                raise TimeoutException("Search box not found on Apartments.com")
-            
-            # Wait for element to be visible and clickable
-            wait.until(EC.element_to_be_clickable((By.ID, "quickSearchLookup")))
+                raise TimeoutException("Search box not found on Apartments.com after trying all strategies")
             
             # Click the search box first to reveal placeholder and clear prefilled value
             print(f"[LocationSearcher] Clicking search box to reveal placeholder...")
@@ -1650,87 +1738,133 @@ class LocationSearcher:
     
     @classmethod
     def search_zillow_fsbo(cls, location: str) -> Optional[str]:
-        """Search Zillow FSBO for a location using their search box."""
+        """Search Zillow FSBO for a location using their search box.
+        Element: <input placeholder="Address, neighborhood, city, ZIP" aria-label="Search" role="combobox">
+        Result format: https://www.zillow.com/{city-state}/ (e.g., new-york-ny, los-angeles-ca)
+        """
         driver = None
         try:
             location_clean = location.strip()
             logger.info(f"[LocationSearcher] Searching Zillow FSBO for: {location_clean}")
             
             driver = cls._get_driver(use_zyte_proxy=True)
-            # Go to FSBO page first
-            driver.get("https://www.zillow.com/homes/fsbo/")
-            time.sleep(3)  # Wait for page to load
+            # Go to Zillow homepage first (not FSBO page - search box is on homepage)
+            driver.get("https://www.zillow.com")
             
-            wait = WebDriverWait(driver, 15)
-            # Zillow FSBO uses placeholder "Address, neighborhood, city, ZIP"
-            # First try to find by placeholder text
+            wait = WebDriverWait(driver, 20)
+            # Wait for page to load
+            try:
+                wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+                time.sleep(3)  # Additional wait for dynamic content
+            except:
+                time.sleep(5)  # Fallback wait
+            
+            print(f"[LocationSearcher] Looking for Zillow search box...")
+            
+            # Strategy 1: Find by exact placeholder and aria-label
             search_box = None
             try:
-                all_inputs = driver.find_elements(By.CSS_SELECTOR, "input[type='text']")
-                for inp in all_inputs:
-                    if inp.is_displayed() and inp.is_enabled():
-                        placeholder = (inp.get_attribute('placeholder') or '').lower()
-                        # Zillow placeholder: "Address, neighborhood, city, ZIP"
-                        if any(keyword in placeholder for keyword in ['address', 'neighborhood', 'city', 'zip']):
-                            # Make sure it's not a filter
-                            if 'price' not in placeholder and 'bed' not in placeholder:
-                                search_box = inp
-                                logger.info(f"[LocationSearcher] Found Zillow FSBO search box by placeholder: {placeholder}")
-                                break
-            except:
+                search_box = wait.until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, "input[placeholder='Address, neighborhood, city, ZIP']"))
+                )
+                # Verify it also has aria-label="Search"
+                aria_label = search_box.get_attribute('aria-label') or ''
+                if 'search' in aria_label.lower() or search_box.get_attribute('role') == 'combobox':
+                    print(f"[LocationSearcher] ✓ Found Zillow search box by exact placeholder")
+                    logger.info(f"[LocationSearcher] Found Zillow search box by exact placeholder")
+                else:
+                    search_box = None
+            except TimeoutException:
                 pass
             
-            # Fallback to other selectors
+            # Strategy 2: Find by placeholder pattern
             if not search_box:
-                search_selectors = [
-                    "input[placeholder*='Address, neighborhood']",
-                    "input[placeholder*='city']",
-                    "input[placeholder*='address']",
-                    "input[id*='search']",
-                    "input[name*='search']",
-                    "input[aria-label*='search']",
-                    "input[class*='search']"
-                ]
-                
-                for selector in search_selectors:
-                    try:
-                        elements = driver.find_elements(By.CSS_SELECTOR, selector)
-                        for elem in elements:
-                            if elem.is_displayed() and elem.is_enabled():
-                                search_box = elem
-                                break
-                        if search_box:
-                            break
-                    except:
-                        continue
+                try:
+                    search_box = wait.until(
+                        EC.element_to_be_clickable((By.CSS_SELECTOR, "input[placeholder*='Address, neighborhood' i]"))
+                    )
+                    print(f"[LocationSearcher] ✓ Found Zillow search box by placeholder pattern")
+                    logger.info(f"[LocationSearcher] Found Zillow search box by placeholder pattern")
+                except TimeoutException:
+                    pass
+            
+            # Strategy 3: Find by role="combobox" and aria-label
+            if not search_box:
+                try:
+                    search_box = wait.until(
+                        EC.element_to_be_clickable((By.CSS_SELECTOR, "input[role='combobox'][aria-label='Search']"))
+                    )
+                    print(f"[LocationSearcher] ✓ Found Zillow search box by role and aria-label")
+                    logger.info(f"[LocationSearcher] Found Zillow search box by role and aria-label")
+                except TimeoutException:
+                    pass
+            
+            # Strategy 4: Find by placeholder text (like FSBO)
+            if not search_box:
+                try:
+                    print(f"[LocationSearcher] Trying placeholder text search...")
+                    all_inputs = driver.find_elements(By.CSS_SELECTOR, "input[type='text'], input[role='combobox']")
+                    for inp in all_inputs:
+                        try:
+                            if inp.is_displayed() and inp.is_enabled():
+                                placeholder = (inp.get_attribute('placeholder') or '').lower()
+                                aria_label = (inp.get_attribute('aria-label') or '').lower()
+                                # Zillow placeholder: "Address, neighborhood, city, ZIP"
+                                if any(keyword in placeholder for keyword in ['address', 'neighborhood', 'city', 'zip']):
+                                    # Make sure it's not a filter (price, beds)
+                                    if 'price' not in placeholder and 'bed' not in placeholder and 'bath' not in placeholder:
+                                        search_box = inp
+                                        print(f"[LocationSearcher] ✓ Found Zillow search box by placeholder keywords")
+                                        logger.info(f"[LocationSearcher] Found Zillow search box by placeholder: {placeholder[:50]}...")
+                                        break
+                        except:
+                            continue
+                except Exception as e:
+                    print(f"[LocationSearcher] Placeholder search failed: {e}")
             
             if not search_box:
-                raise TimeoutException("Search box not found on Zillow FSBO")
+                raise TimeoutException("Search box not found on Zillow")
             
+            # Click to focus
+            search_box.click()
+            time.sleep(0.5)
             search_box.clear()
-            search_box.send_keys(location_clean)
-            time.sleep(2)
+            time.sleep(0.5)
             
+            print(f"[LocationSearcher] Typing location: {location_clean}")
+            search_box.send_keys(location_clean)
+            time.sleep(2.5)  # Wait for autocomplete
+            
+            # Try clicking first suggestion or pressing Enter
+            search_submitted = False
             try:
-                suggestions = driver.find_elements(By.CSS_SELECTOR, "div[class*='suggestion'], li[class*='suggestion'], ul[class*='autocomplete'] li, div[role='option']")
+                suggestions_wait = WebDriverWait(driver, 5)
+                suggestions = suggestions_wait.until(
+                    EC.presence_of_all_elements_located((By.CSS_SELECTOR, "ul[role='listbox'] li, div[role='option'], div[aria-label*='result' i]"))
+                )
                 if suggestions:
+                    print(f"[LocationSearcher] Found {len(suggestions)} suggestions, clicking first one...")
                     suggestions[0].click()
+                    search_submitted = True
                     time.sleep(3)
-                else:
-                    try:
-                        submit_btn = driver.find_element(By.CSS_SELECTOR, "button[type='submit'], button[aria-label*='search'], button[class*='search']")
-                        submit_btn.click()
-                    except:
-                        search_box.send_keys(Keys.RETURN)
-                    time.sleep(3)
-            except:
+                    print(f"[LocationSearcher] ✓ Clicked first suggestion")
+            except TimeoutException:
+                print(f"[LocationSearcher] No suggestions found, pressing Enter...")
+            
+            if not search_submitted:
                 search_box.send_keys(Keys.RETURN)
                 time.sleep(3)
             
             current_url = driver.current_url
+            print(f"[LocationSearcher] Zillow FSBO final URL: {current_url}")
             logger.info(f"[LocationSearcher] Zillow FSBO final URL: {current_url}")
             
+            # Verify we got a valid Zillow URL (format: https://www.zillow.com/{city-state}/)
             if 'zillow.com' in current_url:
+                # URL should be in format: https://www.zillow.com/new-york-ny/ or https://www.zillow.com/los-angeles-ca/
+                # Remove trailing slash if present for consistency
+                if current_url.endswith('/') and current_url.count('/') > 4:
+                    current_url = current_url.rstrip('/')
                 return current_url
             
             return None
