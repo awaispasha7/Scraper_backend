@@ -67,15 +67,32 @@ class LocationSearcher:
         
         try:
             if browserless_token:
+                browserless_token = browserless_token.strip()  # Remove any whitespace
                 logger.info("[LocationSearcher] Connecting to Browserless.io...")
                 print("[LocationSearcher] BROWSERLESS_TOKEN found - Using Browserless.io for browser automation")
+                print(f"[LocationSearcher] Token length: {len(browserless_token)} characters")
+                print(f"[LocationSearcher] Token starts with: {browserless_token[:10]}...")
+                
+                # Try the standard Browserless.io endpoint
                 browserless_url = f"https://chrome.browserless.io/webdriver?token={browserless_token}"
                 print(f"[LocationSearcher] Connecting to Browserless.io at: {browserless_url.split('?')[0]}...")
-                driver = webdriver.Remote(
-                    command_executor=browserless_url,
-                    options=chrome_options
-                )
-                print("[LocationSearcher] Successfully connected to Browserless.io")
+                
+                try:
+                    driver = webdriver.Remote(
+                        command_executor=browserless_url,
+                        options=chrome_options
+                    )
+                    print("[LocationSearcher] Successfully connected to Browserless.io")
+                except Exception as e:
+                    error_msg = str(e)
+                    print(f"[LocationSearcher] Failed to connect to Browserless.io: {error_msg}")
+                    if "Invalid API key" in error_msg:
+                        print("[LocationSearcher] ERROR: Invalid API key. Please verify:")
+                        print("[LocationSearcher]   1. The token is correct in your Browserless.io dashboard")
+                        print("[LocationSearcher]   2. There are no extra spaces in the Railway environment variable")
+                        print("[LocationSearcher]   3. The token is active and has available credits")
+                        print("[LocationSearcher]   4. You're using the correct endpoint URL for your account")
+                    raise
             else:
                 print("[LocationSearcher] No BROWSERLESS_TOKEN found - Using local Chrome/Chromium")
                 service = Service()
