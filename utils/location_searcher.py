@@ -88,38 +88,103 @@ class LocationSearcher:
             driver.get("https://www.trulia.com")
             print(f"[LocationSearcher] Page loaded, waiting 5 seconds...")
             time.sleep(5)  # Wait for page to fully load
-            print(f"[LocationSearcher] Starting search for search box...")
             
+            # Debug: Check page title and URL
+            page_title = driver.title
+            current_url = driver.current_url
+            print(f"[LocationSearcher] Page title: {page_title}")
+            print(f"[LocationSearcher] Current URL: {current_url}")
+            
+            # Try to get page source length to verify page loaded
+            try:
+                page_source_length = len(driver.page_source)
+                print(f"[LocationSearcher] Page source length: {page_source_length} characters")
+            except Exception as e:
+                print(f"[LocationSearcher] Could not get page source: {e}")
+            
+            # Wait for page to be fully interactive
             wait = WebDriverWait(driver, 20)
+            
+            # Wait for body or main content to be present
+            try:
+                wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+                print(f"[LocationSearcher] Body element found, page should be loaded")
+            except Exception as e:
+                print(f"[LocationSearcher] WARNING: Body element not found: {e}")
+            
+            print(f"[LocationSearcher] Starting search for search box...")
             
             # Simple approach: Use the exact selectors from Trulia HTML
             # Primary: data-testid="location-search-input"
             # Fallback: id="banner-search"
             search_box = None
             
-            try:
-                # Try the most reliable selector first
-                print(f"[LocationSearcher] Trying selector: input[data-testid='location-search-input']")
-                search_box = wait.until(
-                    EC.presence_of_element_located((By.CSS_SELECTOR, "input[data-testid='location-search-input']"))
-                )
-                logger.info(f"[LocationSearcher] Found Trulia search box by data-testid")
-                print(f"[LocationSearcher] SUCCESS: Found search box by data-testid")
-            except TimeoutException as e1:
-                print(f"[LocationSearcher] First selector failed: {e1}")
+            # Try multiple strategies to find the search box
+            search_box = None
+            
+            # Strategy 1: Try exact selectors with shorter timeout
+            selectors_to_try = [
+                ("input[data-testid='location-search-input']", "data-testid"),
+                ("input#banner-search", "id"),
+                ("input[aria-label*='Search for City']", "aria-label"),
+                ("input.react-autosuggest__input", "class"),
+                ("input[type='text'][placeholder*='City']", "placeholder"),
+            ]
+            
+            for selector, selector_type in selectors_to_try:
                 try:
-                    # Fallback to id
-                    print(f"[LocationSearcher] Trying fallback selector: input#banner-search")
-                    search_box = wait.until(
-                        EC.presence_of_element_located((By.CSS_SELECTOR, "input#banner-search"))
+                    print(f"[LocationSearcher] Trying selector ({selector_type}): {selector}")
+                    search_box = WebDriverWait(driver, 5).until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, selector))
                     )
-                    logger.info(f"[LocationSearcher] Found Trulia search box by id")
-                    print(f"[LocationSearcher] SUCCESS: Found search box by id")
-                except TimeoutException as e2:
-                    print(f"[LocationSearcher] FAILED: Both selectors failed")
-                    print(f"[LocationSearcher] First error: {e1}")
-                    print(f"[LocationSearcher] Second error: {e2}")
-                    raise TimeoutException("Trulia search box not found - tried data-testid and id")
+                    # Verify it's visible and enabled
+                    if search_box.is_displayed() and search_box.is_enabled():
+                        logger.info(f"[LocationSearcher] Found Trulia search box by {selector_type}")
+                        print(f"[LocationSearcher] SUCCESS: Found search box by {selector_type}")
+                        break
+                    else:
+                        print(f"[LocationSearcher] Found element but not visible/enabled, trying next...")
+                        search_box = None
+                except TimeoutException as e:
+                    print(f"[LocationSearcher] Selector {selector_type} failed: timeout")
+                    continue
+                except Exception as e:
+                    print(f"[LocationSearcher] Selector {selector_type} failed: {e}")
+                    continue
+            
+            # Strategy 2: If still not found, try finding any visible text input
+            if not search_box:
+                print(f"[LocationSearcher] Trying fallback: finding any visible text input...")
+                try:
+                    all_inputs = driver.find_elements(By.CSS_SELECTOR, "input[type='text']")
+                    print(f"[LocationSearcher] Found {len(all_inputs)} text inputs on page")
+                    for inp in all_inputs:
+                        try:
+                            if inp.is_displayed() and inp.is_enabled():
+                                # Check if it might be a search box (has placeholder, aria-label, or id with 'search')
+                                placeholder = inp.get_attribute('placeholder') or ''
+                                aria_label = inp.get_attribute('aria-label') or ''
+                                input_id = inp.get_attribute('id') or ''
+                                
+                                if any(keyword in placeholder.lower() for keyword in ['search', 'city', 'location']) or \
+                                   any(keyword in aria_label.lower() for keyword in ['search', 'city', 'location']) or \
+                                   'search' in input_id.lower():
+                                    search_box = inp
+                                    print(f"[LocationSearcher] Found search box by fallback: placeholder={placeholder[:50]}, aria-label={aria_label[:50]}, id={input_id}")
+                                    break
+                        except:
+                            continue
+                except Exception as e:
+                    print(f"[LocationSearcher] Fallback search failed: {e}")
+            
+            if not search_box:
+                # Last attempt: get page source snippet for debugging
+                try:
+                    page_source_snippet = driver.page_source[:2000]  # First 2000 chars
+                    print(f"[LocationSearcher] Page source snippet (first 2000 chars):\n{page_source_snippet}")
+                except:
+                    pass
+                raise TimeoutException("Trulia search box not found after trying all selectors")
             
             # Ensure it's visible and enabled
             if not search_box.is_displayed() or not search_box.is_enabled():
