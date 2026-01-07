@@ -76,6 +76,10 @@ class LocationSearcher:
         - https://www.trulia.com/MN/Minneapolis/
         - https://www.trulia.com/DC/Washington/
         - https://www.trulia.com/NY/New_York/
+        
+        Note: Trulia search box may show random text based on last searches,
+        and placeholder is only visible when clicked. We use multiple strategies
+        to find the search box reliably.
         """
         driver = None
         try:
@@ -84,76 +88,165 @@ class LocationSearcher:
             
             driver = cls._get_driver()
             driver.get("https://www.trulia.com")
-            time.sleep(3)  # Wait for page to load
+            time.sleep(4)  # Wait for page to fully load
             
             wait = WebDriverWait(driver, 15)
             
-            # Trulia uses placeholder "Search for City, Neighborhood, Zip, County"
-            # First try to find by placeholder text
+            # Trulia search box strategies (in order of reliability):
+            # 1. Look for input by structural position (usually the main hero search box)
+            # 2. Look for input by id/class patterns
+            # 3. Look for input by aria-label
+            # 4. Click on visible inputs to reveal placeholder
+            # 5. Fallback to any visible text input in the hero/search area
+            
             search_box = None
-            try:
-                all_inputs = driver.find_elements(By.CSS_SELECTOR, "input[type='text']")
-                for inp in all_inputs:
-                    if inp.is_displayed() and inp.is_enabled():
-                        placeholder = (inp.get_attribute('placeholder') or '').lower()
-                        # Trulia placeholder: "Search for City, Neighborhood, Zip, County"
-                        if any(keyword in placeholder for keyword in ['search for city', 'city, neighborhood', 'neighborhood, zip', 'zip, county']):
-                            search_box = inp
-                            logger.info(f"[LocationSearcher] Found Trulia search box by placeholder: {placeholder[:60]}...")
-                            break
-            except Exception as e:
-                logger.debug(f"[LocationSearcher] Error finding by placeholder: {e}")
             
-            # Fallback to other selectors
+            # Strategy 1: Look for input by specific selectors (most reliable)
+            search_selectors = [
+                # Common Trulia search box identifiers
+                "input[type='text'][aria-label*='search']",
+                "input[type='text'][aria-label*='Search']",
+                "input[type='text'][id*='search']",
+                "input[type='text'][name*='search']",
+                "input[type='text'][class*='Search']",
+                "input[type='text'][class*='search']",
+                # Hero area search box (usually has specific classes)
+                "div[class*='Hero'] input[type='text']",
+                "div[class*='hero'] input[type='text']",
+                "div[class*='SearchBox'] input[type='text']",
+                "div[class*='search'] input[type='text']",
+                # Form-based selectors
+                "form input[type='text']",
+            ]
+            
+            for selector in search_selectors:
+                try:
+                    elements = driver.find_elements(By.CSS_SELECTOR, selector)
+                    for elem in elements:
+                        if elem.is_displayed() and elem.is_enabled():
+                            # Verify it's likely a location search (not price/beds/baths)
+                            aria_label = (elem.get_attribute('aria-label') or '').lower()
+                            placeholder = (elem.get_attribute('placeholder') or '').lower()
+                            name_attr = (elem.get_attribute('name') or '').lower()
+                            
+                            # Skip if it's clearly not a location search
+                            if any(skip_term in aria_label or skip_term in placeholder or skip_term in name_attr 
+                                   for skip_term in ['price', 'bed', 'bath', 'min', 'max', 'filter']):
+                                continue
+                            
+                            search_box = elem
+                            logger.info(f"[LocationSearcher] Found Trulia search box using selector: {selector}")
+                            break
+                    if search_box:
+                        break
+                except Exception as e:
+                    logger.debug(f"[LocationSearcher] Selector {selector} failed: {e}")
+                    continue
+            
+            # Strategy 2: Click on visible inputs to reveal placeholder
             if not search_box:
-                search_selectors = [
-                    "input[placeholder*='Search for City']",
-                    "input[placeholder*='City, Neighborhood']",
-                    "input[placeholder*='city, neighborhood']",
-                    "input[placeholder*='city']",
-                    "input[id*='search']",
-                    "input[name*='search']",
-                    "input[class*='search']",
-                    "input[aria-label*='search']"
-                ]
-                
-                for selector in search_selectors:
-                    try:
-                        elements = driver.find_elements(By.CSS_SELECTOR, selector)
-                        for elem in elements:
-                            if elem.is_displayed() and elem.is_enabled():
-                                search_box = elem
-                                logger.info(f"[LocationSearcher] Found Trulia search box using selector: {selector}")
+                logger.info(f"[LocationSearcher] Trying to find search box by clicking visible inputs...")
+                try:
+                    all_text_inputs = driver.find_elements(By.CSS_SELECTOR, "input[type='text']")
+                    for inp in all_text_inputs:
+                        if inp.is_displayed() and inp.is_enabled():
+                            try:
+                                # Click to activate and check placeholder
+                                inp.click()
+                                time.sleep(0.5)
+                                placeholder = (inp.get_attribute('placeholder') or '').lower()
+                                
+                                # Check if placeholder contains location-related keywords
+                                if any(keyword in placeholder for keyword in ['search for city', 'city, neighborhood', 'neighborhood', 'zip', 'county', 'location']):
+                                    search_box = inp
+                                    logger.info(f"[LocationSearcher] Found Trulia search box by clicking and checking placeholder: {placeholder[:60]}...")
+                                    break
+                            except:
+                                continue
+                except Exception as e:
+                    logger.debug(f"[LocationSearcher] Error in click-to-reveal strategy: {e}")
+            
+            # Strategy 3: Find the largest/primary text input (usually the hero search)
+            if not search_box:
+                logger.info(f"[LocationSearcher] Trying to find largest visible text input...")
+                try:
+                    all_text_inputs = driver.find_elements(By.CSS_SELECTOR, "input[type='text']")
+                    visible_inputs = [inp for inp in all_text_inputs if inp.is_displayed() and inp.is_enabled()]
+                    
+                    if visible_inputs:
+                        # Sort by size (width * height) - hero search is usually largest
+                        visible_inputs.sort(key=lambda x: (x.size['width'] * x.size['height']), reverse=True)
+                        # Take the largest one that's not clearly a filter
+                        for inp in visible_inputs[:3]:  # Check top 3 largest
+                            aria_label = (inp.get_attribute('aria-label') or '').lower()
+                            name_attr = (inp.get_attribute('name') or '').lower()
+                            
+                            # Skip filter inputs
+                            if not any(skip_term in aria_label or skip_term in name_attr 
+                                      for skip_term in ['price', 'bed', 'bath', 'min', 'max', 'filter']):
+                                search_box = inp
+                                logger.info(f"[LocationSearcher] Found Trulia search box by size (largest visible input)")
                                 break
-                        if search_box:
-                            break
-                    except:
-                        continue
+                except Exception as e:
+                    logger.debug(f"[LocationSearcher] Error in size-based strategy: {e}")
             
             if not search_box:
-                raise TimeoutException("Search box not found on Trulia")
+                raise TimeoutException("Search box not found on Trulia after trying all strategies")
             
-            # Clear and enter location text
+            # Click on the search box to ensure it's focused and placeholder is visible
+            try:
+                search_box.click()
+                time.sleep(0.5)
+            except:
+                pass  # Continue even if click fails
+            
+            # Clear any existing text and enter location
             search_box.clear()
             time.sleep(0.5)
             search_box.send_keys(location_clean)
             logger.info(f"[LocationSearcher] Entered '{location_clean}' into Trulia search box")
-            time.sleep(2)  # Wait for autocomplete suggestions
+            time.sleep(2.5)  # Wait for autocomplete suggestions to appear
             
             # Wait for and click the first autocomplete suggestion
             try:
-                # Wait for suggestions to appear (they may be in a dropdown with map pin icons)
-                suggestions = WebDriverWait(driver, 5).until(
-                    EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div[class*='suggestion'], li[class*='suggestion'], ul[class*='autocomplete'] li, div[role='option'], ul[role='listbox'] li, div[class*='SearchAutocomplete'] div"))
-                )
+                # Wait for suggestions to appear - try multiple selectors
+                suggestion_selectors = [
+                    "ul[role='listbox'] li",
+                    "div[role='listbox'] div[role='option']",
+                    "ul[class*='autocomplete'] li",
+                    "div[class*='autocomplete'] div",
+                    "div[class*='suggestion']",
+                    "li[class*='suggestion']",
+                    "div[class*='SearchAutocomplete'] div",
+                    "div[class*='search'] div[class*='option']"
+                ]
+                
+                suggestions = []
+                for selector in suggestion_selectors:
+                    try:
+                        suggestions = WebDriverWait(driver, 3).until(
+                            EC.presence_of_all_elements_located((By.CSS_SELECTOR, selector))
+                        )
+                        if suggestions and len(suggestions) > 0:
+                            logger.info(f"[LocationSearcher] Found {len(suggestions)} autocomplete suggestions using selector: {selector}")
+                            break
+                    except TimeoutException:
+                        continue
+                
                 if suggestions and len(suggestions) > 0:
-                    logger.info(f"[LocationSearcher] Found {len(suggestions)} autocomplete suggestions, clicking first one")
-                    # Click the first suggestion (e.g., "Minneapolis, MN" or "Washington, DC")
-                    suggestions[0].click()
-                    time.sleep(3)  # Wait for redirect after clicking
+                    # Filter to only visible suggestions
+                    visible_suggestions = [s for s in suggestions if s.is_displayed()]
+                    if visible_suggestions:
+                        logger.info(f"[LocationSearcher] Clicking first visible suggestion: {visible_suggestions[0].text[:50]}...")
+                        visible_suggestions[0].click()
+                        time.sleep(3)  # Wait for redirect after clicking
+                    else:
+                        logger.info(f"[LocationSearcher] No visible suggestions, pressing Enter key")
+                        search_box.send_keys(Keys.RETURN)
+                        time.sleep(3)
                 else:
-                    # No suggestions, try Enter key or search button
-                    logger.info(f"[LocationSearcher] No suggestions found, trying Enter key")
+                    # No suggestions, try Enter key
+                    logger.info(f"[LocationSearcher] No suggestions found, pressing Enter key")
                     search_box.send_keys(Keys.RETURN)
                     time.sleep(3)
             except TimeoutException:
@@ -167,13 +260,11 @@ class LocationSearcher:
                 time.sleep(3)
             
             # Get the final URL after redirect
-            # Expected format: /{STATE}/{City}/ or /{STATE}/{City_Name}/
             time.sleep(2)  # Extra wait for redirect
             current_url = driver.current_url
             logger.info(f"[LocationSearcher] Trulia final URL: {current_url}")
             
             # Simply return whatever URL we ended up on
-            # The website's natural redirect will give us the correct URL format
             if 'trulia.com' in current_url:
                 return current_url
             
@@ -184,6 +275,8 @@ class LocationSearcher:
             return None
         except Exception as e:
             logger.error(f"[LocationSearcher] Error searching Trulia: {e}")
+            import traceback
+            logger.error(f"[LocationSearcher] Traceback: {traceback.format_exc()}")
             return None
         finally:
             if driver:
