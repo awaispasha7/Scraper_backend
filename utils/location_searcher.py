@@ -243,29 +243,84 @@ class LocationSearcher:
                 current_url = page.url
                 print(f"[LocationSearcher] Page title: {page_title}, URL: {current_url}")
                 
-                # Check if blocked
-                page_content = page.content()
-                if "denied" in page_title.lower() or "captcha" in page_title.lower() or "blocked" in page_title.lower() or "perimeterx" in page_content.lower():
-                    print(f"[LocationSearcher] Still blocked even with Browserless.io (Title: {page_title})")
-                    print(f"[LocationSearcher] Attempting alternative approach: Waiting longer and retrying...")
+                # PRIORITY: Check if search box exists FIRST (best indicator of success)
+                # PerimeterX code may be present even when page works - don't rely on it alone
+                print(f"[LocationSearcher] Checking for search box (waiting up to 10 seconds)...")
+                search_box_check = None
+                
+                for wait_attempt in range(5):  # Try 5 times with 2 second delays
+                    selectors_to_check = [
+                        "input[data-testid='location-search-input']",
+                        "input#banner-search",
+                        "input[aria-label*='Search for City']",
+                        "input.react-autosuggest__input",
+                    ]
                     
-                    # Try waiting longer and checking again - sometimes CAPTCHA loads after initial page load
-                    time.sleep(5)
-                    page_title_retry = page.title()
-                    current_url_retry = page.url
-                    page_content_retry = page.content()
+                    for selector in selectors_to_check:
+                        try:
+                            search_box_check = page.query_selector(selector)
+                            if search_box_check:
+                                try:
+                                    if search_box_check.is_visible():
+                                        print(f"[LocationSearcher] ✓ Search box found and visible: {selector}")
+                                        break
+                                except:
+                                    # If visibility check fails, try to use it anyway
+                                    print(f"[LocationSearcher] ✓ Search box found (visibility uncertain): {selector}")
+                                    break
+                        except:
+                            continue
                     
-                    if "denied" not in page_title_retry.lower() and "captcha" not in page_title_retry.lower() and "perimeterx" not in page_content_retry.lower():
-                        print(f"[LocationSearcher] Page loaded successfully after wait (Title: {page_title_retry})")
-                        # Continue with search
-                    else:
-                        print(f"[LocationSearcher] Still blocked after wait. Trulia's bot detection is very aggressive.")
-                        print(f"[LocationSearcher] Consider using a residential proxy or waiting before retrying.")
+                    if search_box_check:
+                        break
+                    
+                    if wait_attempt < 4:
+                        print(f"[LocationSearcher] Search box not found yet, waiting 2 more seconds... (attempt {wait_attempt + 2}/5)")
+                        time.sleep(2)
+                
+                if not search_box_check:
+                    # Search box not found - check for explicit blocking messages
+                    print(f"[LocationSearcher] Search box not found. Checking for blocking messages...")
+                    page_content = page.content().lower()
+                    
+                    # Only check for EXPLICIT blocking messages, not just PerimeterX presence
+                    explicit_blocking = (
+                        "access to this page has been denied" in page_content or
+                        "please verify you are human" in page_content or
+                        ("perimeterx" in page_content and ("sorry" in page_content or "blocked" in page_content and "access" in page_content))
+                    )
+                    
+                    if explicit_blocking:
+                        print(f"[LocationSearcher] Confirmed blocked. Trying alternative: Direct URL construction...")
+                        # Last resort: Try constructing URL directly from location
+                        constructed_url = cls._try_construct_trulia_url(location_clean)
+                        if constructed_url:
+                            try:
+                                print(f"[LocationSearcher] Attempting constructed URL: {constructed_url}")
+                                page.goto(constructed_url, wait_until="domcontentloaded", timeout=30000)
+                                time.sleep(3)
+                                final_url = page.url
+                                if 'trulia.com' in final_url and final_url != 'https://www.trulia.com/':
+                                    print(f"[LocationSearcher] ✓ Constructed URL worked: {final_url}")
+                                    browser.close()
+                                    return final_url
+                            except Exception as e:
+                                print(f"[LocationSearcher] Constructed URL failed: {e}")
+                        
+                        print(f"[LocationSearcher] All attempts failed. Trulia's bot detection is very aggressive.")
+                        print(f"[LocationSearcher] Recommendation: Use a residential proxy or try again later.")
                         try:
                             browser.close()
                         except:
                             pass
                         return None
+                    else:
+                        # No explicit blocking but no search box - might be a loading issue
+                        print(f"[LocationSearcher] Search box not found but no explicit blocking detected.")
+                        print(f"[LocationSearcher] Page may still be loading JavaScript. Attempting to proceed...")
+                        # Continue to try finding search box in next step
+                
+                print(f"[LocationSearcher] Proceeding with search...")
                 
                 # Find search box using Playwright
                 search_box = None
