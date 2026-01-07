@@ -688,14 +688,37 @@ class LocationSearcher:
             logger.info(f"[LocationSearcher] Searching Apartments.com for: {location_clean}")
             
             driver = cls._get_driver()
+            print(f"[LocationSearcher] Navigating to Apartments.com...")
+            logger.info("[STATUS] Loading Apartments.com...")
             driver.get("https://www.apartments.com")
-            time.sleep(2)  # Wait for page to load
+            
+            # Wait a bit longer for page to fully load
+            time.sleep(5)  # Increased wait time
+            
+            # Check what page actually loaded
+            current_url = driver.current_url
+            page_title = driver.title
+            print(f"[LocationSearcher] Page loaded - URL: {current_url}")
+            print(f"[LocationSearcher] Page title: {page_title}")
+            
+            # Check if page is blocked or redirected
+            if 'apartments.com' not in current_url.lower():
+                print(f"[LocationSearcher] WARNING: Page redirected or blocked. Current URL: {current_url}")
             
             # Wait for search box using WebDriverWait - Apartments.com uses specific ID
-            wait = WebDriverWait(driver, 20)  # Increased timeout to 20 seconds
+            # Use shorter timeout per selector to fail faster (5 seconds each)
+            wait_short = WebDriverWait(driver, 5)  # 5 seconds per selector to fail faster
             
             print(f"[LocationSearcher] Waiting for Apartments.com search box to appear...")
-            logger.info("[STATUS] Loading Apartments.com and locating search box...")
+            logger.info("[STATUS] Locating search box on Apartments.com...")
+            
+            # First, wait for page to be interactive (JavaScript loaded)
+            try:
+                print(f"[LocationSearcher] Waiting for page JavaScript to load...")
+                driver.execute_script("return document.readyState")  # Check if JS is ready
+                time.sleep(2)  # Additional wait for dynamic content
+            except:
+                pass
             
             # Try selectors in order of specificity - use WebDriverWait for each
             search_box = None
@@ -711,7 +734,7 @@ class LocationSearcher:
             for selector in search_selectors:
                 try:
                     print(f"[LocationSearcher] Trying selector: {selector}")
-                    search_box = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, selector)))
+                    search_box = wait_short.until(EC.presence_of_element_located((By.CSS_SELECTOR, selector)))
                     # Check if element is visible and enabled
                     if search_box.is_displayed() and search_box.is_enabled():
                         logger.info(f"[LocationSearcher] ✓ Found Apartments.com search box with selector: {selector}")
@@ -721,7 +744,7 @@ class LocationSearcher:
                         print(f"[LocationSearcher] Search box found but not visible/enabled: {selector}")
                         search_box = None
                 except TimeoutException:
-                    print(f"[LocationSearcher] Timeout waiting for selector: {selector}")
+                    print(f"[LocationSearcher] Timeout waiting for selector: {selector} (5s)")
                     continue
                 except Exception as e:
                     print(f"[LocationSearcher] Error with selector {selector}: {e}")
@@ -731,12 +754,28 @@ class LocationSearcher:
             if not search_box:
                 print(f"[LocationSearcher] Specific selectors failed, trying fallback method...")
                 try:
-                    # Wait for any text input to be present
-                    wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "input[type='text']")))
-                    all_inputs = driver.find_elements(By.CSS_SELECTOR, "input[type='text']")
-                    print(f"[LocationSearcher] Found {len(all_inputs)} text inputs, checking for search box...")
+                    # Check page source first to see if search box exists
+                    page_source_lower = driver.page_source.lower()
+                    if 'quicksearchlookup' in page_source_lower:
+                        print(f"[LocationSearcher] DEBUG: 'quickSearchLookup' found in page source but Selenium can't locate it")
+                    else:
+                        print(f"[LocationSearcher] DEBUG: 'quickSearchLookup' NOT in page source - page structure may differ")
                     
-                    for inp in all_inputs:
+                    # Try to find any text inputs (with shorter timeout)
+                    try:
+                        wait_short.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "input[type='text']")))
+                    except:
+                        # If no text inputs found at all, check for any inputs
+                        print(f"[LocationSearcher] No text inputs found, checking for any input elements...")
+                        try:
+                            wait_short.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "input")))
+                        except:
+                            print(f"[LocationSearcher] WARNING: No input elements found on page at all!")
+                    
+                    all_inputs = driver.find_elements(By.CSS_SELECTOR, "input[type='text'], input:not([type]), input")
+                    print(f"[LocationSearcher] Found {len(all_inputs)} total inputs, checking each one...")
+                    
+                    for i, inp in enumerate(all_inputs[:10]):  # Limit to first 10 to save time
                         try:
                             if inp.is_displayed() and inp.is_enabled():
                                 placeholder = (inp.get_attribute('placeholder') or '').lower()
@@ -744,22 +783,63 @@ class LocationSearcher:
                                 input_id = (inp.get_attribute('id') or '').lower()
                                 input_class = (inp.get_attribute('class') or '').lower()
                                 
+                                print(f"[LocationSearcher] Input #{i}: id='{input_id}', class='{input_class[:40]}', placeholder='{placeholder[:40]}'")
+                                
                                 # Check for Apartments.com specific indicators
                                 if ('quicksearch' in input_id or 
                                     'quicksearch' in input_class or
                                     'location, school' in placeholder or 
-                                    'location, school' in aria_label):
+                                    'location, school' in aria_label or
+                                    'point of interest' in placeholder):
                                     search_box = inp
                                     logger.info(f"[LocationSearcher] ✓ Found Apartments.com search box via fallback: id={input_id}, placeholder={placeholder[:50]}")
                                     print(f"[LocationSearcher] ✓ Found search box via fallback")
                                     break
-                        except:
+                        except Exception as inp_err:
+                            print(f"[LocationSearcher] Error checking input #{i}: {inp_err}")
                             continue
+                    
+                    # Last resort: use first visible text input
+                    if not search_box and len(all_inputs) > 0:
+                        print(f"[LocationSearcher] No matching input found, trying first visible input as last resort...")
+                        for inp in all_inputs[:5]:  # Try first 5
+                            try:
+                                if inp.is_displayed() and inp.is_enabled():
+                                    search_box = inp
+                                    print(f"[LocationSearcher] Using first visible input as search box (last resort)")
+                                    break
+                            except:
+                                continue
                 except Exception as e:
                     print(f"[LocationSearcher] Fallback method error: {e}")
+                    import traceback
+                    print(f"[LocationSearcher] Fallback traceback: {traceback.format_exc()}")
+                    import traceback
+                    print(f"[LocationSearcher] Fallback traceback: {traceback.format_exc()}")
             
             if not search_box:
-                raise TimeoutException("Search box not found on Apartments.com after trying all selectors")
+                # Get page info for debugging
+                try:
+                    page_source_snippet = driver.page_source[:500].lower()
+                    page_source_length = len(driver.page_source)
+                    print(f"[LocationSearcher] DEBUG: Page source length: {page_source_length} characters")
+                    print(f"[LocationSearcher] DEBUG: Current URL: {driver.current_url}")
+                    print(f"[LocationSearcher] DEBUG: Page title: {driver.title}")
+                    print(f"[LocationSearcher] DEBUG: Page source preview: {driver.page_source[:300]}...")
+                    
+                    # Check if page might be blocked
+                    if 'blocked' in page_source_snippet or 'access denied' in page_source_snippet or 'bot' in page_source_snippet:
+                        print(f"[LocationSearcher] WARNING: Page might be blocked or detecting bot")
+                    
+                    # Check if quickSearchLookup exists at all in page source
+                    if 'quicksearchlookup' in page_source_snippet or 'quickSearchLookup' in driver.page_source:
+                        print(f"[LocationSearcher] DEBUG: Found 'quickSearchLookup' in page source but couldn't locate element")
+                    else:
+                        print(f"[LocationSearcher] DEBUG: 'quickSearchLookup' NOT found in page source - page structure may be different")
+                except Exception as debug_err:
+                    print(f"[LocationSearcher] Error getting debug info: {debug_err}")
+                
+                raise TimeoutException("Search box not found on Apartments.com after trying all selectors. Page may not have loaded correctly, structure is different, or page is blocking automated access.")
             
             # Get initial URL before search
             initial_url = driver.current_url
