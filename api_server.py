@@ -36,6 +36,7 @@ enrichment_status = {"running": False, "last_run": None, "last_result": None, "e
 
 # Global process tracker for stopping
 active_processes = {}
+user_stopped_processes = set()  # Track processes stopped by user (to avoid logging as errors)
 stop_all_requested = False
 
 # Global Log Buffer
@@ -105,6 +106,9 @@ def run_process_with_logging(cmd, cwd, scraper_name, status_dict, env=None):
         success = returncode == 0
         status_dict["running"] = False
         
+        # Check if this was a user-initiated stop (negative return codes indicate termination signals)
+        was_user_stopped = scraper_name in user_stopped_processes or returncode < 0
+        
         if success:
             result_info = {
                 "success": True,
@@ -112,7 +116,20 @@ def run_process_with_logging(cmd, cwd, scraper_name, status_dict, env=None):
                 "timestamp": datetime.now().isoformat()
             }
             add_log(f"{scraper_name} completed successfully.", "success")
+        elif was_user_stopped:
+            # User-initiated stop (negative return code = termination signal like SIGTERM -15, SIGKILL -9)
+            msg = f"{scraper_name} stopped by user."
+            result_info = {
+                "success": True,  # Treat as successful operation (user action, not error)
+                "returncode": returncode,
+                "stopped_by_user": True,
+                "timestamp": datetime.now().isoformat()
+            }
+            add_log(msg, "info")
+            # Remove from tracking set
+            user_stopped_processes.discard(scraper_name)
         else:
+            # Actual error - non-zero return code that wasn't user-initiated
             msg = f"{scraper_name} failed with return code {returncode}."
             result_info = {
                 "success": False,
@@ -140,6 +157,8 @@ def ensure_process_killed(scraper_name):
     """Kill process if it exists in active_processes"""
     process = active_processes.get(scraper_name)
     if process:
+        # Mark as user-stopped so we don't log the termination as an error
+        user_stopped_processes.add(scraper_name)
         try:
             process.terminate()
             time.sleep(1)
