@@ -350,37 +350,85 @@ class LocationSearcher:
                 search_box.click()
                 search_box.fill("")  # Clear
                 search_box.fill(location_clean)  # Paste directly
-                time.sleep(1.5)  # Brief wait for autocomplete suggestions
+                time.sleep(2)  # Wait for autocomplete suggestions to appear
                 
-                # Wait for suggestions and click first one, or press Enter
+                # Wait for suggestions and click the appropriate one
                 try:
-                    # Try to find and click first suggestion (quick check)
-                    suggestions = page.query_selector_all("#react-autowhatever-home-banner li, .react-autosuggest__suggestions-container li")
+                    # Wait for suggestions container to appear
+                    logger.info("[STATUS] Waiting for location suggestions...")
+                    print(f"[LocationSearcher] [STATUS] Waiting for location suggestions...")
+                    time.sleep(1)  # Give suggestions time to render
+                    
+                    # Try to find suggestions
+                    suggestions = page.query_selector_all("#react-autowhatever-home-banner li, .react-autosuggest__suggestions-container li, ul[role='listbox'] li")
                     if suggestions:
-                        visible_suggestions = [s for s in suggestions if s.is_visible()]
+                        visible_suggestions = []
+                        for s in suggestions:
+                            try:
+                                if s.is_visible():
+                                    suggestion_text = s.inner_text().strip()
+                                    # Skip "Current Location" - we want actual location suggestions
+                                    if suggestion_text and "current location" not in suggestion_text.lower():
+                                        visible_suggestions.append((s, suggestion_text))
+                            except:
+                                continue
+                        
                         if visible_suggestions:
-                            suggestion_text = visible_suggestions[0].inner_text()[:50]
-                            print(f"[LocationSearcher] Clicking first suggestion: {suggestion_text}")
-                            visible_suggestions[0].click()
-                            time.sleep(2)  # Reduced wait
+                            # Use the first actual location suggestion (not "Current Location")
+                            suggestion_element, suggestion_text = visible_suggestions[0]
+                            print(f"[LocationSearcher] Clicking location suggestion: {suggestion_text[:80]}")
+                            logger.info(f"[STATUS] Selecting location: {suggestion_text[:80]}")
+                            
+                            # Use JavaScript click to avoid connection issues
+                            try:
+                                suggestion_element.evaluate("element => element.click()")
+                            except:
+                                # Fallback to regular click
+                                suggestion_element.click()
+                            
+                            # Wait for navigation
+                            try:
+                                page.wait_for_load_state("networkidle", timeout=10000)
+                            except:
+                                time.sleep(3)  # Fallback wait
                         else:
+                            # No valid suggestions, try pressing Enter
+                            print(f"[LocationSearcher] No valid suggestions found, pressing Enter")
                             search_box.press("Enter")
-                            time.sleep(2)
+                            time.sleep(3)
                     else:
+                        # No suggestions container, press Enter
+                        print(f"[LocationSearcher] No suggestions container found, pressing Enter")
                         search_box.press("Enter")
-                        time.sleep(2)
-                except:
-                    search_box.press("Enter")
-                    time.sleep(2)
+                        time.sleep(3)
+                except Exception as suggestion_error:
+                    # If anything fails, try pressing Enter as fallback
+                    print(f"[LocationSearcher] Error handling suggestions ({suggestion_error}), pressing Enter as fallback")
+                    try:
+                        search_box.press("Enter")
+                        time.sleep(3)
+                    except:
+                        pass
                 
-                # Get final URL (minimal wait - page should have redirected)
-                time.sleep(1)
-                final_url = page.url
-                print(f"[LocationSearcher] Playwright final URL: {final_url}")
+                # Get final URL (wait for any navigation to complete)
+                logger.info("[STATUS] Retrieving final URL...")
+                print(f"[LocationSearcher] [STATUS] Retrieving final URL...")
+                time.sleep(2)  # Give navigation time to complete
                 
-                browser.close()
+                try:
+                    final_url = page.url
+                    print(f"[LocationSearcher] Playwright final URL: {final_url}")
+                except Exception as url_error:
+                    print(f"[LocationSearcher] Error getting final URL: {url_error}")
+                    final_url = None
+                finally:
+                    # Always close browser
+                    try:
+                        browser.close()
+                    except:
+                        pass
                 
-                if 'trulia.com' in final_url and final_url != 'https://www.trulia.com':
+                if final_url and 'trulia.com' in final_url and final_url != 'https://www.trulia.com' and final_url != 'https://www.trulia.com/':
                     return final_url
                 
                 return None
