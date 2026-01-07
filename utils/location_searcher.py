@@ -715,12 +715,14 @@ class LocationSearcher:
             except:
                 pass
             
-            # Fallback to other selectors
+            # Fallback to other selectors - use the specific ID from HTML provided
             if not search_box:
                 search_selectors = [
+                    "input#quickSearchLookup",  # Specific ID from Apartments.com
+                    "input.quickSearchLookup",  # Class name
                     "input[aria-label*='Location']",
                     "input[placeholder*='Location']",
-                    "input[placeholder*='New York']",  # City name pattern
+                    "input[placeholder*='Location, School']",
                     "input[type='text'][name*='search']",
                     "input[id*='search']",
                     "input[class*='search']",
@@ -733,6 +735,7 @@ class LocationSearcher:
                         for elem in elements:
                             if elem.is_displayed() and elem.is_enabled():
                                 search_box = elem
+                                logger.info(f"[LocationSearcher] Found Apartments.com search box with selector: {selector}")
                                 break
                         if search_box:
                             break
@@ -742,6 +745,10 @@ class LocationSearcher:
             if not search_box:
                 raise TimeoutException("Search box not found on Apartments.com")
             
+            # Get initial URL before search
+            initial_url = driver.current_url
+            print(f"[LocationSearcher] Initial URL: {initial_url}")
+            
             # Clear the search box
             search_box.clear()
             time.sleep(0.5)
@@ -749,45 +756,72 @@ class LocationSearcher:
             # Enter location text
             search_box.send_keys(location_clean)
             logger.info(f"[LocationSearcher] Entered '{location_clean}' into Apartments.com search box")
-            time.sleep(2)  # Wait for autocomplete suggestions to appear
+            time.sleep(2.5)  # Wait for autocomplete suggestions to appear
             
-            # Try to click on first autocomplete suggestion if available
+            # IMPORTANT: Enter key does NOT work on Apartments.com
+            # Must either: 1) Click first suggestion, OR 2) Click search button (button.typeaheadSearch)
+            
+            search_submitted = False
+            
+            # Method 1: Try clicking first autocomplete suggestion (preferred method)
             try:
                 # Wait for suggestions to appear
-                suggestions = WebDriverWait(driver, 3).until(
-                    EC.presence_of_all_elements_located((By.CSS_SELECTOR, "ul[class*='autocomplete'] li, ul[class*='suggestion'] li, div[class*='suggestion'], li[class*='suggestion'], div[role='option'], ul[role='listbox'] li"))
+                suggestions = WebDriverWait(driver, 5).until(
+                    EC.presence_of_all_elements_located((By.CSS_SELECTOR, "ul[role='listbox'] li, div[class*='suggestion'] li, li[class*='suggestion'], div[role='option'], ul[class*='autocomplete'] li"))
                 )
+                
                 if suggestions and len(suggestions) > 0:
-                    logger.info(f"[LocationSearcher] Found {len(suggestions)} autocomplete suggestions, clicking first one")
+                    # Click first autocomplete suggestion (preferred - works like user clicking)
+                    suggestion_text = suggestions[0].text if hasattr(suggestions[0], 'text') else 'N/A'
+                    logger.info(f"[LocationSearcher] Found {len(suggestions)} autocomplete suggestions, clicking first one: {suggestion_text[:50]}")
+                    print(f"[LocationSearcher] Clicking first suggestion: {suggestion_text[:50]}")
                     suggestions[0].click()
+                    search_submitted = True
                     time.sleep(3)  # Wait for redirect after clicking suggestion
                 else:
-                    # No suggestions, try clicking search button or pressing Enter
-                    try:
-                        search_button = driver.find_element(By.CSS_SELECTOR, "button[aria-label*='Search apartments'], button[aria-label*='search'], button[type='submit'], button[class*='search']")
-                        logger.info(f"[LocationSearcher] Clicking search button")
-                        search_button.click()
-                        time.sleep(3)
-                    except:
-                        # Fallback to Enter key
-                        logger.info(f"[LocationSearcher] Pressing Enter key")
-                        search_box.send_keys(Keys.RETURN)
-                        time.sleep(3)
+                    # No suggestions - will use search button below
+                    print(f"[LocationSearcher] No suggestions found, will use search button")
             except TimeoutException:
-                # No suggestions appeared, try pressing Enter or clicking search button
-                logger.info(f"[LocationSearcher] No autocomplete suggestions, trying Enter key or search button")
+                # No suggestions appeared - will use search button instead
+                print(f"[LocationSearcher] No autocomplete suggestions appeared, using search button")
+            except Exception as sug_err:
+                print(f"[LocationSearcher] Error finding suggestions: {sug_err}, using search button")
+            
+            # Method 2: Click search button (button.typeaheadSearch) - Enter key does NOT work
+            if not search_submitted:
                 try:
-                    search_button = driver.find_element(By.CSS_SELECTOR, "button[aria-label*='Search apartments'], button[aria-label*='search'], button[type='submit'], button[class*='search']")
+                    # Use the specific selector from HTML: button.typeaheadSearch
+                    search_button = driver.find_element(By.CSS_SELECTOR, "button.typeaheadSearch")
+                    logger.info(f"[LocationSearcher] Clicking search button (typeaheadSearch)")
+                    print(f"[LocationSearcher] Clicking search button...")
                     search_button.click()
-                    time.sleep(3)
-                except:
-                    search_box.send_keys(Keys.RETURN)
-                    time.sleep(3)
-            except Exception as e:
-                # Fallback to Enter key
-                logger.warning(f"[LocationSearcher] Error with suggestions/button: {e}, using Enter key")
-                search_box.send_keys(Keys.RETURN)
-                time.sleep(3)
+                    search_submitted = True
+                    time.sleep(3)  # Wait for navigation
+                except Exception as btn_err:
+                    print(f"[LocationSearcher] Could not find/click search button: {btn_err}")
+                    # Last resort: Try other button selectors
+                    try:
+                        alt_selectors = [
+                            "button[title*='Search apartments']",
+                            "button[aria-label*='Search apartments']",
+                            "button[class*='search']",
+                            "button[type='submit']",
+                        ]
+                        for selector in alt_selectors:
+                            try:
+                                btn = driver.find_element(By.CSS_SELECTOR, selector)
+                                if btn.is_displayed():
+                                    logger.info(f"[LocationSearcher] Clicking alternative search button: {selector}")
+                                    btn.click()
+                                    search_submitted = True
+                                    time.sleep(3)
+                                    break
+                            except:
+                                continue
+                    except Exception as alt_err:
+                        print(f"[LocationSearcher] All search button methods failed: {alt_err}")
+                        # Do NOT use Enter key - it doesn't work on Apartments.com
+                        logger.warning(f"[LocationSearcher] Enter key does not work on Apartments.com - search may fail")
             
             # Wait a bit more for any redirects or page updates
             time.sleep(3)
