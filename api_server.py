@@ -261,13 +261,24 @@ def start_scheduler():
 # API ROUTES
 # ==================================
 
-@app.route('/', methods=['GET'])
+@app.route('/', methods=['GET', 'OPTIONS'])
+@app.route('/api/health', methods=['GET', 'OPTIONS'])
 def health_check():
-    return jsonify({
+    """Health check endpoint"""
+    if request.method == 'OPTIONS':
+        response = jsonify({})
+        response.headers.add('Access-Control-Allow-Origin', '*')
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
+        response.headers.add('Access-Control-Allow-Methods', 'GET, OPTIONS')
+        return response
+    
+    response = jsonify({
         "status": "healthy",
         "service": "ForSaleByOwner Scraper API",
         "timestamp": datetime.now().isoformat()
     })
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
 
 
 @app.route('/api/trigger', methods=['POST', 'GET'])
@@ -468,20 +479,6 @@ def get_trulia_status():
         "last_run": trulia_status["last_run"],
         "error": trulia_status["error"]
     })
-
-@app.route('/api/health', methods=['GET', 'OPTIONS'])
-def health_check():
-    """Simple health check endpoint to verify server is running"""
-    if request.method == 'OPTIONS':
-        response = jsonify({})
-        response.headers.add('Access-Control-Allow-Origin', '*')
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type')
-        response.headers.add('Access-Control-Allow-Methods', 'GET, OPTIONS')
-        return response
-    
-    response = jsonify({"status": "ok", "message": "Server is running"})
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    return response
 
 @app.route('/api/search-location', methods=['POST', 'GET', 'OPTIONS'])
 def search_location():
