@@ -6,6 +6,7 @@ Hybrid approach: Uses Selenium first, falls back to Playwright with Browserless.
 
 import re
 import time
+import random
 from typing import Optional
 import logging
 import os
@@ -141,29 +142,72 @@ class LocationSearcher:
             if region not in ["sfo", "lon", "ams"]:
                 region = "sfo"
             
-            # Browserless.io WebSocket endpoint for CDP connection
-            # Format: wss://production-{region}.browserless.io?token={token}
-            browserless_url = f"wss://production-{region}.browserless.io?token={browserless_token}"
+            # Browserless.io WebSocket endpoint for CDP connection with stealth mode
+            # Add stealth=true parameter for better bot evasion
+            browserless_url = f"wss://production-{region}.browserless.io?token={browserless_token}&stealth=true"
             
             with sync_playwright() as p:
                 print(f"[LocationSearcher] Connecting to Browserless.io via Playwright CDP...")
-                print(f"[LocationSearcher] Endpoint: wss://production-{region}.browserless.io (region: {region})")
+                print(f"[LocationSearcher] Endpoint: wss://production-{region}.browserless.io (region: {region}, stealth: true)")
                 
                 try:
                     # Connect to Browserless.io via CDP
                     browser = p.chromium.connect_over_cdp(browserless_url)
                     print(f"[LocationSearcher] Successfully connected to Browserless.io")
                     
-                    # Get or create a context
-                    if browser.contexts:
-                        context = browser.contexts[0]
-                        print(f"[LocationSearcher] Using existing browser context")
-                    else:
-                        context = browser.new_context()
-                        print(f"[LocationSearcher] Created new browser context")
+                    # Always create a fresh context with stealth settings
+                    # Don't reuse existing contexts as they may be flagged
+                    print(f"[LocationSearcher] Creating fresh browser context with stealth settings...")
+                    context = browser.new_context(
+                        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
+                        viewport={"width": 1920, "height": 1080},
+                        locale="en-US",
+                        timezone_id="America/New_York",
+                        permissions=["geolocation"],
+                        extra_http_headers={
+                            "Accept-Language": "en-US,en;q=0.9",
+                            "Accept-Encoding": "gzip, deflate, br",
+                            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+                            "Sec-Fetch-Dest": "document",
+                            "Sec-Fetch-Mode": "navigate",
+                            "Sec-Fetch-Site": "none",
+                            "Upgrade-Insecure-Requests": "1",
+                        }
+                    )
+                    
+                    # Add stealth scripts to hide automation
+                    context.add_init_script("""
+                        // Override the `plugins` property to use a custom getter
+                        Object.defineProperty(navigator, 'plugins', {
+                            get: () => [1, 2, 3, 4, 5]
+                        });
+                        
+                        // Override the `languages` property
+                        Object.defineProperty(navigator, 'languages', {
+                            get: () => ['en-US', 'en']
+                        });
+                        
+                        // Remove webdriver property
+                        Object.defineProperty(navigator, 'webdriver', {
+                            get: () => undefined
+                        });
+                        
+                        // Mock chrome property
+                        window.chrome = {
+                            runtime: {}
+                        };
+                        
+                        // Override permissions
+                        const originalQuery = window.navigator.permissions.query;
+                        window.navigator.permissions.query = (parameters) => (
+                            parameters.name === 'notifications' ?
+                                Promise.resolve({ state: Notification.permission }) :
+                                originalQuery(parameters)
+                        );
+                    """)
                     
                     page = context.new_page()
-                    print(f"[LocationSearcher] Created new page")
+                    print(f"[LocationSearcher] Created new page with stealth configuration")
                     
                 except Exception as connect_error:
                     print(f"[LocationSearcher] Failed to connect to Browserless.io: {connect_error}")
@@ -171,19 +215,57 @@ class LocationSearcher:
                     print(f"[LocationSearcher] Connection traceback: {traceback.format_exc()}")
                     return None
                 
-                print(f"[LocationSearcher] Navigating to Trulia...")
-                page.goto("https://www.trulia.com", wait_until="networkidle", timeout=30000)
-                time.sleep(3)
+                # Navigate with more human-like behavior
+                print(f"[LocationSearcher] Navigating to Trulia with human-like delays...")
+                
+                # First, go to a neutral page (Google) to establish a session
+                try:
+                    print(f"[LocationSearcher] Establishing session by visiting Google first...")
+                    page.goto("https://www.google.com", wait_until="domcontentloaded", timeout=20000)
+                    time.sleep(2)  # Human-like pause
+                except:
+                    pass  # Continue even if this fails
+                
+                # Now navigate to Trulia with slower, more human-like navigation
+                page.goto("https://www.trulia.com", wait_until="domcontentloaded", timeout=30000)
+                time.sleep(4)  # Longer wait to let page fully load and execute scripts
+                
+                # Scroll a bit to simulate human behavior
+                try:
+                    page.evaluate("window.scrollTo(0, 300)")
+                    time.sleep(1)
+                    page.evaluate("window.scrollTo(0, 0)")
+                    time.sleep(1)
+                except:
+                    pass
                 
                 page_title = page.title()
                 current_url = page.url
                 print(f"[LocationSearcher] Page title: {page_title}, URL: {current_url}")
                 
                 # Check if blocked
-                if "denied" in page_title.lower() or "captcha" in page_title.lower() or "blocked" in page_title.lower():
-                    print(f"[LocationSearcher] Still blocked even with Browserless.io")
-                    browser.close()
-                    return None
+                page_content = page.content()
+                if "denied" in page_title.lower() or "captcha" in page_title.lower() or "blocked" in page_title.lower() or "perimeterx" in page_content.lower():
+                    print(f"[LocationSearcher] Still blocked even with Browserless.io (Title: {page_title})")
+                    print(f"[LocationSearcher] Attempting alternative approach: Waiting longer and retrying...")
+                    
+                    # Try waiting longer and checking again - sometimes CAPTCHA loads after initial page load
+                    time.sleep(5)
+                    page_title_retry = page.title()
+                    current_url_retry = page.url
+                    page_content_retry = page.content()
+                    
+                    if "denied" not in page_title_retry.lower() and "captcha" not in page_title_retry.lower() and "perimeterx" not in page_content_retry.lower():
+                        print(f"[LocationSearcher] Page loaded successfully after wait (Title: {page_title_retry})")
+                        # Continue with search
+                    else:
+                        print(f"[LocationSearcher] Still blocked after wait. Trulia's bot detection is very aggressive.")
+                        print(f"[LocationSearcher] Consider using a residential proxy or waiting before retrying.")
+                        try:
+                            browser.close()
+                        except:
+                            pass
+                        return None
                 
                 # Find search box using Playwright
                 search_box = None
@@ -207,12 +289,20 @@ class LocationSearcher:
                     browser.close()
                     return None
                 
-                # Clear and type location
+                # Type location with human-like typing (character by character)
                 search_box.click()
-                search_box.fill("")  # Clear
-                search_box.fill(location_clean)
-                print(f"[LocationSearcher] Entered '{location_clean}' into search box")
-                time.sleep(2)
+                time.sleep(0.5)  # Wait after click
+                
+                # Clear existing text if any
+                search_box.fill("")
+                time.sleep(0.3)
+                
+                # Type character by character to simulate human typing
+                print(f"[LocationSearcher] Typing '{location_clean}' character by character...")
+                search_box.type(location_clean, delay=random.randint(50, 150))  # Random delay between 50-150ms per character
+                
+                print(f"[LocationSearcher] Finished typing, waiting for suggestions...")
+                time.sleep(3)  # Wait for autocomplete suggestions
                 
                 # Wait for suggestions and click first one, or press Enter
                 try:
