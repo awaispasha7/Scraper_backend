@@ -1849,162 +1849,104 @@ class LocationSearcher:
             location_clean = location.strip()
             logger.info(f"[LocationSearcher] Searching FSBO for: {location_clean}")
             
-            driver = cls._get_driver(use_zyte_proxy=True)
+            # FSBO works fine without proxy (same as FSBO scraper - no heavy bot detection)
+            driver = cls._get_driver(use_zyte_proxy=False)
             driver.get("https://www.forsalebyowner.com")
-            time.sleep(4)  # Wait for page to load
             
-            wait = WebDriverWait(driver, 20)
+            wait = WebDriverWait(driver, 15)
+            # Wait for page to load - wait for body element
+            try:
+                wait.until(EC.presence_of_element_located((By.TAG_NAME, "body")))
+                time.sleep(2)  # Additional wait for dynamic content to render
+            except:
+                time.sleep(3)  # Fallback wait
+            
             print(f"[LocationSearcher] Looking for FSBO search box...")
-            
-            # FSBO uses placeholder "Search our exclusive home inventory. Enter an address, neighborhood, or city"
-            # Try multiple strategies to find the search box
+            # FSBO element: <input placeholder="Search our exclusive home inventory. Enter an address, neighborhood, or city">
+            # Element is absolutely positioned, so we need to wait for it to be visible
             search_box = None
             
-            # Strategy 1: Try to find by placeholder text with wait
+            # Primary: Wait for element with exact placeholder text (most reliable)
             try:
-                # Wait for any input to be present first
-                wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, "input[type='text']")))
-                time.sleep(1)  # Give it a moment to render
-                
-                all_inputs = driver.find_elements(By.CSS_SELECTOR, "input[type='text']")
-                for inp in all_inputs:
-                    try:
-                        if inp.is_displayed() and inp.is_enabled():
-                            placeholder = (inp.get_attribute('placeholder') or '').lower()
-                            # FSBO placeholder contains: "Search our exclusive home inventory" or "address, neighborhood, or city"
-                            if any(keyword in placeholder for keyword in ['search our', 'exclusive home', 'address', 'neighborhood', 'city']):
-                                search_box = inp
-                                print(f"[LocationSearcher] ✓ Found FSBO search box by placeholder: {placeholder[:50]}...")
-                                logger.info(f"[LocationSearcher] Found FSBO search box by placeholder: {placeholder[:50]}...")
-                                break
-                    except:
-                        continue
-            except Exception as e:
-                print(f"[LocationSearcher] Strategy 1 failed: {e}")
-            
-            # Strategy 2: Try specific selectors with WebDriverWait
-            if not search_box:
-                search_selectors = [
-                    "input[placeholder*='Search our exclusive' i]",
-                    "input[placeholder*='address, neighborhood' i]",
-                    "input[placeholder*='city' i]",
-                    "input[placeholder*='search' i]",
-                    "input[id*='search' i]",
-                    "input[name*='search' i]",
-                    "input[aria-label*='search' i]",
-                    "input[class*='search' i]"
-                ]
-                
-                for selector in search_selectors:
-                    try:
-                        print(f"[LocationSearcher] Trying selector: {selector}")
-                        search_box = wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, selector)))
-                        if search_box.is_displayed() and search_box.is_enabled():
-                            print(f"[LocationSearcher] ✓ Found FSBO search box: {selector}")
-                            break
-                        else:
-                            search_box = None
-                    except TimeoutException:
-                        search_box = None
-                        continue
-                    except Exception as e:
-                        print(f"[LocationSearcher] Error with selector {selector}: {e}")
-                        search_box = None
-                        continue
-                    
-                    if search_box:
-                        break
-            
-            # Strategy 3: Last resort - find any visible text input
-            if not search_box:
+                search_box = wait.until(
+                    EC.element_to_be_clickable((By.CSS_SELECTOR, "input[placeholder='Search our exclusive home inventory. Enter an address, neighborhood, or city']"))
+                )
+                print(f"[LocationSearcher] ✓ Found FSBO search box by exact placeholder")
+                logger.info(f"[LocationSearcher] Found FSBO search box by exact placeholder")
+            except TimeoutException:
+                # Fallback 1: Try partial placeholder match
                 try:
-                    print(f"[LocationSearcher] Trying last resort: any visible text input")
-                    all_inputs = wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "input[type='text']")))
-                    for inp in all_inputs:
+                    search_box = wait.until(
+                        EC.element_to_be_clickable((By.CSS_SELECTOR, "input[placeholder*='Search our exclusive home inventory']"))
+                    )
+                    print(f"[LocationSearcher] ✓ Found FSBO search box by partial placeholder")
+                    logger.info(f"[LocationSearcher] Found FSBO search box by partial placeholder")
+                except TimeoutException:
+                    # Fallback 2: Try finding by class that matches the absolute positioning
+                    try:
+                        search_box = wait.until(
+                            EC.element_to_be_clickable((By.CSS_SELECTOR, "input[class*='absolute'][placeholder*='exclusive home']"))
+                        )
+                        print(f"[LocationSearcher] ✓ Found FSBO search box by class and placeholder")
+                        logger.info(f"[LocationSearcher] Found FSBO search box by class and placeholder")
+                    except TimeoutException:
+                        # Fallback 3: Find any input with the placeholder keywords
                         try:
-                            if inp.is_displayed() and inp.is_enabled():
-                                # Check if it's likely a search box (has placeholder or aria-label)
-                                placeholder = inp.get_attribute('placeholder') or ''
-                                aria_label = inp.get_attribute('aria-label') or ''
-                                if placeholder or aria_label:
-                                    search_box = inp
-                                    print(f"[LocationSearcher] ✓ Found FSBO search box (last resort)")
-                                    break
-                        except:
-                            continue
-                except Exception as e:
-                    print(f"[LocationSearcher] Last resort failed: {e}")
+                            all_inputs = driver.find_elements(By.CSS_SELECTOR, "input[type='text'], input[placeholder]")
+                            for inp in all_inputs:
+                                try:
+                                    placeholder = (inp.get_attribute('placeholder') or '').lower()
+                                    if 'exclusive home' in placeholder or ('search our' in placeholder and 'address' in placeholder):
+                                        if inp.is_displayed():
+                                            search_box = inp
+                                            print(f"[LocationSearcher] ✓ Found FSBO search box by placeholder keywords")
+                                            logger.info(f"[LocationSearcher] Found FSBO search box by placeholder: {placeholder[:50]}...")
+                                            break
+                                except:
+                                    continue
+                        except Exception as e:
+                            print(f"[LocationSearcher] Fallback 3 failed: {e}")
             
             if not search_box:
                 raise TimeoutException("Search box not found on FSBO after trying all strategies")
             
-            # Wait for element to be clickable
-            wait.until(EC.element_to_be_clickable(search_box))
-            
-            print(f"[LocationSearcher] Clicking and clearing search box...")
-            # Click to focus
-            search_box.click()
-            time.sleep(0.5)
             search_box.clear()
-            time.sleep(0.5)
-            
-            print(f"[LocationSearcher] Typing location: {location_clean}")
             search_box.send_keys(location_clean)
-            time.sleep(2.5)  # Wait for autocomplete
+            time.sleep(2)
             
-            # Try clicking first suggestion or search button
-            search_submitted = False
             try:
-                suggestions_wait = WebDriverWait(driver, 5)
-                suggestions = suggestions_wait.until(
-                    EC.presence_of_all_elements_located((By.CSS_SELECTOR, "div[class*='suggestion'], li[class*='suggestion'], ul[class*='autocomplete'] li, div[role='option']"))
-                )
+                suggestions = driver.find_elements(By.CSS_SELECTOR, "div[class*='suggestion'], li[class*='suggestion'], ul[class*='autocomplete'] li, div[role='option']")
                 if suggestions:
-                    print(f"[LocationSearcher] Found {len(suggestions)} suggestions, clicking first one...")
                     suggestions[0].click()
-                    search_submitted = True
                     time.sleep(3)
-            except TimeoutException:
-                print(f"[LocationSearcher] No suggestions found, trying search button...")
-            
-            if not search_submitted:
-                try:
-                    submit_btn = driver.find_element(By.CSS_SELECTOR, "button[type='submit'], button[aria-label*='search' i], button[class*='search' i]")
-                    if submit_btn.is_displayed():
-                        print(f"[LocationSearcher] Clicking search button...")
+                else:
+                    try:
+                        submit_btn = driver.find_element(By.CSS_SELECTOR, "button[type='submit'], button[aria-label*='search'], button[class*='search']")
                         submit_btn.click()
-                        search_submitted = True
-                        time.sleep(3)
-                except:
-                    print(f"[LocationSearcher] No search button, pressing Enter...")
-                    search_box.send_keys(Keys.RETURN)
+                    except:
+                        search_box.send_keys(Keys.RETURN)
                     time.sleep(3)
+            except:
+                search_box.send_keys(Keys.RETURN)
+                time.sleep(3)
             
             current_url = driver.current_url
-            print(f"[LocationSearcher] FSBO final URL: {current_url}")
             logger.info(f"[LocationSearcher] FSBO final URL: {current_url}")
             
-            if 'forsalebyowner.com' in current_url and current_url != 'https://www.forsalebyowner.com':
+            if 'forsalebyowner.com' in current_url:
                 return current_url
             
             return None
             
-        except TimeoutException as e:
-            logger.error(f"[LocationSearcher] Timeout waiting for FSBO search box: {e}")
-            print(f"[LocationSearcher] Timeout error: {e}")
+        except TimeoutException:
+            logger.error(f"[LocationSearcher] Timeout waiting for FSBO search box")
             return None
         except Exception as e:
             logger.error(f"[LocationSearcher] Error searching FSBO: {e}")
-            import traceback
-            print(f"[LocationSearcher] Error: {e}")
-            print(f"[LocationSearcher] Traceback: {traceback.format_exc()}")
             return None
         finally:
             if driver:
-                try:
-                    driver.quit()
-                except:
-                    pass
+                driver.quit()
     
     @classmethod
     def search_platform(cls, platform: str, location: str) -> Optional[str]:
