@@ -28,7 +28,10 @@ COPY requirements.txt .
 
 # Install dependencies
 RUN pip install --no-cache-dir --upgrade pip setuptools wheel
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -v -r requirements.txt
+
+# Verify critical packages are installed (fail build if missing)
+RUN python -c "import zyte_smartproxy_selenium; print('✓ zyte-smartproxy-selenium installed successfully')" || (echo "ERROR: zyte-smartproxy-selenium failed to install" && exit 1)
 
 # Install Playwright system dependencies manually (for Debian Trixie compatibility)
 # Playwright's install-deps has issues with newer Debian versions, so we install manually
