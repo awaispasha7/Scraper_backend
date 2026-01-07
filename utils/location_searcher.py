@@ -29,15 +29,38 @@ class LocationSearcher:
         import sys
         
         chrome_options = Options()
-        chrome_options.add_argument('--headless')
+        chrome_options.add_argument('--headless=new')  # Use new headless mode
         chrome_options.add_argument('--no-sandbox')
         chrome_options.add_argument('--disable-dev-shm-usage')
         chrome_options.add_argument('--disable-gpu')
         chrome_options.add_argument('--window-size=1920,1080')
-        chrome_options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36')
         chrome_options.add_argument('--disable-blink-features=AutomationControlled')
-        chrome_options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        
+        # Use a more recent, realistic user agent
+        chrome_options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36')
+        
+        # Additional stealth options to avoid bot detection
+        chrome_options.add_argument('--disable-web-security')
+        chrome_options.add_argument('--disable-features=IsolateOrigins,site-per-process')
+        chrome_options.add_argument('--disable-site-isolation-trials')
+        chrome_options.add_argument('--disable-extensions')
+        chrome_options.add_argument('--disable-plugins')
+        
+        # Remove automation indicators
+        chrome_options.add_experimental_option("excludeSwitches", ["enable-automation", "enable-logging"])
         chrome_options.add_experimental_option('useAutomationExtension', False)
+        
+        # Add stealth capabilities
+        prefs = {
+            "profile.default_content_setting_values": {
+                "notifications": 2,
+                "geolocation": 2,
+            },
+            "profile.managed_default_content_settings": {
+                "images": 2  # Block images for faster loading
+            }
+        }
+        chrome_options.add_experimental_option("prefs", prefs)
         
         # Check for Browserless.io token
         browserless_token = os.getenv("BROWSERLESS_TOKEN")
@@ -67,7 +90,23 @@ class LocationSearcher:
                 driver = webdriver.Chrome(service=service, options=chrome_options)
             
             driver.maximize_window()
+            
+            # Execute script to remove webdriver property (anti-detection)
+            try:
+                driver.execute_cdp_cmd('Page.addScriptToEvaluateOnNewDocument', {
+                    'source': '''
+                        Object.defineProperty(navigator, 'webdriver', {
+                            get: () => undefined
+                        });
+                    '''
+                })
+            except Exception as e:
+                logger.warning(f"Could not execute CDP command: {e}")
+            
             return driver
+        except Exception as e:
+            logger.error(f"[LocationSearcher] Failed to initialize WebDriver: {e}")
+            raise Exception(f"Could not initialize browser: {str(e)}. Please ensure Chrome/Chromium is installed or BROWSERLESS_TOKEN is set.")
         except Exception as e:
             logger.error(f"[LocationSearcher] Failed to initialize WebDriver: {e}")
             raise Exception(f"Could not initialize browser: {str(e)}. Please ensure Chrome/Chromium is installed or BROWSERLESS_TOKEN is set.")
