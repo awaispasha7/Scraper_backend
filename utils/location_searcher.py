@@ -25,6 +25,20 @@ class LocationSearcher:
     """Search platforms for location and return the actual listing URL using browser automation"""
     
     @classmethod
+    def _should_use_headless(cls) -> bool:
+        """
+        Check if browser should run in headless mode.
+        Can be toggled via HEADLESS_BROWSER environment variable.
+        Default: True (headless)
+        Set HEADLESS_BROWSER=false to see browser window
+        """
+        headless_env = os.getenv("HEADLESS_BROWSER", "true").lower()
+        use_headless = headless_env not in ["false", "0", "no", "off"]
+        if not use_headless:
+            print(f"[LocationSearcher] ⚠️ Running in NON-HEADLESS mode (HEADLESS_BROWSER=false)")
+        return use_headless
+    
+    @classmethod
     def _get_driver(cls, use_zyte_proxy: bool = True):
         """
         Create and return a Chrome WebDriver instance with optional Zyte proxy.
@@ -60,7 +74,12 @@ class LocationSearcher:
         # If we got here, chrome_options is already initialized
         
         # Configure Chrome options for regular Selenium
-        chrome_options.add_argument('--headless=new')
+        # Check environment variable for headless mode (default: headless)
+        use_headless = cls._should_use_headless()
+        if use_headless:
+            chrome_options.add_argument('--headless=new')
+        else:
+            print(f"[LocationSearcher] Running Chrome in visible mode (non-headless)")
         
         # Standard options
         chrome_options.add_argument('--no-sandbox')
@@ -723,15 +742,21 @@ class LocationSearcher:
             logger.info(f"[LocationSearcher] Using Playwright for Trulia search")
             
             with sync_playwright() as p:
+                # Check environment variable for headless mode (default: headless)
+                use_headless = cls._should_use_headless()
+                
                 # Launch browser with stealth settings
                 browser = p.chromium.launch(
-                    headless=True,
+                    headless=use_headless,
                     args=[
                         '--disable-blink-features=AutomationControlled',
                         '--disable-dev-shm-usage',
                         '--no-sandbox',
                     ]
                 )
+                
+                if not use_headless:
+                    print(f"[LocationSearcher] ⚠️ Playwright running in NON-HEADLESS mode - browser window will be visible")
                 
                 # Create context with realistic settings
                 context = browser.new_context(
@@ -777,15 +802,14 @@ class LocationSearcher:
                 
                 print(f"[LocationSearcher] Looking for Trulia search box with Playwright...")
                 
-                # Try multiple selectors for search box
+                # Use exact selectors from Trulia's actual HTML structure
+                # Input ID: banner-search, Placeholder: "Search for City, Neighborhood, Zip, County, School"
                 search_selectors = [
-                    "input[data-testid='location-search-input']",
-                    "input#banner-search",
-                    "input[aria-label*='Search for City' i]",
-                    "input[aria-label*='Search' i][aria-label*='City' i]",
-                    "input.react-autosuggest__input",
-                    "input[placeholder*='Search' i]",
-                    "input[placeholder*='City' i]",
+                    "input#banner-search",  # Most reliable - exact ID
+                    "input[aria-label='Search for City, Neighborhood, Zip, County, School']",  # Exact aria-label
+                    "input[placeholder='Search for City, Neighborhood, Zip, County, School']",  # Exact placeholder
+                    "input.react-autosuggest__input",  # Class name
+                    "input[role='combobox'][id='banner-search']",  # Role + ID combo
                 ]
                 
                 search_box = None
@@ -793,25 +817,40 @@ class LocationSearcher:
                     try:
                         print(f"[LocationSearcher] Trying selector: {selector}")
                         search_box = page.query_selector(selector)
-                        if search_box and search_box.is_visible():
-                            print(f"[LocationSearcher] ✓ Found Trulia search box: {selector}")
-                            break
+                        if search_box:
+                            # Check if visible
+                            try:
+                                if search_box.is_visible():
+                                    print(f"[LocationSearcher] ✓ Found Trulia search box: {selector}")
+                                    break
+                            except:
+                                # If is_visible() fails, try waiting for it
+                                page.wait_for_selector(selector, state="visible", timeout=5000)
+                                search_box = page.query_selector(selector)
+                                if search_box:
+                                    print(f"[LocationSearcher] ✓ Found Trulia search box (after wait): {selector}")
+                                    break
                     except Exception as e:
                         print(f"[LocationSearcher] Error with selector {selector}: {e}")
                         continue
                 
-                # If not found by selectors, try finding by placeholder
+                # Fallback: try finding by placeholder text if exact match fails
                 if not search_box:
                     try:
-                        all_inputs = page.query_selector_all("input[type='text'], input[placeholder]")
+                        print(f"[LocationSearcher] Trying placeholder text search as fallback...")
+                        all_inputs = page.query_selector_all("input[type='text'], input[role='combobox']")
                         for inp in all_inputs:
                             try:
                                 if inp.is_visible():
                                     placeholder = (inp.get_attribute('placeholder') or '').lower()
                                     aria_label = (inp.get_attribute('aria-label') or '').lower()
-                                    if any(keyword in placeholder or keyword in aria_label for keyword in ['search', 'city', 'location', 'address']):
+                                    inp_id = inp.get_attribute('id') or ''
+                                    # Look for key indicators
+                                    if (inp_id == 'banner-search' or 
+                                        'search for city' in placeholder or 
+                                        'search for city' in aria_label):
                                         search_box = inp
-                                        print(f"[LocationSearcher] ✓ Found Trulia search box by placeholder/aria-label")
+                                        print(f"[LocationSearcher] ✓ Found Trulia search box by fallback search")
                                         break
                             except:
                                 continue
@@ -834,32 +873,61 @@ class LocationSearcher:
                 search_box.fill(location)
                 time.sleep(2)  # Wait for autocomplete
                 
-                # Try to click first suggestion or press Enter
+                # Wait for suggestions to appear (they're in element with id="react-autowhatever-home-banner")
                 search_submitted = False
                 try:
-                    # Wait for suggestions
-                    suggestions = page.query_selector_all("ul[role='listbox'] li, div[role='option']")
-                    if suggestions:
-                        # Filter suggestions - skip "Current Location", etc.
-                        for sug in suggestions:
-                            try:
-                                text = sug.inner_text().lower()
-                                if any(skip in text for skip in ['current location', 'search by commute', 'popular searches']):
+                    # Wait for suggestions container to appear
+                    suggestions_container = page.wait_for_selector("#react-autowhatever-home-banner", timeout=5000)
+                    if suggestions_container:
+                        print(f"[LocationSearcher] Suggestions container appeared")
+                        time.sleep(1)  # Give suggestions time to render
+                        
+                        # Get all suggestion items
+                        suggestions = page.query_selector_all(
+                            "#react-autowhatever-home-banner li, "
+                            "#react-autowhatever-home-banner [role='option'], "
+                            "#react-autowhatever-home-banner [data-suggestion-index]"
+                        )
+                        
+                        if suggestions:
+                            print(f"[LocationSearcher] Found {len(suggestions)} suggestions")
+                            # Filter suggestions - look for actual location matches
+                            for sug in suggestions:
+                                try:
+                                    text = sug.inner_text().lower().strip()
+                                    # Skip non-location suggestions
+                                    if any(skip in text for skip in ['current location', 'search by commute', 'popular searches', 'commute time']):
+                                        continue
+                                    # Look for location matches (should contain city name or have comma for city,state)
+                                    if location.lower() in text or (',' in text and len(text.split(',')) == 2):
+                                        print(f"[LocationSearcher] Clicking suggestion: {sug.inner_text()[:50]}")
+                                        sug.click()
+                                        search_submitted = True
+                                        time.sleep(3)
+                                        print(f"[LocationSearcher] ✓ Clicked suggestion")
+                                        break
+                                except Exception as e:
+                                    print(f"[LocationSearcher] Error clicking suggestion: {e}")
                                     continue
-                                if location.lower() in text or ',' in text:
-                                    sug.click()
+                        
+                        # If no good suggestion found, try clicking first non-filtered one
+                        if not search_submitted and suggestions:
+                            try:
+                                first_sug = suggestions[0]
+                                text = first_sug.inner_text().lower()
+                                if 'current location' not in text and 'commute' not in text:
+                                    print(f"[LocationSearcher] Clicking first available suggestion: {first_sug.inner_text()[:50]}")
+                                    first_sug.click()
                                     search_submitted = True
                                     time.sleep(3)
-                                    print(f"[LocationSearcher] ✓ Clicked suggestion: {sug.inner_text()[:50]}")
-                                    break
                             except:
-                                continue
+                                pass
                 except Exception as e:
-                    print(f"[LocationSearcher] Error with suggestions: {e}")
+                    print(f"[LocationSearcher] Error waiting for suggestions: {e}")
                 
                 if not search_submitted:
-                    # Press Enter
-                    print(f"[LocationSearcher] Pressing Enter...")
+                    # Press Enter as fallback
+                    print(f"[LocationSearcher] No suggestions clicked, pressing Enter...")
                     search_box.press("Enter")
                     time.sleep(3)
                 
@@ -919,18 +987,18 @@ class LocationSearcher:
             
             search_box = None
             
-            # Try specific selectors
+            # Use exact selectors from Trulia's actual HTML structure
             search_selectors = [
-                "input[data-testid='location-search-input']",
-                "input#banner-search",
-                "input[aria-label*='Search for City' i]",
-                "input.react-autosuggest__input",
-                "input[placeholder*='Search' i]",
-                "input[placeholder*='City' i]",
+                "input#banner-search",  # Most reliable - exact ID
+                "input[aria-label='Search for City, Neighborhood, Zip, County, School']",  # Exact aria-label
+                "input[placeholder='Search for City, Neighborhood, Zip, County, School']",  # Exact placeholder
+                "input.react-autosuggest__input",  # Class name
+                "input[role='combobox'][id='banner-search']",  # Role + ID combo
             ]
             
             for selector in search_selectors:
                 try:
+                    print(f"[LocationSearcher] Trying selector: {selector}")
                     search_box = wait.until(EC.element_to_be_clickable((By.CSS_SELECTOR, selector)))
                     if search_box.is_displayed() and search_box.is_enabled():
                         print(f"[LocationSearcher] ✓ Found Trulia search box with Selenium: {selector}")
@@ -943,23 +1011,28 @@ class LocationSearcher:
                 if search_box:
                     break
             
-            # Find by placeholder
+            # Find by placeholder/aria-label as fallback
             if not search_box:
                 try:
-                    all_inputs = driver.find_elements(By.CSS_SELECTOR, "input[type='text'], input[placeholder]")
+                    print(f"[LocationSearcher] Trying placeholder/aria-label search as fallback...")
+                    all_inputs = driver.find_elements(By.CSS_SELECTOR, "input[type='text'], input[role='combobox']")
                     for inp in all_inputs:
                         try:
                             if inp.is_displayed() and inp.is_enabled():
+                                inp_id = inp.get_attribute('id') or ''
                                 placeholder = (inp.get_attribute('placeholder') or '').lower()
                                 aria_label = (inp.get_attribute('aria-label') or '').lower()
-                                if any(keyword in placeholder or keyword in aria_label for keyword in ['search', 'city', 'location']):
+                                # Look for exact matches
+                                if (inp_id == 'banner-search' or 
+                                    'search for city, neighborhood' in placeholder or 
+                                    'search for city, neighborhood' in aria_label):
                                     search_box = inp
-                                    print(f"[LocationSearcher] ✓ Found Trulia search box by placeholder")
+                                    print(f"[LocationSearcher] ✓ Found Trulia search box by fallback search")
                                     break
                         except:
                             continue
-                except:
-                    pass
+                except Exception as e:
+                    print(f"[LocationSearcher] Fallback search failed: {e}")
             
             if not search_box:
                 print(f"[LocationSearcher] Search box not found with Selenium")
@@ -974,25 +1047,58 @@ class LocationSearcher:
             time.sleep(2)
             
             # Try suggestions or Enter
+            # Suggestions are in element with id="react-autowhatever-home-banner"
             search_submitted = False
             try:
-                suggestions = WebDriverWait(driver, 5).until(
-                    EC.presence_of_all_elements_located((By.CSS_SELECTOR, "ul[role='listbox'] li, div[role='option']"))
+                # Wait for suggestions container
+                suggestions_container = WebDriverWait(driver, 5).until(
+                    EC.presence_of_element_located((By.ID, "react-autowhatever-home-banner"))
                 )
-                for sug in suggestions:
-                    try:
-                        text = sug.text.lower()
-                        if any(skip in text for skip in ['current location', 'search by commute']):
-                            continue
-                        if location_clean.lower() in text or ',' in text:
-                            sug.click()
-                            search_submitted = True
-                            time.sleep(3)
-                            break
-                    except:
-                        continue
-            except:
-                pass
+                if suggestions_container:
+                    print(f"[LocationSearcher] Suggestions container appeared")
+                    time.sleep(1)  # Give suggestions time to render
+                    
+                    # Get suggestion items
+                    suggestions = driver.find_elements(By.CSS_SELECTOR, 
+                        "#react-autowhatever-home-banner li, "
+                        "#react-autowhatever-home-banner [role='option'], "
+                        "#react-autowhatever-home-banner [data-suggestion-index]"
+                    )
+                    
+                    if suggestions:
+                        print(f"[LocationSearcher] Found {len(suggestions)} suggestions")
+                        for sug in suggestions:
+                            try:
+                                text = sug.text.lower().strip()
+                                # Skip non-location suggestions
+                                if any(skip in text for skip in ['current location', 'search by commute', 'commute time']):
+                                    continue
+                                # Look for location matches
+                                if location_clean.lower() in text or (',' in text and len(text.split(',')) == 2):
+                                    print(f"[LocationSearcher] Clicking suggestion: {sug.text[:50]}")
+                                    sug.click()
+                                    search_submitted = True
+                                    time.sleep(3)
+                                    print(f"[LocationSearcher] ✓ Clicked suggestion")
+                                    break
+                            except Exception as e:
+                                print(f"[LocationSearcher] Error clicking suggestion: {e}")
+                                continue
+                        
+                        # If no good match, try first non-filtered suggestion
+                        if not search_submitted and suggestions:
+                            try:
+                                first_sug = suggestions[0]
+                                text = first_sug.text.lower()
+                                if 'current location' not in text and 'commute' not in text:
+                                    print(f"[LocationSearcher] Clicking first available suggestion: {first_sug.text[:50]}")
+                                    first_sug.click()
+                                    search_submitted = True
+                                    time.sleep(3)
+                            except:
+                                pass
+            except Exception as e:
+                print(f"[LocationSearcher] Error waiting for suggestions: {e}")
             
             if not search_submitted:
                 search_box.send_keys(Keys.RETURN)
