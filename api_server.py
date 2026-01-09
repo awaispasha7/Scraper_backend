@@ -76,7 +76,13 @@ def stream_output(process, scraper_name):
     for line in iter(process.stdout.readline, ''):
         if line:
             add_log(f"[{scraper_name}] {line.strip()}", "info")
-    process.stdout.close()
+        # Check if process was stopped
+        if scraper_name in user_stopped_processes:
+            break
+    try:
+        process.stdout.close()
+    except:
+        pass
 
 def run_process_with_logging(cmd, cwd, scraper_name, status_dict, env=None):
     """Run a subprocess and stream its output to logs"""
@@ -100,11 +106,37 @@ def run_process_with_logging(cmd, cwd, scraper_name, status_dict, env=None):
         # Register process for stopping
         active_processes[scraper_name] = process
         
-        # Read output in real-time
-        stream_output(process, scraper_name)
+        # Read output in real-time (non-blocking thread)
+        output_thread = threading.Thread(target=stream_output, args=(process, scraper_name), daemon=True)
+        output_thread.start()
         
-        # Wait for completion
-        returncode = process.wait()
+        # Wait for completion with periodic checks for stop requests
+        returncode = None
+        while returncode is None:
+            returncode = process.poll()
+            if returncode is None:
+                # Process still running - check if user requested stop
+                if scraper_name in user_stopped_processes or (stop_all_requested and scraper_name == all_scrapers_status.get("current_scraper")):
+                    ensure_process_killed(scraper_name)
+                    # Wait briefly for process to terminate
+                    for _ in range(10):  # Check 10 times with 0.2s delay = 2s max wait
+                        returncode = process.poll()
+                        if returncode is not None:
+                            break
+                        time.sleep(0.2)
+                    # Force kill if still running
+                    if returncode is None and process.poll() is None:
+                        try:
+                            process.kill()
+                            time.sleep(0.2)
+                            returncode = process.poll()
+                        except:
+                            pass
+                    break
+                time.sleep(0.5)  # Check every 0.5 seconds instead of blocking
+        
+        # Ensure output thread has time to finish reading
+        output_thread.join(timeout=1.0)
         
         # Unregister
         if scraper_name in active_processes:
@@ -168,9 +200,12 @@ def ensure_process_killed(scraper_name):
         user_stopped_processes.add(scraper_name)
         try:
             process.terminate()
-            time.sleep(1)
+            # Wait shorter time (0.3s) before force kill
+            time.sleep(0.3)
             if process.poll() is None:
+                # Process didn't terminate, force kill
                 process.kill()
+                time.sleep(0.2)
         except Exception as e:
             add_log(f"Error terminating {scraper_name}: {str(e)}", "error")
         
@@ -538,9 +573,11 @@ def search_location():
             if request.is_json and request.json:
                 platform = request.json.get('platform')
                 location = request.json.get('location')
+                property_type = request.json.get('property_type', 'apartments')  # Default to apartments
             else:
                 platform = request.args.get('platform') or (request.form.get('platform') if request.form else None)
                 location = request.args.get('location') or (request.form.get('location') if request.form else None)
+                property_type = request.args.get('property_type') or (request.form.get('property_type') if request.form else 'apartments')
             
             print(f"[SEARCH-LOCATION] Parsed: platform={platform}, location={location}")
             sys.stdout.flush()
@@ -577,7 +614,8 @@ def search_location():
             def run_search():
                 nonlocal url, error_occurred
                 try:
-                    url = LocationSearcher.search_platform(platform, location)
+                    # Pass property_type for Hotpads (other platforms will ignore it)
+                    url = LocationSearcher.search_platform(platform, location, property_type)
                 except Exception as e:
                     error_occurred = e
             
@@ -963,12 +1001,28 @@ def stop_all():
     stop_all_requested = True
     add_log("🛑 User requested to stop ALL scrapers.", "warning")
     
-    # Also stop the current active process if any
-    current = all_scrapers_status["current_scraper"]
-    if current and current in active_processes:
-        ensure_process_killed(current)
-        
-    return jsonify({"message": "Stop request received for sequential run"}), 200
+    # Immediately update all_scrapers_status to reflect stop
+    all_scrapers_status["running"] = False
+    all_scrapers_status["current_scraper"] = None
+    
+    # Immediately stop ALL active processes, not just the current one
+    stopped_count = 0
+    for scraper_name in list(active_processes.keys()):
+        if scraper_name != "Enrichment":  # Don't stop enrichment when stopping scrapers
+            ensure_process_killed(scraper_name)
+            stopped_count += 1
+    
+    # Also update status for all scrapers immediately
+    scraper_status["running"] = False
+    apartments_scraper_status["running"] = False
+    zillow_fsbo_status["running"] = False
+    zillow_frbo_status["running"] = False
+    hotpads_status["running"] = False
+    redfin_status["running"] = False
+    trulia_status["running"] = False
+    
+    message = f"Stop request received. Stopping {stopped_count} active scraper(s)."
+    return jsonify({"message": message}), 200
 
 @app.route('/api/trigger-enrichment', methods=['POST', 'GET'])
 def trigger_enrichment():

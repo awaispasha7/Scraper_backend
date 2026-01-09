@@ -285,10 +285,8 @@ class HotPadsSpider(scrapy.Spider):
             # Check existence
             if full_url in existing_urls:
                 self._known_hits += 1
-                self.logger.info(f"Listing already exists ({self._known_hits}/{self.MAX_KNOWN_HITS}): {full_url}")
-                if self._known_hits >= self.MAX_KNOWN_HITS:
-                    self.logger.info(f"Stopping: Reached {self.MAX_KNOWN_HITS} known listings.")
-                    return # Stop processing this page and future pagination
+                self.logger.info(f"Listing already exists (count: {self._known_hits}): {full_url}")
+                # Continue processing - don't stop early, scrape all listings
                 continue
             
             yield scrapy.Request(

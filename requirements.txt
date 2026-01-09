@@ -32,6 +32,9 @@ webdriver-manager==4.0.1
 # zyte-smartproxy-selenium package not needed - using --proxy-server approach
 # Playwright for Browserless.io fallback (when bot detection occurs) - deprecated, using Zyte instead
 playwright==1.40.0
+# Nodriver for CDP-free automation (bypasses bot detection better than Selenium)
+# See: https://roundproxies.com/blog/bypass-bot-detection/
+nodriver==0.41
 
 # ==================== Utilities ====================
 python-dotenv==1.0.0

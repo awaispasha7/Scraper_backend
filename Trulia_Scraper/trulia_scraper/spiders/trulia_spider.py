@@ -75,9 +75,7 @@ class TruliaSpider(scrapy.Spider):
         direct_url = getattr(self, 'url', None) or getattr(self, 'start_url', None) or os.getenv('TRULIA_FRBO_URL')
         if direct_url:
             logger.info(f"Using Direct URL: {direct_url}")
-            # When URL is provided, disable early stopping (set MAX_KNOWN_HITS to very high value)
-            # This allows scraping all pages even if some listings already exist
-            self.MAX_KNOWN_HITS = 999999
+            # URL provided - will scrape all pages regardless of existing listings
             meta = {'zipcode': 'Direct URL', 'url_provided': True}
             meta["zyte_api"] = {"browserHtml": True, "geolocation": "US"}
             yield scrapy.Request(url=direct_url, headers=HEADERS, meta=meta, dont_filter=True)
@@ -153,13 +151,8 @@ class TruliaSpider(scrapy.Spider):
             
             if detail_url in existing_urls:
                 self._known_hits += 1
-                logger.info(f"Listing already exists ({self._known_hits}/{self.MAX_KNOWN_HITS}): {detail_url}")
-                # Only stop early if URL was NOT provided (default behavior for batch scraping)
-                # When URL is provided, continue scraping all pages even if some listings exist
-                url_provided = response.meta.get('url_provided', False)
-                if not url_provided and self._known_hits >= self.MAX_KNOWN_HITS:
-                    logger.info(f"Stopping: Reached {self.MAX_KNOWN_HITS} known listings.")
-                    return
+                logger.info(f"Listing already exists (count: {self._known_hits}): {detail_url}")
+                # Continue processing - don't stop early, scrape all listings
                 continue
 
             home_data = home.get('homeData', {})

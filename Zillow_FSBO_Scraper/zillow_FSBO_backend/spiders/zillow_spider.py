@@ -118,10 +118,8 @@ class ZillowSpiderSpider(scrapy.Spider):
                 
                 if new_detailUrl in existing_urls:
                     self._known_hits += 1
-                    self.logger.info(f"Listing already exists ({self._known_hits}/{self.MAX_KNOWN_HITS}): {new_detailUrl}")
-                    if self._known_hits >= self.MAX_KNOWN_HITS:
-                        self.logger.info(f"Stopping: Reached {self.MAX_KNOWN_HITS} known listings.")
-                        return # Stop processing this page and future pagination
+                    self.logger.info(f"Listing already exists (count: {self._known_hits}): {new_detailUrl}")
+                    # Continue processing - don't stop early, scrape all listings
                     continue
                 
                 # If we are here, it's a new listing (or check failed)

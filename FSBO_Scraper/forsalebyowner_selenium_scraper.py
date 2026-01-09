@@ -49,7 +49,7 @@ USE_WEBDRIVER_MANAGER = False
 class ForSaleByOwnerSeleniumScraper:
     """Selenium-based scraper for ForSaleByOwner.com listings."""
     
-    def __init__(self, base_url: str, headless: bool = True, delay: float = 2.0, api_url: Optional[str] = None):
+    def __init__(self, base_url: str, headless: bool = True, delay: float = 2.0):
         """
         Initialize the scraper with Selenium.
         
@@ -57,13 +57,10 @@ class ForSaleByOwnerSeleniumScraper:
             base_url: Base URL of the search page
             headless: Run browser in headless mode (default: True)
             delay: Delay between actions in seconds (default: 2.0)
-            api_url: API URL for real-time storage (default: http://localhost:3000/api/listings/add)
         """
         self.base_url = base_url
         self.delay = delay
         self.driver = None
-        self.api_url = api_url
-        self.real_time_storage = bool(api_url)
         # Supabase configuration
         self.supabase_url = os.getenv("SUPABASE_URL")
         self.supabase_key = os.getenv("SUPABASE_SERVICE_KEY")
@@ -73,11 +70,15 @@ class ForSaleByOwnerSeleniumScraper:
             try:
                 self.supabase = create_client(self.supabase_url, self.supabase_key)
                 self.enrichment_manager = EnrichmentManager(self.supabase)
+                self.real_time_storage = True  # Enable real-time storage when Supabase is available
                 logger.info(f"Connected to Supabase and initialized EnrichmentManager: {self.supabase_url}")
             except Exception as e:
                 logger.error(f"Failed to connect to Supabase or initialize EnrichmentManager: {e}")
+                self.real_time_storage = False
+                self.enrichment_manager = None
         else:
             logger.warning("Supabase credentials missing in environment variables")
+            self.real_time_storage = False
             self.enrichment_manager = None
             
         self.setup_driver(headless)
@@ -323,44 +324,113 @@ class ForSaleByOwnerSeleniumScraper:
             return False
             
         try:
+            listing_link = listing_data.get("listing_link", "")
+            if not listing_link:
+                logger.warning("Cannot save listing: missing listing_link")
+                return False
+            
             # Prepare data for Supabase (Must match database schema EXACTLY)
+            # Convert empty strings to None for optional fields (better for database)
+            owner_emails = listing_data.get("owner_emails", [])
+            owner_phones = listing_data.get("owner_phones", [])
+            
+            # Helper function to safely clean string values
+            def clean_string(value):
+                if value is None:
+                    return None
+                if isinstance(value, str):
+                    cleaned = value.strip()
+                    return cleaned if cleaned else None
+                # If it's not a string (e.g., int, float), convert to string first
+                return str(value).strip() if str(value).strip() else None
+            
+            # Build data dictionary - EXPLICITLY exclude 'id' field to let DB auto-generate it
             data = {
-                "address": listing_data.get("address", ""),
-                "price": listing_data.get("price", ""),
-                "beds": listing_data.get("beds", ""),
-                "baths": listing_data.get("baths", ""),
-                "square_feet": listing_data.get("square_feet", ""),
-                "listing_link": listing_data.get("listing_link", ""),
-                "time_of_post": listing_data.get("time_of_post", ""),
-                "owner_emails": listing_data.get("owner_emails", []),
-                "owner_phones": listing_data.get("owner_phones", []),
-                "owner_name": listing_data.get("owner_name", ""),
-                "mailing_address": listing_data.get("mailing_address", "")
+                "address": clean_string(listing_data.get("address")),
+                "price": clean_string(listing_data.get("price")),
+                "beds": clean_string(listing_data.get("beds")),
+                "baths": clean_string(listing_data.get("baths")),
+                "square_feet": clean_string(listing_data.get("square_feet")),
+                "listing_link": listing_link,  # Required field
+                "time_of_post": clean_string(listing_data.get("time_of_post")),
+                "owner_emails": owner_emails if owner_emails else None,  # jsonb - send None if empty array
+                "owner_phones": owner_phones if owner_phones else None,  # jsonb - send None if empty array
+                "owner_name": clean_string(listing_data.get("owner_name")),
+                "mailing_address": clean_string(listing_data.get("mailing_address"))
+                # NOTE: We explicitly do NOT include 'id' - database will auto-generate it
             }
             
-            # Upsert data (insert or update if exists based on listing_link)
-            response = self.supabase.table("listings").upsert(
-                data, 
-                on_conflict="listing_link"
-            ).execute()
+            # Remove None values except for jsonb fields (they should be null instead of missing)
+            # But keep required fields like listing_link
+            clean_data = {}
+            for key, value in data.items():
+                if key == "listing_link":
+                    clean_data[key] = value  # Always include listing_link
+                elif key in ["owner_emails", "owner_phones"]:
+                    clean_data[key] = value  # Include jsonb fields even if None
+                elif value is not None:
+                    clean_data[key] = value
             
-            if response.data:
-                logger.info(f"Saved to Supabase: {listing_data.get('address', 'N/A')[:50]}")
-                
-                # AUTOMATIC ENRICHMENT DISABLED - User must click "Run Enrichment" button manually
-                # Enrichment Integration (COMMENTED OUT - manual only)
-                # if self.enrichment_manager:
-                #     try:
-                #         address_hash = self.enrichment_manager.process_listing(listing_data, listing_source="ForSaleByOwner")
-                #         if address_hash:
-                #             # Update the listing with the address_hash
-                #             self.supabase.table("listings").update({"address_hash": address_hash}).eq("listing_link", listing_data.get("listing_link")).execute()
-                #     except Exception as e:
-                #         logger.error(f"Error in EnrichmentManager: {e}")
+            # Explicitly create final data dict excluding auto-generated fields
+            # This ensures 'id' is NEVER included, preventing primary key conflicts
+            final_data = {k: v for k, v in clean_data.items() if k not in ['id', 'created_at', 'updated_at']}
+            
+            # Strategy: Check first, then update or insert
+            # This avoids sequence sync issues by explicitly checking for existing records
+            existing_id = None
+            try:
+                existing_response = self.supabase.table("listings").select("id").eq("listing_link", listing_link).execute()
+                if existing_response and existing_response.data and len(existing_response.data) > 0:
+                    existing_id = existing_response.data[0].get("id")
+            except Exception as check_error:
+                logger.warning(f"Error checking existing listing: {check_error}. Will attempt to insert/update anyway.")
+                existing_id = None
+            
+            try:
+                if existing_id:
+                    # Update existing listing
+                    response = self.supabase.table("listings").update(final_data).eq("id", existing_id).execute()
+                    if response and response.data:
+                        logger.info(f"Updated in Supabase: {listing_data.get('address', 'N/A')[:50]}")
+                        return True
+                    else:
+                        logger.error(f"Failed to update in Supabase: {listing_data.get('address', 'N/A')[:50]}")
+                        return False
+                else:
+                    # Try to insert new listing
+                    # If INSERT fails due to sequence sync issue (duplicate key on id), 
+                    # re-check by listing_link in case record exists but check missed it
+                    try:
+                        response = self.supabase.table("listings").insert(final_data).execute()
+                        if response and response.data:
+                            logger.info(f"Saved to Supabase: {listing_data.get('address', 'N/A')[:50]}")
+                            return True
+                        else:
+                            logger.error(f"Failed to insert in Supabase: {listing_data.get('address', 'N/A')[:50]}")
+                            return False
+                    except Exception as insert_error:
+                        error_msg = str(insert_error)
+                        # If INSERT fails with duplicate key on ID (sequence sync issue), 
+                        # check again by listing_link - maybe the record exists after all
+                        if 'duplicate key' in error_msg.lower() and 'listings_pkey' in error_msg:
+                            logger.warning(f"Insert failed due to sequence sync issue, re-checking by listing_link...")
+                            try:
+                                recheck_response = self.supabase.table("listings").select("id").eq("listing_link", listing_link).execute()
+                                if recheck_response and recheck_response.data and len(recheck_response.data) > 0:
+                                    # Found it! Update instead
+                                    existing_id = recheck_response.data[0].get("id")
+                                    response = self.supabase.table("listings").update(final_data).eq("id", existing_id).execute()
+                                    if response and response.data:
+                                        logger.info(f"Updated in Supabase (after sequence error): {listing_data.get('address', 'N/A')[:50]}")
+                                        return True
+                            except Exception as recheck_error:
+                                logger.error(f"Re-check after sequence error also failed: {recheck_error}")
                         
-                return True
-            else:
-                logger.error(f"Failed to save to Supabase: {listing_data.get('address', 'N/A')[:50]}")
+                        logger.error(f"Error inserting listing in Supabase: {insert_error}")
+                        logger.error(f"NOTE: Database sequence may be out of sync. Consider running: SELECT setval('listings_id_seq', (SELECT MAX(id) FROM listings));")
+                        return False
+            except Exception as db_error:
+                logger.error(f"Error saving listing in Supabase: {db_error}")
                 return False
                 
         except Exception as e:
@@ -426,7 +496,6 @@ class ForSaleByOwnerSeleniumScraper:
             # Navigate to the page
             logger.info(f"Navigating to: {self.base_url}")
             logger.info(f"Real-time storage: {'ENABLED' if self.real_time_storage else 'DISABLED'}")
-            logger.info(f"API URL: {self.api_url}")
             self.driver.get(self.base_url)
             
             # Wait for content to load
@@ -465,22 +534,6 @@ class ForSaleByOwnerSeleniumScraper:
                             continue
                     current_links = len(unique_hrefs)
                     logger.info(f"Current UNIQUE listing links found: {current_links} (Expected: {expected_count})")
-                    
-                    # Incremental Check: Check if these listings already exist in Supabase
-                    existing_urls = set()
-                    if self.supabase and unique_hrefs:
-                        try:
-                            # FSBO uses 'listing_link' as the unique field
-                            # Confirm table name is 'listings' as used in send_listing_to_supabase
-                            response = self.supabase.table("listings").select("listing_link").in_("listing_link", list(unique_hrefs)).execute()
-                            existing_urls = {row['listing_link'] for row in response.data}
-                            logger.info(f"Incremental Check: {len(existing_urls)} listings already exist in Supabase")
-                            
-                            if len(existing_urls) >= 3:
-                                logger.info(f"STOPPING Discovery: Found {len(existing_urls)} known listings. Reached incremental threshold.")
-                                break # Exit the View More loop early
-                        except Exception as e:
-                            logger.error(f"Error in incremental check: {e}")
 
                     # Check if we've reached the expected count
                     if current_links >= expected_count:
@@ -2209,15 +2262,15 @@ def main():
         print(f"Location: forsalebyowner_listings.csv")
         print(f"Total Listings: {len(all_listings)}")
         print(f"\nColumn Headers (First Row):")
-        print(f"   1. Property_Address - Property ka full address")
-        print(f"   2. Listing_Price - Property ki price")
-        print(f"   3. Number_of_Bedrooms - Kitne bedrooms")
-        print(f"   4. Number_of_Bathrooms - Kitne bathrooms")
-        print(f"   5. Square_Feet - Property ka size")
-        print(f"   6. Listing_URL - Property ka direct link")
-        print(f"   7. Date_Posted - Listing kab post hui")
-        print(f"\nNote: CSV file har run par automatically UPDATE hoti hai")
-        print(f"      Headers hamesha first row mein hote hain")
+        print(f"   1. Property_Address - Property full address")
+        print(f"   2. Listing_Price - Property price")
+        print(f"   3. Number_of_Bedrooms -  bedrooms")
+        print(f"   4. Number_of_Bathrooms -  bathrooms")
+        print(f"   5. Square_Feet - Property size")
+        print(f"   6. Listing_URL - Property direct link")
+        print(f"   7. Date_Posted - Listing when posted")
+        print(f"\nNote: CSV file updates on every run")
+        print(f"      Headers are always in first row")
         print("=" * 60)
         
     except Exception as e:
