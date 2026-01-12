@@ -821,13 +821,9 @@ class HotPadsSpider(scrapy.Spider):
                 if final_url and not final_url.startswith('http'):
                     final_url = response.urljoin(final_url)
                 
-                # Generate unique URL if multiple details
-                if len(jsonld_details) > 1:
-                    try:
-                        if final_url == response.url or final_url in [d.get('mainEntity', {}).get('url') if isinstance(d.get('mainEntity'), dict) else '' for d in jsonld_details if isinstance(d, dict)]:
-                            final_url = f"{final_url}#index-{idx}"
-                    except (ValueError, AttributeError):
-                        pass
+                # Remove hash fragments (e.g., #index-0) - these should not be part of the stored URL
+                # The database uses URL as unique key, so hash fragments would create duplicates
+                final_url = final_url.split('#')[0]
                 
                 # Build beds_bath string from final values
                 parts = [val for val in [final_beds + ' beds' if final_beds else '', final_baths + ' baths' if final_baths else ''] if val]
@@ -862,6 +858,9 @@ class HotPadsSpider(scrapy.Spider):
             parts = [val for val in [xpath_beds + ' beds' if xpath_beds else '', xpath_baths + ' baths' if xpath_baths else ''] if val]
             final_beds_bath = ", ".join(parts) if parts else ""
             
+            # Remove hash fragments from response URL before storing
+            clean_url = response.url.split('#')[0]
+            
             item = {
                 'Name': '',  # No XPath equivalent
                 'Contact Name': xpath_contact_name,
@@ -874,7 +873,7 @@ class HotPadsSpider(scrapy.Spider):
                 'Sqft': xpath_sqft,
                 'Phone Number': '',  # No XPath equivalent
                 'Address': '',  # No XPath equivalent
-                'Url': response.url,
+                'Url': clean_url,
                 'Price': xpath_price if xpath_price else 'N/A'
             }
             

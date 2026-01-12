@@ -1,14 +1,14 @@
--- SQL Script to fix Hotpads sequence
--- For GENERATED ALWAYS AS IDENTITY columns, use ALTER TABLE ... RESTART
+-- SQL Script to reset Hotpads sequence to start from 1
+-- WARNING: This will DELETE ALL existing records in hotpads_listings
 -- Run this in Supabase SQL Editor
 
-DO $$
-DECLARE
-    max_id_val INTEGER;
-BEGIN
-    -- hotpads_listings
-    SELECT COALESCE(MAX(id), 0) INTO max_id_val FROM hotpads_listings;
-    EXECUTE format('ALTER TABLE hotpads_listings ALTER COLUMN id RESTART WITH %s', max_id_val + 1);
-    RAISE NOTICE 'Fixed hotpads_listings sequence to start from %', max_id_val + 1;
-END $$;
+-- Step 1: Delete all existing records
+DELETE FROM hotpads_listings;
+
+-- Step 2: Reset the sequence to start from 1
+-- For GENERATED ALWAYS AS IDENTITY or BIGSERIAL columns
+ALTER TABLE hotpads_listings ALTER COLUMN id RESTART WITH 1;
+
+-- Verify the table is empty
+SELECT COUNT(*) as record_count FROM hotpads_listings;
 
