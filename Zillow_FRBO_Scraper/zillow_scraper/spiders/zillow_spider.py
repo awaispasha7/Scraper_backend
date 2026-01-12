@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import scrapy
+from urllib.parse import urljoin
 
 from pathlib import Path
 from supabase import create_client, Client
@@ -168,9 +169,9 @@ class ZillowSpiderSpider(scrapy.Spider):
 
             meta = {'new_detailUrl': detail_url}
             meta["zyte_api"] = {"browserHtml": True, "geolocation": "US"}
-            # Use scrapy.Request instead of response.follow to support Zyte API
-            absolute_url = response.urljoin(detail_url)
-            yield scrapy.Request(url=absolute_url, callback=self.detail_page, meta=meta)
+            # build_detail_url already returns absolute URLs, so use it directly
+            # response.urljoin() doesn't work with Zyte API responses, so we use the URL directly
+            yield scrapy.Request(url=detail_url, callback=self.detail_page, meta=meta)
 
         # Handle pagination
         next_page = response.xpath("//a[@title='Next page']/@href").get('')
@@ -178,7 +179,10 @@ class ZillowSpiderSpider(scrapy.Spider):
             logger.info(f"ZIP {zipcode}: Found next page")
             meta = {'zipcode': zipcode, 'consecutive_empty': consecutive_empty}
             meta["zyte_api"] = {"browserHtml": True, "geolocation": "US"}
-            yield scrapy.Request(response.urljoin(next_page), callback=self.parse, meta=meta)
+            # Use urllib.parse.urljoin since response.urljoin() doesn't work with Zyte API responses
+            base_url = getattr(response, 'url', 'https://www.zillow.com')
+            next_page_url = urljoin(base_url, next_page)
+            yield scrapy.Request(next_page_url, callback=self.parse, meta=meta)
 
     def detail_page(self, response):
         """Parse property detail page"""
