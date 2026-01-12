@@ -223,35 +223,18 @@ class HotPadsSpider(scrapy.Spider):
                 except Exception as e:
                     self.logger.error(f"Could not log body snippet: {e}")
 
-        # Normalize to absolute URLs and FILTER
-        raw_urls = listing_urls
-        listing_urls = []
-        filtered_out = []
-        
-        for url in raw_urls:
+        # Normalize to absolute URLs - NO FILTERING, accept all URLs in the domain
+        listing_urls_normalized = []
+        for url in listing_urls:
             if not url: continue
             full_url = response.urljoin(url) if not url.startswith('http') else url
-            
-            # PRIORITY FILTER: If it contains /pad or /building, it's almost certainly a listing
-            is_listingPattern = any(term in full_url for term in ['/pad', '/building'])
-            
-            # Search categories usually contain '-for-rent' or '/rooms-for-rent' but NOT /pad or /building
-            is_searchPattern = not is_listingPattern and any(term in full_url for term in [
-                '-apartments-for-rent', '-houses-for-rent', '-condos-for-rent', '-townhomes-for-rent',
-                '/luxury-apartments', '/furnished-apartments', '/affordable-apartments', '/rooms-for-rent',
-                '-for-rent-by-owner'
-            ])
-            
-            if is_listingPattern and not is_searchPattern:
-                listing_urls.append(full_url)
-            else:
-                filtered_out.append(full_url)
+            # Only ensure it's a hotpads.com URL (basic domain validation)
+            if 'hotpads.com' in full_url:
+                listing_urls_normalized.append(full_url)
         
         # Remove duplicates
-        listing_urls = list(dict.fromkeys(listing_urls))
-        if not listing_urls and filtered_out:
-            self.logger.info(f"Total raw URLs found: {len(raw_urls)}")
-            self.logger.info(f"SAMPLE REJECTED URLS (first 10): {filtered_out[:10]}")
+        listing_urls = list(dict.fromkeys(listing_urls_normalized))
+        self.logger.info(f"Found {len(listing_urls)} unique URLs to process (no filtering applied)")
 
         # Record first listing for state update (assuming newest)
         if not self._first_listing_url and listing_urls:

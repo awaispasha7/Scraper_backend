@@ -137,7 +137,7 @@ class RedfinSpiderSpider(scrapy.Spider):
             
             self.logger.info(f"Found {len(all_links)} total links with /home/ pattern")
             
-            # Filter for property detail pages only
+            # Normalize URLs - NO FILTERING, accept all URLs in the domain
             property_urls = set()
             for link in all_links:
                 if not link:
@@ -151,37 +151,13 @@ class RedfinSpiderSpider(scrapy.Spider):
                 else:
                     full_url = response.urljoin(link)
                 
-                # Must match property detail page pattern: /IL/City/Address/home/ID
-                # OR /IL/City/Address/unit-X/home/ID
-                property_pattern = r'/IL/[^/]+/[^/]+(?:/unit-[^/]+)?/home/\d+'
-                
-                # Exclude patterns (city, county, search pages, etc.)
-                exclude_patterns = [
-                    '/city/',
-                    '/county/',
-                    '/for-sale-by-owner',
-                    '/for-sale',
-                    '/homes',
-                    '/new-listings',
-                    '/recently-sold',
-                    '/open-houses',
-                    '/townhomes',
-                    '/condos',
-                    '/apartments',
-                    '/rent',
-                    '/map',
-                ]
-                
-                # Check if it's a valid property page
-                is_property = bool(re.search(property_pattern, full_url))
-                should_exclude = any(pattern in full_url for pattern in exclude_patterns)
-                
-                if is_property and not should_exclude:
+                # Only ensure it's a redfin.com URL (basic domain validation)
+                if 'redfin.com' in full_url:
                     # Clean URL (remove query params and fragments)
                     clean_url = full_url.split('?')[0].split('#')[0]
                     property_urls.add(clean_url)
             
-            self.logger.info(f"Found {len(property_urls)} unique property URLs on search results page")
+            self.logger.info(f"Found {len(property_urls)} unique URLs to process (no filtering applied)")
             
             # Record first listing for state update (assuming newest)
             if not self._first_listing_url and property_urls:
