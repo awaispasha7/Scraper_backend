@@ -223,18 +223,48 @@ class HotPadsSpider(scrapy.Spider):
                 except Exception as e:
                     self.logger.error(f"Could not log body snippet: {e}")
 
-        # Normalize to absolute URLs - NO FILTERING, accept all URLs in the domain
+        # Normalize to absolute URLs and filter to only include actual listing URLs
         listing_urls_normalized = []
         for url in listing_urls:
             if not url: continue
             full_url = response.urljoin(url) if not url.startswith('http') else url
-            # Only ensure it's a hotpads.com URL (basic domain validation)
-            if 'hotpads.com' in full_url:
+            
+            # Only process hotpads.com URLs
+            if 'hotpads.com' not in full_url:
+                continue
+            
+            # Remove hash fragments (e.g., #index-0) - these are category/pagination indicators
+            full_url = full_url.split('#')[0]
+            
+            # Filter: Only include URLs that look like actual listings
+            # Accept: URLs with /pad/ (individual listings) or /building/ (building pages)
+            # Reject: Category/filter URLs (e.g., /apartments-for-rent-with-..., /affordable-apartments-for-rent)
+            is_listing_url = False
+            
+            # Check for /pad/ pattern (individual listings)
+            if '/pad/' in full_url or '/pad' in full_url.split('/')[-1]:
+                is_listing_url = True
+            # Check for /building/ pattern (building pages that contain multiple units)
+            elif '/building/' in full_url:
+                is_listing_url = True
+            # Reject category/filter URLs (common patterns)
+            elif any(pattern in full_url for pattern in [
+                '/apartments-for-rent-with-',
+                '/affordable-apartments-for-rent',
+                '/loft-apartments-for-rent',
+                '/apartments-for-rent',
+                '/for-rent-by-owner',
+                '/for-rent',
+            ]):
+                # Skip category URLs
+                continue
+            
+            if is_listing_url:
                 listing_urls_normalized.append(full_url)
         
         # Remove duplicates
         listing_urls = list(dict.fromkeys(listing_urls_normalized))
-        self.logger.info(f"Found {len(listing_urls)} unique URLs to process (no filtering applied)")
+        self.logger.info(f"Found {len(listing_urls)} unique listing URLs to process (filtered to /pad/ and /building/ URLs only)")
 
         # Record first listing for state update (assuming newest)
         if not self._first_listing_url and listing_urls:
