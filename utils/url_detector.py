@@ -84,10 +84,12 @@ class URLDetector:
             if domain in config['domains']:
                 # For Zillow, check if it's FSBO or FRBO based on URL pattern
                 if platform.startswith('zillow_'):
-                    if 'for-sale' in url_lower or 'for_sale' in url_lower or 'fsbo' in url_lower:
-                        return 'zillow_fsbo'
-                    elif 'for-rent' in url_lower or 'for_rent' in url_lower or 'frbo' in url_lower:
+                    # Check for rentals/FRBO patterns first (more specific)
+                    # Accept both /rentals/ and /for_rent/ or /for-rent/ patterns
+                    if '/rentals/' in url_lower or '/for_rent/' in url_lower or '/for-rent/' in url_lower or 'for_rent' in url_lower or 'for-rent' in url_lower or 'frbo' in url_lower:
                         return 'zillow_frbo'
+                    elif '/fsbo/' in url_lower or '/for_sale/' in url_lower or '/for-sale/' in url_lower or 'for_sale' in url_lower or 'for-sale' in url_lower or 'fsbo' in url_lower:
+                        return 'zillow_fsbo'
                     # Default to FSBO if unclear
                     return 'zillow_fsbo'
                 return platform
@@ -95,10 +97,12 @@ class URLDetector:
             # Check pattern match as fallback
             if re.search(config['pattern'], url_lower):
                 if platform.startswith('zillow_'):
-                    if 'for-sale' in url_lower or 'for_sale' in url_lower or 'fsbo' in url_lower:
-                        return 'zillow_fsbo'
-                    elif 'for-rent' in url_lower or 'for_rent' in url_lower or 'frbo' in url_lower:
+                    # Check for rentals/FRBO patterns first (more specific)
+                    # Accept both /rentals/ and /for_rent/ or /for-rent/ patterns
+                    if '/rentals/' in url_lower or '/for_rent/' in url_lower or '/for-rent/' in url_lower or 'for_rent' in url_lower or 'for-rent' in url_lower or 'frbo' in url_lower:
                         return 'zillow_frbo'
+                    elif '/fsbo/' in url_lower or '/for_sale/' in url_lower or '/for-sale/' in url_lower or 'for_sale' in url_lower or 'for-sale' in url_lower or 'fsbo' in url_lower:
+                        return 'zillow_fsbo'
                     return 'zillow_fsbo'
                 return platform
         
