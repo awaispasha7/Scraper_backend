@@ -4,7 +4,7 @@ import json
 import logging
 import os
 import scrapy
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse, parse_qs, urlencode, quote, urlparse, parse_qs, urlencode, quote
 
 from pathlib import Path
 from supabase import create_client, Client
@@ -173,16 +173,63 @@ class ZillowSpiderSpider(scrapy.Spider):
             # response.urljoin() doesn't work with Zyte API responses, so we use the URL directly
             yield scrapy.Request(url=detail_url, callback=self.detail_page, meta=meta)
 
-        # Handle pagination
+        # Handle pagination - try multiple methods
+        next_page_url = None
+        
+        # Method 1: Try XPath selector (traditional HTML pagination)
         next_page = response.xpath("//a[@title='Next page']/@href").get('')
         if next_page:
-            logger.info(f"ZIP {zipcode}: Found next page")
-            meta = {'zipcode': zipcode, 'consecutive_empty': consecutive_empty}
-            meta["zyte_api"] = {"browserHtml": True, "geolocation": "US"}
-            # Use urllib.parse.urljoin since response.urljoin() doesn't work with Zyte API responses
             base_url = getattr(response, 'url', 'https://www.zillow.com')
             next_page_url = urljoin(base_url, next_page)
+            logger.info(f"ZIP {zipcode}: Found next page via XPath")
+        else:
+            # Method 2: Extract pagination from JSON data and construct next page URL
+            try:
+                json_text = response.css("#__NEXT_DATA__::text").get('')
+                if json_text:
+                    json_data = json.loads(json_text)
+                    page_props = json_data.get('props', {}).get('pageProps', {})
+                    search_page_state = page_props.get('searchPageState', {})
+                    
+                    # Check if there's pagination info
+                    cat1 = search_page_state.get('cat1', {})
+                    search_results = cat1.get('searchResults', {})
+                    pagination = search_results.get('pagination', {})
+                    current_page = pagination.get('currentPage', 1)
+                    total_pages = pagination.get('totalPages', 0)
+                    
+                    if total_pages > 0 and current_page < total_pages:
+                        # Construct next page URL by modifying searchQueryState
+                        current_url = getattr(response, 'url', '')
+                        if current_url:
+                            parsed_url = urlparse(current_url)
+                            query_params = parse_qs(parsed_url.query)
+                            
+                            # Get existing searchQueryState
+                            if 'searchQueryState' in query_params:
+                                search_query_state_str = query_params['searchQueryState'][0]
+                                search_query_state = json.loads(search_query_state_str)
+                                
+                                # Update pagination
+                                if 'pagination' not in search_query_state:
+                                    search_query_state['pagination'] = {}
+                                search_query_state['pagination']['currentPage'] = current_page + 1
+                                
+                                # Reconstruct URL
+                                new_query_params = query_params.copy()
+                                new_query_params['searchQueryState'] = [quote(json.dumps(search_query_state))]
+                                new_query = urlencode(new_query_params, doseq=True)
+                                next_page_url = f"{parsed_url.scheme}://{parsed_url.netloc}{parsed_url.path}?{new_query}"
+                                logger.info(f"ZIP {zipcode}: Constructed next page URL from JSON (page {current_page + 1}/{total_pages})")
+            except Exception as e:
+                logger.debug(f"Error extracting pagination from JSON: {e}")
+        
+        if next_page_url:
+            meta = {'zipcode': zipcode, 'consecutive_empty': consecutive_empty}
+            meta["zyte_api"] = {"browserHtml": True, "geolocation": "US"}
             yield scrapy.Request(next_page_url, callback=self.parse, meta=meta)
+        else:
+            logger.info(f"ZIP {zipcode}: No next page found, stopping pagination")
 
     def detail_page(self, response):
         """Parse property detail page"""
