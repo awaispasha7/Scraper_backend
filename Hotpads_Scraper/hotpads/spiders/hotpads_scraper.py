@@ -186,7 +186,7 @@ class HotPadsSpider(scrapy.Spider):
         except Exception as e:
             self.logger.error(f"Error parsing JSON-LD: {e}")
 
-        # Strategy 2: XPath Selectors (Fallback)
+            # Strategy 2: XPath Selectors (Fallback)
         if not listing_urls:
             self.logger.info("JSON-LD yielded no URLs, trying XPath selectors...")
             
@@ -194,27 +194,37 @@ class HotPadsSpider(scrapy.Spider):
             title = response.xpath("//title/text()").get('')
             self.logger.info(f"PAGE TITLE: {title}")
             
-            # Surgical Card Detection: Limit to actual listings container
+            # First, try to find links with ListingCardAnchor attribute (most reliable)
+            anchor_links = response.xpath("//a[@data-name='ListingCardAnchor']/@href").getall()
+            if anchor_links:
+                self.logger.info(f"Found {len(anchor_links)} links via ListingCardAnchor attribute")
+                listing_urls.extend(anchor_links)
+            
+            # Also try surgical Card Detection: Limit to actual listings container
             # This avoids picking up hundreds of "Related Searches" or "Popular Areas" links
-            container = response.xpath("//div[@id='area-listings-container'] | //ul[contains(@class, 'AreaListingsContainer')]")
-            if container:
-                self.logger.info("Found area-listings-container, searching for cards within...")
-                records = container.xpath(".//li[contains(@class, 'styles__li')] | .//article | .//div[contains(@class, 'ListingCard')]")
-            else:
-                self.logger.warning("area-listings-container NOT found, falling back to broad search (excluding nav/footer)...")
-                records = response.xpath("//li[contains(@class, 'styles__li') and not(ancestor::nav) and not(ancestor::footer)]")
-                if not records:
-                    records = response.xpath("//article[contains(@class, 'ListingCard')] | //div[contains(@class, 'ListingCard')]")
+            if not listing_urls:
+                container = response.xpath("//div[@id='area-listings-container'] | //ul[contains(@class, 'AreaListingsContainer')]")
+                if container:
+                    self.logger.info("Found area-listings-container, searching for cards within...")
+                    records = container.xpath(".//li[contains(@class, 'styles__li')] | .//article | .//div[contains(@class, 'ListingCard')]")
+                else:
+                    self.logger.warning("area-listings-container NOT found, falling back to broad search (excluding nav/footer)...")
+                    records = response.xpath("//li[contains(@class, 'styles__li') and not(ancestor::nav) and not(ancestor::footer)]")
+                    if not records:
+                        records = response.xpath("//article[contains(@class, 'ListingCard')] | //div[contains(@class, 'ListingCard')]")
 
-            self.logger.info(f"Found {len(records)} listing records via XPath")
+                self.logger.info(f"Found {len(records)} listing records via XPath")
 
-            for record in records:
-                # Try to find the link within the card
-                url = record.xpath(".//a[contains(@href, '/')]//@href").get('')
-                if not url:
-                    url = record.xpath("./ancestor-or-self::a/@href").get('')
-                if url:
-                    listing_urls.append(url)
+                for record in records:
+                    # Try to find the link within the card - prefer ListingCardAnchor attribute
+                    url = record.xpath(".//a[@data-name='ListingCardAnchor']/@href").get('')
+                    if not url:
+                        # Fallback to any link in the card
+                        url = record.xpath(".//a[contains(@href, '/')]/@href").get('')
+                    if not url:
+                        url = record.xpath("./ancestor-or-self::a/@href").get('')
+                    if url:
+                        listing_urls.append(url)
                     
             if not listing_urls and "0 Rentals" in title:
                 self.logger.warning("Confirmed 0 listings found via Page Title. Checking body snippet for diagnostics...")
