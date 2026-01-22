@@ -168,6 +168,9 @@ class RedfinSpiderSpider(scrapy.Spider):
             
             self.logger.info(f"Found {len(property_urls)} unique URLs to process (no filtering applied)")
             
+            if len(property_urls) == 0:
+                self.logger.warning("No property URLs found on this page - may need to check selectors")
+            
             # Record first listing for state update (assuming newest)
             if not self._first_listing_url and property_urls:
                 self._first_listing_url = list(property_urls)[0]
@@ -220,14 +223,18 @@ class RedfinSpiderSpider(scrapy.Spider):
                         }
                     )
             
-            # Check if URL was provided - if so, don't paginate (only scrape the provided page)
+            # Check if URL was provided - only stop pagination if it's a property detail page
+            # For search results pages (city/region/county URLs), we should paginate to get all listings
             url_provided = response.meta.get('url_provided', False)
+            is_property_page = '/home/' in response.url
             
-            if url_provided:
-                self.logger.info("URL provided - stopping after current page (no pagination)")
-                return  # Stop after scraping the provided URL's page
+            # Only stop pagination if URL was provided AND it's a property detail page
+            # For search results pages, always paginate to get all listings
+            if url_provided and is_property_page:
+                self.logger.info("Property detail page provided - stopping after current page (no pagination)")
+                return  # Stop after scraping the provided property page
             
-            # Check for next page - look for pagination (only when no URL provided)
+            # Check for next page - paginate for search results pages
             next_page = None
             
             # Try multiple selectors for next page
@@ -249,7 +256,7 @@ class RedfinSpiderSpider(scrapy.Spider):
             
             if next_page:
                 next_url = response.urljoin(next_page)
-                self.logger.info(f"Found next page: {next_url}")
+                self.logger.info(f"Found next page: {next_url} - continuing pagination to get all listings")
                 yield response.follow(
                     next_url,
                     callback=self.parse,
