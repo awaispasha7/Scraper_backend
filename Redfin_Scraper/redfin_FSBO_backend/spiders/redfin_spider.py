@@ -43,8 +43,15 @@ class RedfinSpiderSpider(scrapy.Spider):
             # Default Redfin FSBO URL for DuPage County
             start_url = "https://www.redfin.com/county/733/IL/DuPage-County/for-sale-by-owner"
         
+        # Check if this is an FSBO-specific URL (only enforce FSBO check for FSBO URLs)
+        is_fsbo_only = 'for-sale-by-owner' in start_url.lower() or 'fsbo' in start_url.lower()
+        
         self.logger.info(f"Starting scrape for: {start_url}")
         self.logger.info("Using Zyte API for browser rendering")
+        if is_fsbo_only:
+            self.logger.info("FSBO-only mode: Will skip non-FSBO listings")
+        else:
+            self.logger.info("All listings mode: Will scrape all listings (not just FSBO)")
         
         # Only add known properties if NO URL was provided (default behavior)
         # When URL is provided, only scrape that specific location
@@ -66,7 +73,8 @@ class RedfinSpiderSpider(scrapy.Spider):
                     "browserHtml": True,
                     "geolocation": "US"
                 },
-                "url_provided": url_provided  # Track if URL was provided to control pagination
+                "url_provided": url_provided,  # Track if URL was provided to control pagination
+                "fsbo_only": is_fsbo_only  # Track if we should only scrape FSBO listings
             },
             dont_filter=True
         )
@@ -85,7 +93,8 @@ class RedfinSpiderSpider(scrapy.Spider):
                             "zyte_api": {
                                 "browserHtml": True,
                                 "geolocation": "US"
-                            }
+                            },
+                            "fsbo_only": is_fsbo_only  # Pass FSBO-only flag
                         },
                         dont_filter=True
                     )
@@ -187,6 +196,7 @@ class RedfinSpiderSpider(scrapy.Spider):
                 return
             
             # Visit each property detail page
+            fsbo_only = response.meta.get('fsbo_only', False)
             for url in property_urls:
                 if url in existing_urls:
                     self._known_hits += 1
@@ -205,7 +215,8 @@ class RedfinSpiderSpider(scrapy.Spider):
                             "zyte_api": {
                                 "browserHtml": True,
                                 "geolocation": "US"
-                            }
+                            },
+                            "fsbo_only": fsbo_only  # Pass FSBO-only flag to detail page
                         }
                     )
             
@@ -250,7 +261,8 @@ class RedfinSpiderSpider(scrapy.Spider):
                             "geolocation": "US"
                         },
                         "consecutive_empty": consecutive_empty,
-                        "url_provided": url_provided  # Preserve the flag
+                        "url_provided": url_provided,  # Preserve the flag
+                        "fsbo_only": response.meta.get('fsbo_only', False)  # Preserve FSBO-only flag
                     },
                     dont_filter=True
                 )
@@ -577,11 +589,14 @@ class RedfinSpiderSpider(scrapy.Spider):
             # For FSBO listings, agent name should be empty
             item['Agent_Name'] = agent_name or ""
             
-            # Verify this is an FSBO listing
-            page_text = ' '.join(response.css('::text').getall()).lower()
-            if 'for sale by owner' not in page_text and 'fsbo' not in page_text:
-                self.logger.info(f"⛔ Skipping non-FSBO listing: {item.get('Address', 'N/A')}")
-                return
+            # Only verify FSBO status if we're in FSBO-only mode
+            fsbo_only = response.meta.get('fsbo_only', False)
+            if fsbo_only:
+                # Verify this is an FSBO listing
+                page_text = ' '.join(response.css('::text').getall()).lower()
+                if 'for sale by owner' not in page_text and 'fsbo' not in page_text:
+                    self.logger.info(f"⛔ Skipping non-FSBO listing: {item.get('Address', 'N/A')}")
+                    return
             
             if item['Url'] not in self.unique_list:
                 self.unique_list.append(item['Url'])
