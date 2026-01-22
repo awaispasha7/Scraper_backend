@@ -74,7 +74,8 @@ class RedfinSpiderSpider(scrapy.Spider):
                     "geolocation": "US"
                 },
                 "url_provided": url_provided,  # Track if URL was provided to control pagination
-                "fsbo_only": is_fsbo_only  # Track if we should only scrape FSBO listings
+                "fsbo_only": is_fsbo_only,  # Track if we should only scrape FSBO listings
+                "page_num": 1  # Start at page 1 for pagination tracking
             },
             dont_filter=True
         )
@@ -237,26 +238,96 @@ class RedfinSpiderSpider(scrapy.Spider):
             # Check for next page - paginate for search results pages
             next_page = None
             
-            # Try multiple selectors for next page
+            # Try multiple selectors for next page (Redfin uses various patterns)
             next_selectors = [
                 'a[aria-label*="Next"]::attr(href)',
                 'a[title*="Next"]::attr(href)',
                 'a[aria-label*="next"]::attr(href)',
                 'a[title*="next"]::attr(href)',
+                'a[data-rf-test-name*="next"]::attr(href)',
+                'button[aria-label*="Next"]::attr(href)',
+                'button[aria-label*="next"]::attr(href)',
+                'a.button[aria-label*="Next"]::attr(href)',
                 '.PagingControls a:contains("Next")::attr(href)',
+                'a:contains("Next")::attr(href)',
+                'a:contains("→")::attr(href)',
+                'a:contains(">")::attr(href)',
             ]
             
             for selector in next_selectors:
-                next_page = response.css(selector).get()
-                if next_page:
-                    break
+                try:
+                    next_page = response.css(selector).get()
+                    if next_page:
+                        self.logger.info(f"Found next page using selector '{selector}': {next_page}")
+                        break
+                except Exception as e:
+                    continue
             
+            # Try XPath selectors if CSS didn't work
             if not next_page:
-                next_page = response.xpath('//a[contains(text(), "Next") or contains(@aria-label, "Next") or contains(@title, "Next")]/@href').get()
+                xpath_selectors = [
+                    '//a[contains(text(), "Next")]/@href',
+                    '//a[contains(@aria-label, "Next")]/@href',
+                    '//a[contains(@title, "Next")]/@href',
+                    '//a[contains(@aria-label, "next")]/@href',
+                    '//button[contains(@aria-label, "Next")]/@href',
+                    '//a[contains(text(), "→")]/@href',
+                    '//a[contains(text(), ">")]/@href',
+                    '//a[@data-rf-test-name="paging-next"]/@href',
+                    '//a[contains(@class, "next")]/@href',
+                    '//a[contains(@class, "Next")]/@href',
+                ]
+                
+                for xpath_sel in xpath_selectors:
+                    try:
+                        next_page = response.xpath(xpath_sel).get()
+                        if next_page:
+                            self.logger.info(f"Found next page using XPath '{xpath_sel}': {next_page}")
+                            break
+                    except Exception as e:
+                        continue
+            
+            # If no explicit "Next" button found, try to find page number links and increment
+            if not next_page:
+                # Look for current page number and try to find next page link
+                current_page_num = response.meta.get('page_num', 1)
+                next_page_num = current_page_num + 1
+                
+                # Try to find link with next page number
+                page_link = response.xpath(f'//a[contains(@href, "page-{next_page_num}") or contains(@href, "page={next_page_num}")]/@href').get()
+                if page_link:
+                    next_page = page_link
+                    self.logger.info(f"Found next page by page number ({next_page_num}): {next_page}")
+                else:
+                    # Try constructing next page URL if current URL has a page pattern
+                    current_url = response.url
+                    if '/page-' in current_url:
+                        # Extract current page number and increment
+                        match = re.search(r'/page-(\d+)', current_url)
+                        if match:
+                            current_pg = int(match.group(1))
+                            next_pg = current_pg + 1
+                            next_page = current_url.replace(f'/page-{current_pg}', f'/page-{next_pg}')
+                            self.logger.info(f"Constructed next page URL: {next_page}")
+                    elif 'page=' in current_url:
+                        # URL parameter style
+                        match = re.search(r'page=(\d+)', current_url)
+                        if match:
+                            current_pg = int(match.group(1))
+                            next_pg = current_pg + 1
+                            next_page = current_url.replace(f'page={current_pg}', f'page={next_pg}')
+                            self.logger.info(f"Constructed next page URL (param style): {next_page}")
+                    else:
+                        # First page, try adding /page-2
+                        if '/city/' in current_url or '/county/' in current_url:
+                            next_page = current_url.rstrip('/') + '/page-2'
+                            self.logger.info(f"Constructed first next page URL: {next_page}")
             
             if next_page:
                 next_url = response.urljoin(next_page)
-                self.logger.info(f"Found next page: {next_url} - continuing pagination to get all listings")
+                # Update page number in meta
+                page_num = response.meta.get('page_num', 1) + 1
+                self.logger.info(f"Found next page: {next_url} (page {page_num}) - continuing pagination to get all listings")
                 yield response.follow(
                     next_url,
                     callback=self.parse,
@@ -269,7 +340,8 @@ class RedfinSpiderSpider(scrapy.Spider):
                         },
                         "consecutive_empty": consecutive_empty,
                         "url_provided": url_provided,  # Preserve the flag
-                        "fsbo_only": response.meta.get('fsbo_only', False)  # Preserve FSBO-only flag
+                        "fsbo_only": response.meta.get('fsbo_only', False),  # Preserve FSBO-only flag
+                        "page_num": page_num  # Track page number
                     },
                     dont_filter=True
                 )
