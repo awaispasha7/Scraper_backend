@@ -256,6 +256,7 @@ class SupabasePipeline:
             )
             
             supabase_key = (
+                os.getenv("SUPABASE_SERVICE_KEY") or  # Check this first (standard Railway name)
                 os.getenv("SUPABASE_KEY") or 
                 os.getenv("SUPABASE_SERVICE_ROLE_KEY") or 
                 os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
@@ -266,6 +267,7 @@ class SupabasePipeline:
                 spider.logger.debug(f"🔍 Checking Supabase credentials...")
                 spider.logger.debug(f"   SUPABASE_URL: {'Found' if os.getenv('SUPABASE_URL') else 'Not found'}")
                 spider.logger.debug(f"   NEXT_PUBLIC_SUPABASE_URL: {'Found' if os.getenv('NEXT_PUBLIC_SUPABASE_URL') else 'Not found'}")
+                spider.logger.debug(f"   SUPABASE_SERVICE_KEY: {'Found' if os.getenv('SUPABASE_SERVICE_KEY') else 'Not found'}")
                 spider.logger.debug(f"   SUPABASE_KEY: {'Found' if os.getenv('SUPABASE_KEY') else 'Not found'}")
                 spider.logger.debug(f"   SUPABASE_SERVICE_ROLE_KEY: {'Found' if os.getenv('SUPABASE_SERVICE_ROLE_KEY') else 'Not found'}")
                 spider.logger.debug(f"   NEXT_PUBLIC_SUPABASE_ANON_KEY: {'Found' if os.getenv('NEXT_PUBLIC_SUPABASE_ANON_KEY') else 'Not found'}")
